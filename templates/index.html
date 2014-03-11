@@ -1,7 +1,11 @@
-<h1> H1</h1>
+<h1> Hello!</h1>
 
-{% if poll_list %}
-    <h1>aaaa</h1>
-   {% else %}
-    <h2> bbb</h2>
+{% if latest_poll_list %}
+    <ul>
+    {% for poll in latest_poll_list %}
+        <li><a href="{% url 'distroHack:detail' poll.id %}">{{ poll.question }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No polls are available.</p>
 {% endif %}

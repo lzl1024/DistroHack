@@ -4,9 +4,7 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    (r'^$', 'distroHack.views.index'),
-    (r'^(?P<poll_id>\d+)/$', 'distroHack.views.detail'),
-    (r'^(?P<poll_id>\d+)/results/$', 'distroHack.views.results'),
-    (r'^polls/(?P<poll_id>\d+)/vote/$', 'distroHack.views.vote'),
+    url(r'^polls/', include("distroHack.urls", namespace="distroHack")),
+    url(r'^$', include("distroHack.urls", namespace="distroHack")),
     url(r'^admin/', include(admin.site.urls)),
 )
