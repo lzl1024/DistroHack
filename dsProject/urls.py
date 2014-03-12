@@ -5,6 +5,7 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     url(r'^polls/', include("distroHack.urls", namespace="distroHack")),
-    url(r'^$', include("distroHack.urls", namespace="distroHack")),
+    url(r'^$', 'distroHack.views.index'),
+    url(r'^hacks/', include("distroHack.urls", namespace="distroHack")),
     url(r'^admin/', include(admin.site.urls)),
 )

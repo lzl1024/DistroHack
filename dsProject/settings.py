@@ -65,7 +65,7 @@ DATABASES = {
         'PASSWORD': '',
         'HOST': '127.0.0.1',
         'PORT': '3306',
-    }
+        }
 }
 
 # Internationalization
@@ -87,4 +87,16 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-TEMPLATE_DIRS=os.path.join(BASE_DIR,'templates')
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+)
+
+TEMPLATE_DIRS = os.path.join(BASE_DIR, 'templates')
+
+# Combine with bootstrap
+STATIC_ROOT = BASE_DIR + 'static/'
+
+STATICFILES_DIRS = (
+    STATIC_URL,
+)
