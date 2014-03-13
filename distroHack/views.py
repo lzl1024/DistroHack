@@ -58,14 +58,8 @@ def question(request, q_id):
 
 @csrf_exempt
 def runcode(request):
-    print request
     if request.is_ajax():
-        try:
-            submit = request.POST['submit']
-            print submit
-        except KeyError:
-            return HttpResponse('Error') # incorrect post
-        # do stuff, e.g. calculate a score
-        return render_to_response('hack/question.html', context_instance=RequestContext(request))
+        return HttpResponse("Accept!")
+       #return render_to_response('hack/question.html', context_instance=RequestContext(request))
     else:
         raise Http404
