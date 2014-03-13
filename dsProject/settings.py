@@ -95,8 +95,11 @@ STATICFILES_FINDERS = (
 TEMPLATE_DIRS = os.path.join(BASE_DIR, 'templates')
 
 # Combine with bootstrap
-STATIC_ROOT = BASE_DIR + 'static/'
+#STATIC_ROOT = os.path.join(BASE_DIR, 'distroHack/static')
 
 STATICFILES_DIRS = (
     STATIC_URL,
 )
+
+# path to store the temp submitted problem
+OJ_PATH = os.path.join(BASE_DIR, 'oj')

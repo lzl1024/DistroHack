@@ -1,0 +1,4 @@
+grant {
+    permission java.io.FilePermission "test.txt", "read";
+    permission java.util.PropertyPermission "file.encoding", "read";
+};
