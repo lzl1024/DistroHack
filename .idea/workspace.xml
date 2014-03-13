@@ -26,16 +26,7 @@
       <file leaf-file-name="settings.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/dsProject/settings.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="15" column="38" selection-start="423" selection-end="423" vertical-scroll-proportion="0.0" vertical-offset="810" max-vertical-offset="1926">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="header_base.html" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/templates/header_base.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="276" column="24" selection-start="9361" selection-end="9371" vertical-scroll-proportion="-62.48148" vertical-offset="3281" max-vertical-offset="5220">
+            <state line="11" column="9" selection-start="329" selection-end="329" vertical-scroll-proportion="0.0" vertical-offset="288" max-vertical-offset="1926">
               <folding />
             </state>
           </provider>
@@ -44,7 +35,7 @@
       <file leaf-file-name="urls.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/distroHack/urls.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="7" column="0" selection-start="187" selection-end="187" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="324">
+            <state line="7" column="36" selection-start="216" selection-end="223" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="342">
               <folding />
             </state>
           </provider>
@@ -53,16 +44,25 @@
       <file leaf-file-name="index.html" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/templates/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="15" column="86" selection-start="578" selection-end="603" vertical-scroll-proportion="-6.962963" vertical-offset="82" max-vertical-offset="1332">
+            <state line="63" column="13" selection-start="2300" selection-end="2300" vertical-scroll-proportion="-8.296296" vertical-offset="910" max-vertical-offset="1296">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="urls.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/dsProject/urls.py">
+      <file leaf-file-name="bottom_base.html" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/templates/bottom_base.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="11" column="0" selection-start="367" selection-end="367" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="270">
+            <state line="17" column="9" selection-start="771" selection-end="771" vertical-scroll-proportion="-11.333333" vertical-offset="0" max-vertical-offset="684">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="header_base.html" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/templates/header_base.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="277" column="43" selection-start="9321" selection-end="9328" vertical-scroll-proportion="-4.6296296" vertical-offset="4861" max-vertical-offset="5274">
               <folding />
             </state>
           </provider>
@@ -71,8 +71,10 @@
       <file leaf-file-name="views.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/distroHack/views.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="28" column="50" selection-start="1019" selection-end="1019" vertical-scroll-proportion="0.0" vertical-offset="451" max-vertical-offset="972">
-              <folding />
+            <state line="60" column="17" selection-start="1933" selection-end="1933" vertical-scroll-proportion="0.0" vertical-offset="969" max-vertical-offset="1386">
+              <folding>
+                <element signature="e#0#47#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -80,13 +82,13 @@
       <file leaf-file-name="question.html" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/templates/hack/question.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="38" column="0" selection-start="1429" selection-end="1429" vertical-scroll-proportion="1.0965147" vertical-offset="275" max-vertical-offset="810">
+            <state line="50" column="41" selection-start="1694" selection-end="1694" vertical-scroll-proportion="0.29180327" vertical-offset="811" max-vertical-offset="1332">
               <folding>
                 <element signature="e#92#142#0" expanded="true" />
-                <element signature="e#298#320#0" expanded="true" />
-                <element signature="e#348#370#0" expanded="true" />
-                <element signature="e#407#429#0" expanded="true" />
-                <element signature="e#1223#1249#0" expanded="true" />
+                <element signature="e#297#319#0" expanded="true" />
+                <element signature="e#347#369#0" expanded="true" />
+                <element signature="e#406#428#0" expanded="true" />
+                <element signature="e#1114#1140#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -108,17 +110,17 @@
         <option value="$PROJECT_DIR$/templates/detail.html" />
         <option value="$PROJECT_DIR$/templates/results.html" />
         <option value="$PROJECT_DIR$/templates/base.html" />
-        <option value="$PROJECT_DIR$/distroHack/urls.py" />
-        <option value="$PROJECT_DIR$/distroHack/views.py" />
         <option value="$PROJECT_DIR$/templates/polls/detail.html" />
         <option value="$PROJECT_DIR$/templates/test.html" />
-        <option value="$PROJECT_DIR$/templates/bottom_base.html" />
         <option value="$PROJECT_DIR$/templates/polls/results.html" />
         <option value="$PROJECT_DIR$/dsProject/urls.py" />
         <option value="$PROJECT_DIR$/templates/polls/index.html" />
+        <option value="$PROJECT_DIR$/templates/bottom_base.html" />
         <option value="$PROJECT_DIR$/templates/header_base.html" />
+        <option value="$PROJECT_DIR$/distroHack/urls.py" />
         <option value="$PROJECT_DIR$/dsProject/settings.py" />
         <option value="$PROJECT_DIR$/templates/index.html" />
+        <option value="$PROJECT_DIR$/distroHack/views.py" />
         <option value="$PROJECT_DIR$/templates/hack/question.html" />
       </list>
     </option>
@@ -551,7 +553,7 @@
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2777778" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.38271606" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -654,7 +656,9 @@
     <entry file="file://$PROJECT_DIR$/distroHack/views.py">
       <provider selected="true" editor-type-id="text-editor">
         <state line="4" column="44" selection-start="146" selection-end="146" vertical-scroll-proportion="0.0" vertical-offset="170" max-vertical-offset="900">
-          <folding />
+          <folding>
+            <element signature="e#0#47#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -682,7 +686,9 @@
     <entry file="file://$PROJECT_DIR$/distroHack/views.py">
       <provider selected="true" editor-type-id="text-editor">
         <state line="7" column="34" selection-start="175" selection-end="175" vertical-scroll-proportion="0.0" vertical-offset="126" max-vertical-offset="468">
-          <folding />
+          <folding>
+            <element signature="e#0#47#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -771,62 +777,78 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/dsProject/settings.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="38" selection-start="423" selection-end="423" vertical-scroll-proportion="0.0" vertical-offset="810" max-vertical-offset="1926">
+        <state line="11" column="9" selection-start="329" selection-end="329" vertical-scroll-proportion="0.0" vertical-offset="288" max-vertical-offset="1926">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/templates/bottom_base.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="8" column="90" selection-start="281" selection-end="312" vertical-scroll-proportion="-0.39896372" vertical-offset="298" max-vertical-offset="684">
+        <state line="17" column="9" selection-start="771" selection-end="771" vertical-scroll-proportion="-11.333333" vertical-offset="0" max-vertical-offset="684">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/dsProject/urls.py">
+    <entry file="file:///usr/lib/python2.7/socket.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="11" column="0" selection-start="367" selection-end="367" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="270">
+        <state line="323" column="0" selection-start="11126" selection-end="11126" vertical-scroll-proportion="0.0" vertical-offset="5623" max-vertical-offset="10368">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/distroHack/views.py">
+    <entry file="file:///usr/lib/python2.7/wsgiref/handlers.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="28" column="50" selection-start="1019" selection-end="1019" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="972">
+        <state line="267" column="0" selection-start="9880" selection-end="9880" vertical-scroll-proportion="-1.3680388" vertical-offset="5299" max-vertical-offset="8100">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/distroHack/urls.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="7" column="0" selection-start="187" selection-end="187" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="324">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/templates/header_base.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="276" column="24" selection-start="9361" selection-end="9371" vertical-scroll-proportion="-62.48148" vertical-offset="3281" max-vertical-offset="5220">
+        <state line="7" column="36" selection-start="216" selection-end="223" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="342">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/templates/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="86" selection-start="578" selection-end="603" vertical-scroll-proportion="-6.962963" vertical-offset="82" max-vertical-offset="1332">
+        <state line="63" column="13" selection-start="2300" selection-end="2300" vertical-scroll-proportion="-8.296296" vertical-offset="910" max-vertical-offset="1296">
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dsProject/urls.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="11" column="0" selection-start="367" selection-end="367" vertical-scroll-proportion="0.4695652" vertical-offset="0" max-vertical-offset="345">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/templates/header_base.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="277" column="43" selection-start="9321" selection-end="9328" vertical-scroll-proportion="-4.6296296" vertical-offset="4861" max-vertical-offset="5274">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/distroHack/views.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="60" column="17" selection-start="1933" selection-end="1933" vertical-scroll-proportion="0.0" vertical-offset="969" max-vertical-offset="1386">
+          <folding>
+            <element signature="e#0#47#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/templates/hack/question.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="38" column="0" selection-start="1429" selection-end="1429" vertical-scroll-proportion="1.0965147" vertical-offset="275" max-vertical-offset="810">
+        <state line="50" column="41" selection-start="1694" selection-end="1694" vertical-scroll-proportion="0.29180327" vertical-offset="811" max-vertical-offset="1332">
           <folding>
             <element signature="e#92#142#0" expanded="true" />
-            <element signature="e#298#320#0" expanded="true" />
-            <element signature="e#348#370#0" expanded="true" />
-            <element signature="e#407#429#0" expanded="true" />
-            <element signature="e#1223#1249#0" expanded="true" />
+            <element signature="e#297#319#0" expanded="true" />
+            <element signature="e#347#369#0" expanded="true" />
+            <element signature="e#406#428#0" expanded="true" />
+            <element signature="e#1114#1140#0" expanded="true" />
           </folding>
         </state>
       </provider>

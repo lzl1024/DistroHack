@@ -7,7 +7,7 @@
     <hr>
 
     <div>  <!-- problem -->
-        <p>aaaaa </p>
+        <p>aaaaa</p>
     </div>
 </div>
 
@@ -27,14 +27,43 @@
         </div>
     </div>
     <form method="post" class="form-horizontal">
-        <input type="hidden" name="problemId" value="#" id="problemId">
         <input type="hidden" name="code" value="" id="code">
         <br>
-        <button class="btn btn-primary pull-right btn-info" type="button" name="submit" value="run" onmousedown="run(editor,this.form)" style="margin-right: 50px" id="runBtn">Run Your Code</button>
+        <button class="btn btn-primary pull-right btn-info" type="button" name="submit" value="run" style="margin-right: 50px" onmousedown="run(editor,this.form)" id="runBtn">Run Your Code</button>
         <br> <br>
-        <textarea class="input-block-level" rows="5" name="result" readonly="yes" id="result"></textarea>
+        <textarea class="input-block-level" rows="5" readonly="yes" id="result"></textarea>
     </form>
 </div>
+
+<script language="JavaScript">
+    // get content from editor
+    function run(editor,form) {
+        form.code.value = editor.getValue();
+    }
+
+	$(document).ready(function() {
+        // active the navigation bar
+        $("#contest").addClass("active");
+
+		$('#runBtn').click(function() {
+			$.ajax({
+				type : 'POST',
+				url :  '/hacks/runcode/',
+                data: {'id':{{ q_id }},
+                        'code': encodeURIComponent($('#code').val()),
+                        'submit': 'run'},
+				cache : false,
+
+				beforeSend : function() {
+				    $('#result').html("Running......");
+				},
+				success : function(msg) {
+				    $('#result').html(msg);
+				}
+			})
+		})
+	});
+</script>
 
 
 {% include "bottom_base.html" %}

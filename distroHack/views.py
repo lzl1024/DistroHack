@@ -1,11 +1,14 @@
+from django.core.context_processors import csrf
 from django.shortcuts import render, get_object_or_404
 
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse, Http404
 
 from django.core.urlresolvers import reverse
 # Create your views here.
 #from django.shortcuts import render_to_response
 from django.shortcuts import render_to_response
+from django.template import RequestContext
+from django.views.decorators.csrf import csrf_exempt
 
 from distroHack.models import Poll, Choice
 
@@ -51,3 +54,18 @@ def index(request):
 
 def question(request, q_id):
     return render(request, 'hack/question.html', {'q_id': q_id})
+
+
+@csrf_exempt
+def runcode(request):
+    print request
+    if request.is_ajax():
+        try:
+            submit = request.POST['submit']
+            print submit
+        except KeyError:
+            return HttpResponse('Error') # incorrect post
+        # do stuff, e.g. calculate a score
+        return render_to_response('hack/question.html', context_instance=RequestContext(request))
+    else:
+        raise Http404

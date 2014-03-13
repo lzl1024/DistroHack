@@ -5,6 +5,7 @@ from distroHack import views
 urlpatterns = patterns('',
     # /hacks/
     url(r'^question/(?P<q_id>\d+)/$', views.question, name='question'),
+    url(r'^runcode/$', views.runcode, name='runcode'),
 
     # /polls/
     url(r'^polls/$', views.polls_index, name='polls_index'),
