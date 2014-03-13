@@ -3,7 +3,8 @@ from django.conf.urls import patterns, url
 from distroHack import views
 
 urlpatterns = patterns('',
-
+    # /hacks/
+    url(r'^question/(?P<q_id>\d+)/$', views.question, name='question'),
 
     # /polls/
     url(r'^polls/$', views.polls_index, name='polls_index'),

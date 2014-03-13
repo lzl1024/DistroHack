@@ -1,0 +1,40 @@
+{% include "header_base.html" %}
+{% load staticfiles %}
+
+<div class="alert-info alert"
+     style="word-wrap: break-word; word-break: normal;">
+    <p><h2 class="text-center">Beginner Question</h2>
+    <hr>
+
+    <div>  <!-- problem -->
+        <p>aaaaa </p>
+    </div>
+</div>
+
+
+<div id="code_area" style="height: 1200px">
+    <div id="editor-mask" style="height: 1000px">
+        <div id="editor-container" style="height: 1000px">
+            <div id="editor">start code</div>
+            <script>
+                var editor = ace.edit("editor");
+                editor.setTheme("ace/theme/monokai");
+                editor.getSession().setMode("ace/mode/java");
+                editor.getSession().setUseWrapMode(true);
+                editor.setShowPrintMargin(false);
+                document.getElementById('editor').style.fontSize='14px';
+            </script>
+        </div>
+    </div>
+    <form method="post" class="form-horizontal">
+        <input type="hidden" name="problemId" value="#" id="problemId">
+        <input type="hidden" name="code" value="" id="code">
+        <br>
+        <button class="btn btn-primary pull-right btn-info" type="button" name="submit" value="run" onmousedown="run(editor,this.form)" style="margin-right: 50px" id="runBtn">Run Your Code</button>
+        <br> <br>
+        <textarea class="input-block-level" rows="5" name="result" readonly="yes" id="result"></textarea>
+    </form>
+</div>
+
+
+{% include "bottom_base.html" %}

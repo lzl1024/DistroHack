@@ -26,7 +26,7 @@ def polls_vote(request, poll_id):
         # Always return an HttpResponseRedirect after successfully dealing
         # with POST data. This prevents data from being posted twice if a
         # user hits the Back button.
-        return HttpResponseRedirect(reverse('distroHack:polls_results', args=(p.id,)))
+        return HttpResponseRedirect(reverse('polls:polls_results', args=(p.id,)))
 
 
 def polls_index(request):
@@ -47,3 +47,7 @@ def polls_results(request, poll_id):
 
 def index(request):
     return render_to_response('index.html')
+
+
+def question(request, q_id):
+    return render(request, 'hack/question.html', {'q_id': q_id})
