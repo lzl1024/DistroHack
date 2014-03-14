@@ -103,3 +103,4 @@ STATICFILES_DIRS = (
 
 # path to store the temp submitted problem
 OJ_PATH = os.path.join(BASE_DIR, 'oj')
+PRO_PATH = os.path.join(BASE_DIR, 'problems')
