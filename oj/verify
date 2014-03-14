@@ -9,7 +9,6 @@ srcPath="$path/$src"
 tstPath="$path/$tst"
 resPath="$path/$res"
 
-
 javac -Xstdout $resPath "$srcPath.java"
 #check if successfully compiled
 if [ ! -s $resPath ]
@@ -28,7 +27,12 @@ then
         then
             if test $status -eq 124  #timeout
             then
-                echo "Time Exceeds" > $resPath
+                echo "Time Exceeds Error" > $resPath
+            fi
+            
+            if test $status -eq 1  #security problem
+            then
+            	echo "Security Error" >> $resPath
             fi
         fi
     else

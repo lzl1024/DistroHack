@@ -22,15 +22,17 @@ lock = Lock()
 # judge policy and timeout
 policy = "test.policy"
 timeout = "10"
-run_script = OJ_PATH + "/run"
+run_script = OJ_PATH + "/verify"
 source_name = "Source"
 result_name = "result.txt"
+test_name = "Test"
+error_flag = "Error"
 
 # problem files
-descript_name = "description.txt"
-answer_name = "answer.txt"
-start_name = "startCode.java"
-test_name = "testCode.java"
+descript_file_name = "description.txt"
+answer_file_name = "answer.txt"
+start_file_name = "startCode.java"
+test_file_name = "testCode.java"
 
 
 def polls_vote(request, poll_id):
@@ -96,20 +98,27 @@ def runcode(request):
         file_dir_path = os.path.join(OJ_PATH, str(submit_id))
         source_path = os.path.join(file_dir_path, source_name)
         result_path = os.path.join(file_dir_path, result_name)
+        test_path = os.path.join(file_dir_path, test_name)
 
         try:
             os.stat(file_dir_path)
         except os.error:
             os.mkdir(file_dir_path)
 
-        # write source code into file
+        # get model
+        problem = Problem.objects.get(pk=int(request.POST["id"]))
+
+        # write source/test code into file
         source_file = open(source_path + ".java", "wb")
         source_file.write(urllib.unquote(request.POST["code"]))
         source_file.close()
+        test_file = open(test_path + ".java", "wb")
+        test_file.write(problem.testCode.encode('utf-8'))
+        test_file.close()
 
         # run command and wait for completion
         cmd = run_script + " " + file_dir_path + " " + source_name + " " + \
-              result_name + " " + policy + " " + timeout
+              test_name + " " + result_name + " " + policy + " " + timeout
         process = subprocess.Popen(['/bin/sh', '-c', cmd])
         process.wait()
 
@@ -125,7 +134,15 @@ def runcode(request):
         id_set.remove(submit_id)
         lock.release()
 
-        #TODO if accept, send msg to lower level server
+        # judge accept or denied
+        if problem.result == result_msg:
+            result_msg = "Accepted"
+            #TODO if accept, send msg to lower level server
+            
+        elif result_msg.strip().endswith(error_flag):
+            result_msg = "Denied\n" + result_msg
+        else:
+            result_msg = "Denied"
 
         return HttpResponse(result_msg)
     else:
@@ -158,15 +175,15 @@ def update_question(request):
     problem_dir = os.path.join(PRO_PATH, str(p_id))
 
     # title and description
-    descpt_file = open(os.path.join(problem_dir, descript_name), "rb")
+    descpt_file = open(os.path.join(problem_dir, descript_file_name), "rb")
     problem.title = descpt_file.readline()
     problem.description = descpt_file.read()
     descpt_file.close()
 
     # other fields
-    problem.result = read_fields(problem_dir, answer_name)
-    problem.startCode = read_fields(problem_dir, start_name)
-    problem.testCode = read_fields(problem_dir, test_name)
+    problem.result = read_fields(problem_dir, answer_file_name)
+    problem.startCode = read_fields(problem_dir, start_file_name)
+    problem.testCode = read_fields(problem_dir, test_file_name)
     problem.save()
 
     return redirect('distroHack.views.index')
