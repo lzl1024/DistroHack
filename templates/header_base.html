@@ -278,11 +278,145 @@
                             <li id="contest"><a href={% url 'distroHack:question' 1 %}>Contest!</a></li>
                         </ul>
                         <ul class = "nav pull-right">
-                            <a href="#" role="button" class="btn" data-toggle="modal">Sign Up</a>
+                            {% if user.is_authenticated %}
+                                <ul class="nav">
+                                    <li class="active"><a href="#">Welcome, {{ user.username }}. Thanks for join us.</a></li>
+                                    <li id="logout"><a href={% url 'distroHack:logout' %}>Logout</a></li>
+                                </ul>
+                            {% else %}
+                                <a href="#sign_up" role="button" class="btn" data-toggle="modal">Sign Up / Sign In</a>
+                            {% endif %}
                         </ul>
                     </div><!--/.nav-collapse -->
                 </div>
             </div>
         </div>
+
+
+        <!-- Sign up from -->
+		<div id="sign_up" class="modal hide fade" tabindex="-1"
+			aria-labelledby="myModalLabel" aria-hidden="true">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"
+					aria-hidden="true">x</button>
+				<h3 id="myModalLabel">Sign Up/ Sign In</h3>
+			</div>
+			<div class="modal-body">
+				<ul class="nav nav-tabs" id="signUpTab">
+					<li class="active"><a href="#signin" data-toggle="tab">Sign
+							In</a></li>
+					<li><a href="#register" data-toggle="tab">Register</a></li>
+				</ul>
+
+				<div class="tab-content">
+					<div class="tab-pane active" id="signin">
+						<form class="form-horizontal" name ="frm">
+							<div class="control-group">
+								<label class="control-label" for="signinName">User Name:</label>
+								<div class="controls">
+									<input type="text" style="min-height: 30px;" placeholder="User Name" name="name" id="signinName" value=""/>
+								</div>
+							</div>
+							<div class="control-group">
+								<label class="control-label" for="signinPassword">Password:</label>
+								<div class="controls">
+								    <input type="password" style="min-height: 30px;" placeholder="Password" name="password" id="signinPassword" value=""/>
+
+								</div>
+							</div>
+							<div class="control-group">
+								<div class="controls">
+									<button type="button" class="btn btn-primary" id="signinSubmit">Sign in</button>
+								</div>
+							</div>
+						</form>
+						<div id="signinMsg"></div>
+					</div>
+					<div class="tab-pane" id="register">
+						<form class="form-horizontal" action="#" name ="frm">
+							<div class="control-group">
+								<label class="control-label" for="registerEmail">Email</label>
+								<div class="controls" id="checkstatus">
+        							<input type="text" style="min-height: 30px;" placeholder="Email address" name="email" id="registerEmail" value="">
+									<div id="status"></div>
+								</div>
+							</div>
+							<div class="control-group">
+								<label class="control-label" for="registerUserName">User Name</label>
+								<div class="controls">
+									<input type="text" style="min-height: 30px;" placeholder="User Name" name="userName" id="registerUserName" value="">
+								</div>
+							</div>
+							<div class="control-group">
+								<label class="control-label" for="registerPassword">Password</label>
+								<div class="controls">
+									<input type="password" style="min-height: 30px;" placeholder="Password" name="password" id="registerPassword" value=""/>
+								</div>
+							</div>
+							<div class="control-group">
+								<label class="control-label" for="registerConPassword">Confirm Password</label>
+								<div class="controls">
+									<input type="password" style="min-height: 30px;" placeholder="Confirm Password" name="conPassword" id="registerConPassword" value=""/>
+								</div>
+							</div>
+							<div class="control-group">
+								<div class="controls">
+									<button type="button" class="btn btn-primary" id="registerSubmit">Let's Hack !</button>
+								</div>
+							</div>
+						</form>
+						<div id="registerMsg"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<script>
+		$(document).ready(
+				function() {
+					$('#signinSubmit').click(
+							function() {
+								$.ajax({
+									type : 'POST',
+									url :  '/hacks/signin/',
+                                    data : {'name':$('#signinName').val(),
+                                           'password': $('#signinPassword').val()
+                                    },
+									success : function(msg) {
+										msg = $.trim(msg);
+										if (msg == "success") {
+											window.location.href = '/';
+										} else {
+											$('#signinPassword').val("");
+											$('#signinMsg').html(msg);
+										}
+									}
+								})
+							}),
+					$('#registerSubmit').click(
+							function() {
+								$.ajax({
+									type : 'POST',
+									url :  '/hacks/register/',
+                                    data : {'email':$('#registerEmail').val(),
+                                           'userName': $('#registerUserName').val(),
+                                           'password': $('#registerPassword').val(),
+                                           'confirm':$('#registerConPassword').val()
+                                    },
+									success : function(msg) {
+										msg = $.trim(msg);
+										if (msg == "success") {
+											window.location.href = '/';
+										} else {
+											$('#registerPassword').val("");
+											$('#registerConPassword').val("");
+											$('#registerMsg').html(msg);
+										}
+									}
+								})
+							})
+				});
+		</script>
+
 
     <div class="container">

@@ -1,0 +1,7 @@
+{% if msg == "success" %}
+success
+{% else %}
+    {%  for error_msg in error %}
+		<p style="font-size:medium" class ="alert alert-error"><b>{{ error_msg }}</b> </p>
+    {% endfor %}
+{% endif %}
