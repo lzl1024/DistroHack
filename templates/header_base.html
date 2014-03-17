@@ -1,6 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html lang="en">
 <head>
+<!-- reference: 15-637 final project from Zhuolin Liu and Qian Mao -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Distro Hack -- Come and Join us!</title>
 
@@ -274,8 +275,8 @@
                     <div class="nav-collapse collapse">
                         <ul class="nav">
                             <li id="home"><a href='/'>Home</a></li>
-                            <li id="ranking"><a href="#">Ranking</a></li>
-                            <li id="contest"><a href={% url 'distroHack:question' 1 %}>Contest!</a></li>
+                            <li id="ranking"><a href={%  url 'distroHack:ranks' %}>Ranking</a></li>
+                            <li id="contest"><a href={% url 'distroHack:question' %}>Contest!</a></li>
                         </ul>
                         <ul class = "nav pull-right">
                             {% if user.is_authenticated %}

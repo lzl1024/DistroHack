@@ -1,0 +1,107 @@
+{% include "header_base.html" %}
+{% load staticfiles %}
+
+<script src={% static 'import/highcharts.js' %}></script>
+<script src={% static 'import/highcharts_exporting.js' %}></script>
+
+<script>
+$(function () {
+    var chart;
+    $(document).ready(function() {
+        $("#ranking").addClass("active");
+
+        chart = new Highcharts.Chart({
+            chart: {
+                renderTo: 'container',
+                type: 'column',
+                margin: [50, 50, 100, 80]
+            },
+            title: {
+                text: 'Top Coder Ranking (top {{ length }})'
+            },
+            xAxis: {
+                categories: [
+                    {% for user in rank %}
+                        '{{ user.name }}',
+                    {%  endfor %}
+                ],
+                labels: {
+                    rotation: -45,
+                    align: 'right',
+                    style: {
+                        fontSize: '13px',
+                        fontFamily: 'Verdana, sans-serif'
+                    }
+                }
+            },
+            yAxis: {
+                min: 0,
+                title: {
+                    text: 'Score'
+                }
+            },
+            legend: {
+                enabled: false
+            },
+            tooltip: {
+                formatter: function() {
+                    return '<b>'+ this.x +'</b><br/>'+
+                        'Score: '+ Highcharts.numberFormat(this.y, 0);
+                }
+            },
+            series: [{
+                name: 'Score',
+                data: [
+                    {% for user in rank %}
+                        {{ user.score }},
+                    {%  endfor %}
+                    ],
+                dataLabels: {
+                    enabled: true,
+                    rotation: -90,
+                    color: '#FFFFFF',
+                    align: 'right',
+                    x: 4,
+                    y: 10,
+                    style: {
+                        fontSize: '13px',
+                        fontFamily: 'Verdana, sans-serif'
+                    }
+                }
+            }]
+        });
+    });
+})
+</script>
+
+<div class="row-fluid">
+
+    <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+	<br>
+	<br>
+	<div class="ContentTable" style="word-wrap: break-word;
+          word-break: normal; ">
+	<table>
+	<tr>
+		<td><strong>Rank</strong>
+		<td><strong>UserName</strong></td>
+		<td><strong>Scores</strong></td>
+        <td><strong>Time</strong></td>
+	</tr>
+        {% for user in rank %}
+            {%  if user.score > 0 %}
+                <tr>
+                    <td>{{ forloop.counter}}</td>
+                    <td>{{ user.name }}</td>
+                    <td>{{ user.score }}</td>
+                    <td>{{ user.time }}</td>
+                </tr>
+            {% endif %}
+	    {%  endfor %}
+	</table>
+	</div>
+	<br>
+	<br>
+</div>
+
+{% include "bottom_base.html" %}

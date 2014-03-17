@@ -1,10 +1,12 @@
 import subprocess
 import random
 import os
+import datetime
 import django
 from threading import Lock
 import urllib
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponseRedirect, HttpResponse, Http404
@@ -36,6 +38,14 @@ descript_file_name = "description.txt"
 answer_file_name = "answer.txt"
 start_file_name = "startCode.java"
 test_file_name = "testCode.java"
+
+# ranking constants
+default_time = datetime.datetime(2014, 1, 31, 8, 31, 24)
+global_ranking = [{'name': 'lzl', 'score': 4, 'time': default_time}]
+local_ranking = {'lzl': {'name': 'lzl', 'score': 4, 'time': default_time}}
+default_tuple = {'name': '', 'score': 0, 'time': ''}
+show_rank_len = 20
+min_show_rank_len = 3
 
 
 def polls_vote(request, poll_id):
@@ -75,15 +85,27 @@ def polls_results(request, poll_id):
 
 # main page
 def index(request):
-    return render_to_response('index.html')
+    return render(request, 'index.html')
 
 
 # question page
-def question(request, q_id):
-    if Problem is None or Problem.objects.count() < int(q_id):
-        return render(request, 'hack/notready.html')
+def question(request):
+    if not request.user.is_authenticated():
+        return render(request, 'hack/please_log_in.html')
 
-    problem = Problem.objects.get(pk=int(q_id))
+    login_user = request.user.username
+    qid = 1
+    if local_ranking.get(login_user) is not None:
+        # noinspection PyTypeChecker
+        qid = local_ranking[login_user]['score'] + 1
+        print "QID:"+str(qid)
+        question_number = Problem.objects.count()
+        if Problem is None or question_number == 0:
+            return render(request, 'hack/notready.html')
+        elif question_number < qid:
+            return render(request, 'hack/complete.html')
+
+    problem = Problem.objects.get(pk=qid)
     return render(request, 'hack/question.html', {'problem': problem})
 
 
@@ -102,6 +124,8 @@ def runcode(request):
         source_path = os.path.join(file_dir_path, source_name)
         result_path = os.path.join(file_dir_path, result_name)
         test_path = os.path.join(file_dir_path, test_name)
+        problem_id = int(request.POST["id"])
+        user = request.user.username
 
         try:
             os.stat(file_dir_path)
@@ -109,7 +133,7 @@ def runcode(request):
             os.mkdir(file_dir_path)
 
         # get model
-        problem = Problem.objects.get(pk=int(request.POST["id"]))
+        problem = Problem.objects.get(pk=problem_id)
 
         # write source/test code into file
         source_file = open(source_path + ".java", "wb")
@@ -140,7 +164,34 @@ def runcode(request):
         # judge accept or denied
         if problem.result == result_msg:
             result_msg = "Accepted"
-            #TODO if accept, send msg to lower level server
+
+            # add user into local ranking if he is not
+            if local_ranking.get(user) is None:
+                user_tuple = default_tuple.copy()
+                user_tuple['time'] = datetime.datetime.now()
+                user_tuple['name'] = user
+                local_ranking[user] = user_tuple
+
+            # update the ranking locally
+            if local_ranking[user]['score'] < problem_id:
+                local_ranking[user]['score'] = problem_id
+
+                # check user in global ranking
+                user_index = -1
+                for i in range(len(global_ranking)):
+                    if global_ranking[i]['name'] == user:
+                        user_index = i
+
+                # update old global ranking
+                if user_index > 0:
+                    global_ranking[user_index]['score'] = problem_id
+                elif problem_id > global_ranking[-1]['score'] or len(global_ranking) < show_rank_len:
+                    global_ranking.append(local_ranking[user])
+
+                # sort global ranking
+                global_ranking.sort(key=lambda k: (k['name'], k['time']), reverse=True)
+
+                #TODO if accept, send msg to lower level server
             
         elif result_msg.strip().endswith(error_flag):
             result_msg = "Denied\n" + result_msg
@@ -257,6 +308,24 @@ def register(request):
     return render(request, 'hack/error.html', {'error': result_msg, 'msg': validate})
 
 
+# user logout
 def logout(request):
     django.contrib.auth.logout(request)
     return redirect('distroHack.views.index')
+
+
+# show current global ranking
+def ranks(request):
+    length = len(global_ranking)
+
+    # add more element into ranking when its length is too small
+    if length < min_show_rank_len:
+        for i in range(min_show_rank_len - length):
+            global_ranking.append(default_tuple)
+        length = min_show_rank_len
+    return render(request, 'hack/rank.html', {'rank': global_ranking, 'length': length})
+
+
+# TODO update local and global ranking when receive msgs from lower level server
+def update_rank(request):
+    return None
