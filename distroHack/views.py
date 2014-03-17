@@ -309,9 +309,10 @@ def register(request):
 
 
 # user logout
+@csrf_exempt
 def logout(request):
     django.contrib.auth.logout(request)
-    return redirect('distroHack.views.index')
+    return render(request, 'hack/error.html', {'error': [], 'msg': "success"})
 
 
 # show current global ranking

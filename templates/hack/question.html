@@ -59,7 +59,9 @@
 				},
 				success : function(msg) {
 				    $('#result').html(msg);
-                    window.location.href = '/hacks/question/';
+                    if (msg == "Accepted") {
+					    window.location.reload();
+					}
 				}
 			})
 		})
