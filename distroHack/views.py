@@ -303,7 +303,8 @@ def register(request):
         user.is_active = True
         user.save()
         validate = "success"
-        login(request, user)
+        authen_user = authenticate(username=name, password=password)
+        login(request, authen_user)
 
     return render(request, 'hack/error.html', {'error': result_msg, 'msg': validate})
 

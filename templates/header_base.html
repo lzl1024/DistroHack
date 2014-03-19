@@ -386,7 +386,7 @@
 									success : function(msg) {
 										msg = $.trim(msg);
 										if (msg == "success") {
-											window.location.reload();
+											window.location.href = '/';
 										} else {
 											$('#signinPassword').val("");
 											$('#signinMsg').html(msg);
@@ -406,8 +406,9 @@
                                     },
 									success : function(msg) {
 										msg = $.trim(msg);
+                                        console.log(msg);
 										if (msg == "success") {
-											window.location.reload();
+											window.location.href = '/';
 										} else {
 											$('#registerPassword').val("");
 											$('#registerConPassword').val("");
