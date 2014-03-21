@@ -93,16 +93,18 @@ def question(request):
     if not request.user.is_authenticated():
         return render(request, 'hack/please_log_in.html')
 
+    question_number = Problem.objects.count()
+
+    if Problem is None or question_number == 0:
+            return render(request, 'hack/notready.html')
+
     login_user = request.user.username
     qid = 1
     if local_ranking.get(login_user) is not None:
         # noinspection PyTypeChecker
         qid = local_ranking[login_user]['score'] + 1
-        print "QID:"+str(qid)
-        question_number = Problem.objects.count()
-        if Problem is None or question_number == 0:
-            return render(request, 'hack/notready.html')
-        elif question_number < qid:
+
+        if question_number < qid:
             return render(request, 'hack/complete.html')
 
     problem = Problem.objects.get(pk=qid)

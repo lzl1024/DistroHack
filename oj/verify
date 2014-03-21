@@ -8,7 +8,8 @@ timeout=$6  #timeout seconds
 srcPath="$path/$src"
 tstPath="$path/$tst"
 resPath="$path/$res"
-timeoutPath="$path/../timeout"
+timeoutcmd="gtimeout"
+linuxCMD="Linux"
 
 javac -Xstdout $resPath "$srcPath.java"
 #check if successfully compiled
@@ -19,7 +20,15 @@ then
     #check if test file compiled successfully
     if [ ! -s $resPath ]
     then    #run test file
-        $timeoutPath $timeout java -Djava.security.manager -Djava.security.policy=$policy -cp $path $tst > $resPath 2>&1
+    	# judge Kernel version
+    	name=$(uname)
+    	if [ "$name" = $linuxCMD ]
+    	then
+    		timeoutcmd="timeout"
+    	fi
+
+    	$timeoutcmd $timeout java -Djava.security.manager -Djava.security.policy=$policy -cp $path $tst > $resPath 2>&1
+        
         #check if timeout
         status=$?   #keep the return status: 124 - timeout, 1 - security problem
 
