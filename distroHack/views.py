@@ -162,7 +162,7 @@ def runcode(request):
         lock.release()
 
         # judge accept or denied
-        if problem.result == result_msg:
+        if problem.result.strip() == result_msg.strip():
             result_msg = "Accepted"
 
             # add user into local ranking if he is not
