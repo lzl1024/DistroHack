@@ -93,10 +93,14 @@ def question(request):
     if not request.user.is_authenticated():
         return render(request, 'hack/please_log_in.html')
 
+    # empty database check
+    if Problem is None:
+        return render(request, 'hack/notready.html')
+
     question_number = Problem.objects.count()
 
-    if Problem is None or question_number == 0:
-            return render(request, 'hack/notready.html')
+    if question_number == 0:
+        return render(request, 'hack/notready.html')
 
     login_user = request.user.username
     qid = 1
