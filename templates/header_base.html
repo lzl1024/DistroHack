@@ -279,10 +279,10 @@
                             <li id="contest"><a href={% url 'distroHack:question' %}>Contest!</a></li>
                         </ul>
                         <ul class = "nav pull-right">
-                            {% if user.is_authenticated %}
+                            {% if "username" in request.session %}
                                 <ul class="nav">
-                                    <li class="active"><a href="#">Welcome, {{ user.username }}. Thanks for join us.</a></li>
-                                    <li id="logout"><a href="#logout">Logout</a></li>
+                                    <li class="active"><a href="#">Welcome, {{ request.session.username }}. Thanks for join us.</a></li>
+                                    <li id="logout"><a href="{% url 'distroHack:logout' %}">Logout</a></li>
                                 </ul>
                             {% else %}
                                 <a href="#sign_up" role="button" class="btn" data-toggle="modal">Sign Up / Sign In</a>
@@ -413,20 +413,6 @@
 											$('#registerPassword').val("");
 											$('#registerConPassword').val("");
 											$('#registerMsg').html(msg);
-										}
-									}
-								})
-							})
-
-                    $('#logout').click(
-							function() {
-								$.ajax({
-									type : 'POST',
-									url :  '/hacks/logout/',
-									success : function(msg) {
-										msg = $.trim(msg);
-										if (msg == "success") {
-											window.location.reload();
 										}
 									}
 								})
