@@ -1,8 +1,12 @@
+import json
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 import re
+import socket
 from distroHack.views import default_tuple, local_ranking
+from dsProject.settings import GO_PORT
 
+read_buf_len = 1024
 
 @csrf_exempt
 def sign_in(request):
@@ -14,11 +18,23 @@ def sign_in(request):
     if not name or not password:
         result_msg.append("UserName or Password should not be empty!")
     else:
-        #TODO: connect with the go server
-        user = []
+        # connect with the go server
+        s = socket.socket()
+        host = socket.gethostname()
+        port = GO_PORT
+
+        s.connect((host, port))
+
+        # dump to json format and send out
+        msg = {"type": "sign_in", "username": name, "password": password}
+        s.send(json.dumps(msg))
+
+        # receive message
+        rcv_msg = s.recv(read_buf_len)
+        s.close()
 
         # authenticate success, login
-        if user is not None:
+        if rcv_msg == "success":
             validate = "success"
             request.session['username'] = name
         else:
