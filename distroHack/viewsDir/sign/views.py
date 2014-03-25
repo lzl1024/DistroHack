@@ -8,6 +8,7 @@ from dsProject.settings import GO_PORT
 
 read_buf_len = 1024
 
+
 @csrf_exempt
 def sign_in(request):
     name = request.POST["name"]
@@ -18,20 +19,9 @@ def sign_in(request):
     if not name or not password:
         result_msg.append("UserName or Password should not be empty!")
     else:
-        # connect with the go server
-        s = socket.socket()
-        host = socket.gethostname()
-        port = GO_PORT
-
-        s.connect((host, port))
-
         # dump to json format and send out
         msg = {"type": "sign_in", "username": name, "password": password}
-        s.send(json.dumps(msg))
-
-        # receive message
-        rcv_msg = s.recv(read_buf_len)
-        s.close()
+        rcv_msg = connect_server(msg)
 
         # authenticate success, login
         if rcv_msg == "success":
@@ -73,14 +63,13 @@ def register(request):
     # create a new user and update database
     if len(result_msg) == 0:
 
-        #TODO: Connect to go server
-        msg = []
-        #   result_msg.append("This Username has already been registered!")
-        #   "This email has already been registered!"
+        # dump to json format and send out
+        msg = {"type": "sign_up", "username": name, "password": password, "email": email}
+        rcv_msg = connect_server(msg)
 
         # remote error
-        if msg is not None and len(msg) != 0:
-            result_msg.append(msg)
+        if rcv_msg != "success":
+            result_msg.append(rcv_msg)
         else:
             validate = "success"
             # login and fill with the local_ranking
@@ -96,3 +85,20 @@ def register(request):
 def logout(request):
     del request.session['username']
     return render(request, 'index.html')
+
+
+# connect with server for simple message exchange
+def connect_server(msg):
+    # connect with the go server
+    s = socket.socket()
+    host = socket.gethostname()
+    port = GO_PORT
+
+    s.connect((host, port))
+
+    s.send(json.dumps(msg))
+
+    # receive message
+    rcv_msg = s.recv(read_buf_len)
+    s.close()
+    return rcv_msg

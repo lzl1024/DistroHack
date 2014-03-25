@@ -63,16 +63,21 @@ func handleConnection(conn net.Conn) {
     	return
     }
     
+    fmt.Println(msg)
+
     // handle different type of message
     switch msgType {
     case "sign_in":
     	conn.Write([]byte(handleSignIn(msg)))
+    case "sign_up":
+    	conn.Write([]byte(handleSignUp(msg)))
     default:
     	fmt.Println("Messge Type Undefined")
     }
 }
 
 func handleSignIn(msg map[string]string) string{
+	// name, password match
 	if name, exist := msg["username"]; exist {
 		if password, exist := msg["password"]; exist {
 			if realPassword, exist := userMap[name]; 
@@ -84,4 +89,18 @@ func handleSignIn(msg map[string]string) string{
 	return "failed"
 }
 
+func handleSignUp(msg map[string]string) string{
+	if name, exist := msg["username"]; exist {
+		// check user in userMap
+		if _, exist := userMap[name]; exist {
+			return "This email/username has already been registered!"
+		}	
+		if password, exist := msg["password"]; exist {
+			userMap[name] = password
+			return "success"
+		}	
+	}
+	
+	return "Message Error"
+}
 
