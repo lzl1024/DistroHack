@@ -11,6 +11,7 @@ import shutil
 from distroHack.models import Problem
 from distroHack.views import local_ranking, default_tuple, global_ranking, show_rank_len
 import distroHack.views
+from distroHack.viewsDir.sign.views import connect_server
 from dsProject.settings import OJ_PATH, PRO_PATH
 import sys
 
@@ -90,6 +91,9 @@ def update_question(request):
 @csrf_exempt
 def runcode(request):
     if request.is_ajax():
+        # record time now
+        submit_time = datetime.datetime.now()
+
         # create unique id
         submit_id = create_id()
         if submit_id == -1:
@@ -152,7 +156,7 @@ def runcode(request):
             # update the ranking locally
             if local_ranking[user]['score'] < problem_id:
                 local_ranking[user]['score'] = problem_id
-                local_ranking[user]['time'] = datetime.datetime.now()
+                local_ranking[user]['time'] = submit_time
 
                 # check user in global ranking
                 user_index = -1
@@ -169,7 +173,9 @@ def runcode(request):
                 # sort global ranking
                 global_ranking.sort(key=lambda k: (k['name'], k['time']), reverse=True)
 
-                #TODO if accept, send msg to lower level server
+                #send success to server
+                msg = {"type": "submit_success", "username": user, "pid": str(problem_id)}
+                connect_server(msg)
 
         elif result_msg.strip().endswith(error_flag):
             result_msg = "Denied\n" + result_msg

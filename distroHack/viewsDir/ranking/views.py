@@ -19,7 +19,11 @@ def ranks(request):
     return render(request, 'hack/rank.html', {'rank': global_ranking, 'length': length})
 
 
-# TODO update local and global ranking when receive msgs from lower level server
+# TODO update global ranking when receive msgs from lower level server
 def update_rank(request):
     return None
 
+
+# TODO update local information when receive msgs from lower level server
+def update_local(request):
+    pass
