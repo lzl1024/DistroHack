@@ -1,0 +1,22 @@
+{% include "header_base.html" %}
+{% load staticfiles %}
+
+<form class="form-inline" action="{% url 'distroHack:start_hack' %}" method="post">
+    {% csrf_token %}
+    <h3>Please choose the expected end time</h3>
+    <input type="text" class="input-small" name = "year" placeholder="Year">
+    <input type="text" class="input-small" name = "month" placeholder="Month">
+    <input type="text" class="input-small" name = "day" placeholder="Day">
+    <input type="text" class="input-small" name = "hour" placeholder="Hour">
+    <input type="text" class="input-small" name = "minute" placeholder="Minute">
+    <input type="text" class="input-small" name = "second" placeholder="Second">
+    <button type="submit" class="btn">Start the Hackathon !</button>
+</form>
+
+<script>
+    $(document).ready(function() {
+        // active the navigation bar
+        $("#admin").addClass("active");
+    })
+</script>
+{% include "bottom_base.html" %}

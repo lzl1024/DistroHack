@@ -9,6 +9,7 @@ import (
 var userMap = map[string] string{
     "1": "111111",
     "2": "222222",
+    "admin": "admin",
 }
 
 const ListenPort = ":4213"

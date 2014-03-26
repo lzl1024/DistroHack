@@ -281,7 +281,11 @@
                         <ul class = "nav pull-right">
                             {% if "username" in request.session %}
                                 <ul class="nav">
-                                    <li class="active"><a href="#">Welcome, {{ request.session.username }}. Thanks for join us.</a></li>
+                                    {% if request.session.username == "admin" %}
+                                       <li id="admin"><a href="{% url 'distroHack:admin' %}">Admin</a></li>
+                                    {% else %}
+                                        <li class="active"><a href="#">Welcome, {{ request.session.username }}. Thanks for join us.</a></li>
+                                    {% endif %}
                                     <li id="logout"><a href="{% url 'distroHack:logout' %}">Logout</a></li>
                                 </ul>
                             {% else %}

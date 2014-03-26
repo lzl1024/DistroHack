@@ -10,6 +10,7 @@ import subprocess
 import shutil
 from distroHack.models import Problem
 from distroHack.views import local_ranking, default_tuple, global_ranking, show_rank_len
+import distroHack.views
 from dsProject.settings import OJ_PATH, PRO_PATH
 import sys
 
@@ -44,7 +45,7 @@ def question(request):
 
     question_number = Problem.objects.count()
 
-    if question_number == 0:
+    if question_number == 0 or distroHack.views.hack_is_started is False:
         return render(request, 'hack/notready.html')
 
     login_user = request.session['username']
@@ -60,7 +61,9 @@ def question(request):
         local_ranking[login_user]['name'] = login_user
 
     problem = Problem.objects.get(pk=qid)
-    return render(request, 'hack/question.html', {'problem': problem})
+
+    return render(request, 'hack/question.html', {'problem': problem,
+                                                  'end_time': distroHack.views.hack_end_time})
 
 
 # update the database and fill with problems

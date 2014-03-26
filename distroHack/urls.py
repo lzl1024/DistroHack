@@ -13,4 +13,6 @@ urlpatterns = patterns('',
     url(r'^logout/$', 'distroHack.viewsDir.sign.views.logout', name='logout'),
     url(r'^ranks/$', 'distroHack.viewsDir.ranking.views.ranks', name='ranks'),
     url(r'^update_rank/$', 'distroHack.viewsDir.ranking.views.update_rank', name='update_rank'),
+    url(r'^admin/$', 'distroHack.views.admin', name='admin'),
+    url(r'^start_hack/$', 'distroHack.views.start_hack', name='start_hack'),
 )
