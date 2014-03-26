@@ -1,17 +1,23 @@
 {% include "header_base.html" %}
 {% load staticfiles %}
 
-<form class="form-inline" action="{% url 'distroHack:start_hack' %}" method="post">
-    {% csrf_token %}
-    <h3>Please choose the expected end time</h3>
-    <input type="text" class="input-small" name = "year" placeholder="Year">
-    <input type="text" class="input-small" name = "month" placeholder="Month">
-    <input type="text" class="input-small" name = "day" placeholder="Day">
-    <input type="text" class="input-small" name = "hour" placeholder="Hour">
-    <input type="text" class="input-small" name = "minute" placeholder="Minute">
-    <input type="text" class="input-small" name = "second" placeholder="Second">
-    <button type="submit" class="btn">Start the Hackathon !</button>
-</form>
+{% if time == None %}
+    <form class="form-inline" action="{% url 'distroHack:start_hack' %}" method="post">
+        {% csrf_token %}
+        <h3>Please choose the expected end time</h3>
+        <input type="text" class="input-small" name = "year" placeholder="Year">
+        <input type="text" class="input-small" name = "month" placeholder="Month">
+        <input type="text" class="input-small" name = "day" placeholder="Day">
+        <input type="text" class="input-small" name = "hour" placeholder="Hour">
+        <input type="text" class="input-small" name = "minute" placeholder="Minute">
+        <input type="text" class="input-small" name = "second" placeholder="Second">
+        <br> <br>
+        <button type="submit" class="btn btn-success">Start the Hackathon !</button>
+    </form>
+{% else %}
+<h3>The Current Hackathon expected End Time is: <font class="text-error">{{ time }}</font></h3>
+<button type="submit" onclick="window.location.href='{% url 'distroHack:end_hack' %}' " class="btn btn-danger">End the current Hackathon !</button>
+{% endif %}
 
 <script>
     $(document).ready(function() {

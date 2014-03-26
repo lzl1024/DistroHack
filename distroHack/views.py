@@ -21,14 +21,29 @@ def index(request):
 
 # admin page
 def admin(request):
-    return render(request, 'admin.html')
+    if request.session["username"] == "admin":
+        return render(request, 'admin.html', {"time": hack_end_time})
+
+    return render(request, 'index.html')
 
 
 # admin to start the hackathon
 def start_hack(request):
-    global hack_end_time, hack_is_started
-    hack_end_time = datetime.datetime(int(request.POST['year']), int(request.POST['month']),
-                                    int(request.POST['day']), int(request.POST['hour']),
-                                    int(request.POST['minute']), int(request.POST['second']))
-    hack_is_started = True
+    if request.session["username"] == "admin":
+        global hack_end_time, hack_is_started
+        hack_end_time = datetime.datetime(int(request.POST['year']), int(request.POST['month']),
+                                        int(request.POST['day']), int(request.POST['hour']),
+                                        int(request.POST['minute']), int(request.POST['second']))
+        hack_is_started = True
+    return render(request, 'index.html')
+
+
+# admin to end the hackathon
+def end_hack(request):
+    print "aa"
+    if request.session["username"] == "admin":
+        global hack_is_started, hack_end_time
+        hack_is_started = False
+        hack_end_time = None
+
     return render(request, 'index.html')

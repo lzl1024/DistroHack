@@ -15,4 +15,5 @@ urlpatterns = patterns('',
     url(r'^update_rank/$', 'distroHack.viewsDir.ranking.views.update_rank', name='update_rank'),
     url(r'^admin/$', 'distroHack.views.admin', name='admin'),
     url(r'^start_hack/$', 'distroHack.views.start_hack', name='start_hack'),
+    url(r'^end_hack/$', 'distroHack.views.end_hack', name='end_hack'),
 )
