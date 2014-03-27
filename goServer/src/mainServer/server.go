@@ -21,7 +21,7 @@ func main() {
 	// active connect to application
 	go activeThread()
 
-	go handleConnectionFromLocal(ListenerLocal)
+	go handleConnectionFromLocal(listenerLocal)
 
 	// open the listen port for peers
 	listenerPeer, errPeer := net.Listen("tcp", ListenPortPeer)
@@ -31,5 +31,5 @@ func main() {
 		return
 	}
 
-	go handleConnectionFromPeers(ListenerPeer)
+	go handleConnectionFromPeers(listenerPeer)
 }

@@ -6,7 +6,7 @@ import (
 	"net"
 )
 
-func handleConnectionFromPeers(listener, net.Listener) {
+func handleConnectionFromPeers(listener net.Listener) {
 	for {
 		conn, err := listener.Accept()
 
@@ -20,6 +20,6 @@ func handleConnectionFromPeers(listener, net.Listener) {
 	}
 }
 
-func handleConnectionFromPeersThread(conn, net.Conn) {
+func handleConnectionFromPeersThread(conn net.Conn) {
 
 }
