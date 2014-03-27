@@ -5,7 +5,8 @@ import (
 	"net"
 )
 
-const ListenPort = ":4213"
+const ListenPortLocal = ":4213"
+const ListenPortPeer = ":4214"
 const rcvBufLen = 1024
 
 func main() {
