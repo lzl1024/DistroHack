@@ -22,7 +22,7 @@ var global_ranking []User_record
 var local_info map[string]User_record
 
 // main thread for active connection
-func activeThread() {
+func activeTest() {
 	sendoutLocalInfo()
 	sendoutGlobalRanking()
 }
