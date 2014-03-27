@@ -16,6 +16,9 @@ func main() {
     	fmt.Println("Listener port has been used:",err.Error())
        	return
     }
+    
+	// active connect to application
+	go activeThread()
 	
 	for {
 		conn,err := listener.Accept()
@@ -27,8 +30,5 @@ func main() {
     
     	// new thread to handle request
     	go handleConnection(conn)
-    	
-    	// active connect to application
-    	go activeThread()
     }
 }

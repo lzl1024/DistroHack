@@ -1,6 +1,10 @@
 # show current global ranking
+import json
+from dateutil import parser
 from django.shortcuts import render
-from distroHack.views import global_ranking, min_show_rank_len, default_tuple
+from django.views.decorators.csrf import csrf_exempt
+from distroHack.views import min_show_rank_len, default_tuple
+import distroHack.views
 
 
 # show the ranking chart
@@ -9,21 +13,44 @@ def ranks(request):
     if 'username' not in request.session:
         return render(request, 'hack/please_log_in.html')
 
-    length = len(global_ranking)
+    length = len(distroHack.views.global_ranking)
 
     # add more element into ranking when its length is too small
     if length < min_show_rank_len:
         for i in range(min_show_rank_len - length):
-            global_ranking.append(default_tuple)
+            distroHack.views.global_ranking.append(default_tuple)
         length = min_show_rank_len
-    return render(request, 'hack/rank.html', {'rank': global_ranking, 'length': length})
+    return render(request, 'hack/rank.html',
+                  {'rank': distroHack.views.global_ranking, 'length': length})
 
 
-# TODO update global ranking when receive msgs from lower level server
+@csrf_exempt
 def update_rank(request):
-    return None
+    data = json.loads(request.POST['data'])
+
+    # parse the data to new global_ranking
+    distroHack.views.global_ranking = []
+    for element in data:
+        new_tuple = default_tuple.copy()
+        new_tuple['name'] = element['UserName']
+        new_tuple['score'] = element['Score']
+        new_tuple['time'] = parser.parse(element['Ctime'])
+        distroHack.views.global_ranking.append(new_tuple)
+
+    return render(request, 'index.html')
 
 
-# TODO update local information when receive msgs from lower level server
+@csrf_exempt
 def update_local(request):
-    pass
+    data = json.loads(request.POST['data'])
+
+    # parse the data to new local_ranking
+    distroHack.views.local_ranking = {}
+    for key, value in data.iteritems():
+        new_tuple = default_tuple.copy()
+        new_tuple['name'] = value['UserName']
+        new_tuple['score'] = value['Score']
+        new_tuple['time'] = parser.parse(value['Ctime'])
+        distroHack.views.local_ranking[key] = new_tuple
+
+    return render(request, 'index.html')

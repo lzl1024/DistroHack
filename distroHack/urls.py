@@ -1,8 +1,5 @@
 from django.conf.urls import patterns, url
 
-from distroHack import views
-
-
 urlpatterns = patterns('',
     # /hacks/
     url(r'^question/$', 'distroHack.viewsDir.question.views.question', name='question'),
