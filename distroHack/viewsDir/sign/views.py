@@ -3,7 +3,6 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 import re
 import socket
-from distroHack.views import default_tuple
 from dsProject.settings import GO_PORT
 import distroHack.views
 
@@ -75,7 +74,7 @@ def register(request):
             validate = "success"
             # login and fill with the local_ranking
             request.session['username'] = name
-            user_tuple = default_tuple.copy()
+            user_tuple = distroHack.views.default_tuple.copy()
             user_tuple['name'] = name
             distroHack.views.local_ranking[name] = user_tuple
 
