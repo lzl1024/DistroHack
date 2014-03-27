@@ -2,6 +2,8 @@ import datetime
 from django.shortcuts import render
 
 # ranking constants
+from distroHack.viewsDir.sign.views import connect_server
+
 default_time = datetime.datetime(2014, 1, 31, 8, 31, 24)
 global_ranking = [{'name': 'lzl', 'score': 4, 'time': default_time}]
 local_ranking = {'lzl': {'name': 'lzl', 'score': 4, 'time': default_time}}
@@ -35,6 +37,10 @@ def start_hack(request):
                                         int(request.POST['day']), int(request.POST['hour']),
                                         int(request.POST['minute']), int(request.POST['second']))
         hack_is_started = True
+        # dump to json format and send out
+        msg = {"type": "start_hack"}
+        connect_server(msg)
+
     return render(request, 'index.html')
 
 
@@ -45,5 +51,8 @@ def end_hack(request):
         global hack_is_started, hack_end_time
         hack_is_started = False
         hack_end_time = None
+        # dump to json format and send out
+        msg = {"type": "end_hack"}
+        connect_server(msg)
 
     return render(request, 'index.html')
