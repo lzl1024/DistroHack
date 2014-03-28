@@ -56,6 +56,4 @@ func parseArguments() {
 			} 
 		}
 	}
-	
-	print(isSN)
 }
