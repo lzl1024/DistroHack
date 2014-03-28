@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net"
+	"encoding/json"
 )
 
 func handleConnectionFromPeers(listener net.Listener) {
