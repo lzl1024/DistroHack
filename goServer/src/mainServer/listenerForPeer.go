@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"net"
-	"encoding/json"
 )
 
 func handleConnectionFromPeers(listener net.Listener) {
@@ -11,7 +10,7 @@ func handleConnectionFromPeers(listener net.Listener) {
 		conn, err := listener.Accept()
 
 		if err != nil {
-			fmt.Println("Accept Error:", err.Error())
+			fmt.Println("Server: Accept Error:", err.Error())
 			return
 		}
 
@@ -27,31 +26,9 @@ func handleConnectionFromPeersThread(conn net.Conn) {
 	size, err := conn.Read(rcvbuf)
 
 	if err != nil {
-		fmt.Println("Read Error:", err.Error())
+		fmt.Println("Server: Read Error:", err.Error())
 		return
 	}
 
-	var msg map[string]string
-
-	err = json.Unmarshal(rcvbuf[:size], &msg)
-
-	if err != nil {
-		fmt.Println("Unmarshal Error:", err.Error())
-		return
-	}
-
-	msgType, exist := msg["type"]
-
-	if exist == false {
-		fmt.Println("No Message Type!")
-		return
-	}
-
-	fmt.Println(msg)
-
-	// handle different type of message
-	switch msgType {
-	default:
-		fmt.Println("Messge Type Undefined")
-	}
+	fmt.Printf("Server: Connection constructed from peer,  %d bytes have been received.\n", size)
 }

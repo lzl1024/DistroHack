@@ -1,17 +1,18 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
 	"encoding/json"
-	"time"
+	"fmt"
+	"net"
+	"net/http"
 	"net/url"
+	"time"
 )
 
 type User_record struct {
 	UserName string
-    Score   int
-    Ctime time.Time
+	Score    int
+	Ctime    time.Time
 }
 
 var app_url = "http://localhost:8000/"
@@ -23,50 +24,70 @@ var local_info map[string]User_record
 
 // main thread for active connection
 func activeTest() {
-	sendoutLocalInfo()
-	sendoutGlobalRanking()
+	//sendoutLocalInfo()
+	//sendoutGlobalRanking()
+	fmt.Printf("ActiveTest\n")
+	testListenerForPeer()
 }
-
 
 // send out the updated local info to application
 func sendoutLocalInfo() {
 	// fake data
 	local_info = map[string]User_record{
-    	"1": User_record{
-        	"1", 1, time.Now(),
-    	},
-    	"2": User_record{
-        	"2", 3, time.Now(),
-    	},
-    }
-    
-    data, _ := json.Marshal(local_info)
-    
-    // send data out
-    sendout(app_url+"hacks/update_local/", string(data))
+		"1": User_record{
+			"1", 1, time.Now(),
+		},
+		"2": User_record{
+			"2", 3, time.Now(),
+		},
+	}
+
+	data, _ := json.Marshal(local_info)
+
+	// send data out
+	sendout(app_url+"hacks/update_local/", string(data))
 }
 
 // send out the updated global info to application
 func sendoutGlobalRanking() {
 	// fake global_ranking
-    global_ranking = append(global_ranking, 
-    	User_record{UserName: "2", Score: 3, Ctime:time.Now()})
-    global_ranking = append(global_ranking, 
-    	User_record{UserName: "1", Score: 2, Ctime: time.Now()})
+	global_ranking = append(global_ranking,
+		User_record{UserName: "2", Score: 3, Ctime: time.Now()})
+	global_ranking = append(global_ranking,
+		User_record{UserName: "1", Score: 2, Ctime: time.Now()})
 
-    data, _:= json.Marshal(global_ranking)
-    
-    // send data out
-    sendout(app_url+"hacks/update_rank/", string(data))
-    
+	data, _ := json.Marshal(global_ranking)
+
+	// send data out
+	sendout(app_url+"hacks/update_rank/", string(data))
+
 }
 
 // truely send out date
 func sendout(urlAddress string, data string) {
-	_, err := http.PostForm(urlAddress, 
+	_, err := http.PostForm(urlAddress,
 		url.Values{"data": {data}})
-	
+
 	if err != nil {
 		fmt.Println("Post failure: " + urlAddress + "," + data)
+	}
+}
+
+// test case for listenerForpeers
+func testListenerForPeer() {
+
+	conn, err := net.Dial("tcp", localIP+ListenPortPeer)
+
+	if err != nil {
+		fmt.Println("Peers: Connection dail failed in active test:", err.Error())
+		return
+	}
+
+	var sendStr string = "hello"
+
+	_, err = conn.Write([]byte(sendStr))
+
+	if err != nil {
+		fmt.Println("Peers: Connection write failed in active test:", err.Error())
 	}
 }
