@@ -38,6 +38,9 @@ func maina() {
 		fmt.Println("Server: Listener port has been used:", errLocal.Error())
 		return
 	}
+	
+	// open SN port when is needed
+	go superNodeThread()
 
 	// main routine: commmunication between server and app
 	handleConnectionFromLocal(listenerLocal)

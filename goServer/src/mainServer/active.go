@@ -24,8 +24,9 @@ var local_info map[string]User_record
 
 // main thread for active connection
 func activeTest() {
-	//sendoutLocalInfo()
-	//sendoutGlobalRanking()
+	sendoutLocalInfo()
+	sendoutGlobalRanking()
+	
 	fmt.Printf("ActiveTest\n")
 	testListenerForPeer()
 }
