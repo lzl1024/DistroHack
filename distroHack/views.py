@@ -46,7 +46,6 @@ def start_hack(request):
 
 # admin to end the hackathon
 def end_hack(request):
-    print "aa"
     if request.session["username"] == "admin":
         global hack_is_started, hack_end_time
         hack_is_started = False

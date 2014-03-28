@@ -65,9 +65,9 @@ func handleConnectionFromLocalThread(conn net.Conn) {
 	case "submit_success":
 		conn.Write([]byte(handleSuccess(msg)))
 	case "end_hack":
-		handleEnd()
+		conn.Write([]byte(handleEnd()))
 	case "start_hack":
-		handleStart()
+		conn.Write([]byte(handleStart()))
 	default:
 		fmt.Println("Messge Type Undefined")
 	}
