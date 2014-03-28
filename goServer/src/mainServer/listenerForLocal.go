@@ -14,8 +14,6 @@ var userMap = map[string]string{
 
 func handleConnectionFromLocal(listener net.Listener) {
 
-	fmt.Print("bbb")
-
 	for {
 		conn, err := listener.Accept()
 
