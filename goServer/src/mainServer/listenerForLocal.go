@@ -13,6 +13,9 @@ var userMap = map[string]string{
 }
 
 func handleConnectionFromLocal(listener net.Listener) {
+
+	fmt.Print("bbb")
+
 	for {
 		conn, err := listener.Accept()
 
@@ -64,12 +67,12 @@ func handleConnectionFromLocalThread(conn net.Conn) {
 	case "submit_success":
 		handleSuccess(msg)
 	case "end_hack":
-    	handleEnd()
-    case "start_hack":
-    	handleStart()
-    default:
-    	fmt.Println("Messge Type Undefined")
-    }
+		handleEnd()
+	case "start_hack":
+		handleStart()
+	default:
+		fmt.Println("Messge Type Undefined")
+	}
 }
 
 func handleSignIn(msg map[string]string) string {
@@ -104,7 +107,7 @@ func handleSignUp(msg map[string]string) string {
 func handleSuccess(msg map[string]string) {
 	// msg = {"type": "submit_success", "username": user, "pid": problem_id}
 	// TODO: send success message to other servers
-	
+
 }
 
 func handleEnd() {
