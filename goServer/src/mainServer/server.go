@@ -26,7 +26,7 @@ func main() {
 	go handleConnectionFromPeers(listenerPeer)
 
 	// active connect to application
-	activeTest()
+	//activeTest()
 	
 	// open the listen port for local app
 	listenerLocal, errLocal := net.Listen("tcp", ListenPortLocal)
@@ -41,16 +41,19 @@ func main() {
 
 }
 
+// parse the go argument [locaPort, peerPort] isSN
 func parseArguments() {
 	argLen := len(os.Args)
 	
 	if argLen > 1 {
-		ListenPortLocal = os.Args[1]
-		if argLen > 2 {
-			ListenPortPeer = os.Args[2]
-		}
-		if argLen > 3 && os.Args[3] == "Ture" {
+		if os.Args[1] == "True" {
 			isSN = true
+			if argLen > 2 {
+				ListenPortLocal = ":" + os.Args[2]
+				if argLen > 3 {
+					ListenPortPeer = ":" + os.Args[3]
+				}
+			} 
 		}
 	}
 }
