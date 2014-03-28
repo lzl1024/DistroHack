@@ -20,5 +20,37 @@ func handleConnectionFromPeers(listener net.Listener) {
 }
 
 func handleConnectionFromPeersThread(conn net.Conn) {
+	rcvbuf := make([]byte, rcvBufLen)
 
+	// receive messages
+	size, err := conn.Read(rcvbuf)
+
+	if err != nil {
+		fmt.Println("Read Error:", err.Error())
+		return
+	}
+
+	var msg map[string]string
+
+	err = json.Unmarshal(rcvbuf[:size], &msg)
+
+	if err != nil {
+		fmt.Println("Unmarshal Error:", err.Error())
+		return
+	}
+
+	msgType, exist := msg["type"]
+
+	if exist == false {
+		fmt.Println("No Message Type!")
+		return
+	}
+
+	fmt.Println(msg)
+
+	// handle different type of message
+	switch msgType {
+	default:
+		fmt.Println("Messge Type Undefined")
+	}
 }
