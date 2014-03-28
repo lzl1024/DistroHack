@@ -74,13 +74,13 @@ func handleConnectionFromLocalThread(conn net.Conn) {
 }
 
 func handleSignIn(msg map[string]string) string {
-	// name, password match
 	// msg = {"type": "sign_in", "username": name, "password": password}
 	if name, exist := msg["username"]; exist {
 		if password, exist := msg["password"]; exist {
-			if realPassword, exist := userMap[name]; exist && password == realPassword {
-				return "success"
-			}
+			/*if realPassword, exist := userMap[name]; exist && password == realPassword {
+			//	return "success"
+			}*/
+			return databaseSignIn(name, password)
 		}
 	}
 	return "failed"
@@ -89,32 +89,35 @@ func handleSignIn(msg map[string]string) string {
 func handleSignUp(msg map[string]string) string {
 	//  msg = {"type": "sign_up", "username": name, "password": password, "email": email}
 	if name, exist := msg["username"]; exist {
-		// check user in userMap
-		if _, exist := userMap[name]; exist {
+		if password, exist := msg["password"]; exist {
+			if email, exist := msg["email"]; exist {
+				return databaseSignUp(name, password, email)
+			}
+		}
+		/*if _, exist := userMap[name]; exist {
 			return "This email/username has already been registered!"
 		}
 		if password, exist := msg["password"]; exist {
 			userMap[name] = password
 			return "success"
-		}
+		}*/
 	}
-
 	return "Message Error"
 }
 
-func handleSuccess(msg map[string]string) string{
+func handleSuccess(msg map[string]string) string {
 	// msg = {"type": "submit_success", "username": user, "pid": problem_id}
 	// TODO: send success message to other servers
 
 	return "success"
 }
 
-func handleEnd() string{
+func handleEnd() string {
 	// TODO: send end hackthon message to other servers
 	return "success"
 }
 
-func handleStart() string{
+func handleStart() string {
 	// TODO: send start hackthon message to other servers
 	return "success"
 }

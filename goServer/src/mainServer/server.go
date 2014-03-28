@@ -15,7 +15,7 @@ const rcvBufLen = 1024
 
 var isSN = false
 
-func main() {
+func maina() {
 	parseArguments()
 
 	// open the listen port for peers
