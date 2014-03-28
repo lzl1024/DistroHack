@@ -62,11 +62,11 @@ func handleConnectionFromLocalThread(conn net.Conn) {
 	case "sign_up":
 		conn.Write([]byte(handleSignUp(msg)))
 	case "submit_success":
-		handleSuccess(msg)
+		conn.Write([]byte(handleSuccess(msg)))
 	case "end_hack":
-    	handleEnd()
+    	conn.Write([]byte(handleEnd()))
     case "start_hack":
-    	handleStart()
+    	conn.Write([]byte(handleStart()))
     default:
     	fmt.Println("Messge Type Undefined")
     }
@@ -101,16 +101,18 @@ func handleSignUp(msg map[string]string) string {
 	return "Message Error"
 }
 
-func handleSuccess(msg map[string]string) {
+func handleSuccess(msg map[string]string) string{
 	// msg = {"type": "submit_success", "username": user, "pid": problem_id}
 	// TODO: send success message to other servers
-	
+	return "success"
 }
 
-func handleEnd() {
+func handleEnd() string{
 	// TODO: send end hackthon message to other servers
+	return "success"
 }
 
-func handleStart() {
+func handleStart() string{
 	// TODO: send start hackthon message to other servers
+	return "success"
 }
