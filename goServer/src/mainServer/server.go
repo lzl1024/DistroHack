@@ -6,6 +6,7 @@ import (
 	"os"
 	"util"
 	"superNode"
+	"msg"
 )
 
 var ListenPortLocal = ":4213"
@@ -75,4 +76,5 @@ func tests() {
 	activeTest()
 	// test for database
 	util.DBTest()
+	msg.TestMessagePasser(os.Args[1])
 }
