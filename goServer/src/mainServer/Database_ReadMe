@@ -1,6 +1,0 @@
-1. install go-mysql driver
-	$ go get github.com/go-sql-driver/mysql
-	
-2. create table
-
-	 CREATE TABLE user_record (id int(11) NOT NULL AUTO_INCREMENT, username VARCHAR(50) NOT NULL, password VARCHAR(50) NOT NULL, email VARCHAR(50) NOT NULL, PRIMARY KEY (id), UNIQUE KEY username (username));

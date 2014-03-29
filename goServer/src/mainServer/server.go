@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"util"
+	"superNode"
 )
 
 var ListenPortLocal = ":4213"
@@ -17,6 +19,9 @@ var isSN = false
 
 func main() {
 	parseArguments()
+	
+	// open database
+	util.DatabaseInit()
 
 	// open the listen port for peers
 	listenerPeer, errPeer := net.Listen("tcp", ListenPortPeer)
@@ -26,7 +31,7 @@ func main() {
 		return
 	}
 
-	go handleConnectionFromPeers(listenerPeer)
+	go HandleConnectionFromPeers(listenerPeer)
 
 	// open the listen port for local app
 	listenerLocal, errLocal := net.Listen("tcp", ListenPortLocal)
@@ -38,13 +43,13 @@ func main() {
 	
 	// open SN port when is needed
 	if isSN == true {
-		go superNodeThread()
+		go superNode.SuperNodeThread()
 	}
 
 	// tests
 	tests()
 	// main routine: commmunication between server and app
-	handleConnectionFromLocal(listenerLocal)
+	HandleConnectionFromLocal(listenerLocal)
 }
 
 // parse the go argument [locaPort, peerPort] isSN
@@ -69,5 +74,5 @@ func tests() {
 	// active connect to application
 	activeTest()
 	// test for database
-	dbTest()
+	util.DBTest()
 }

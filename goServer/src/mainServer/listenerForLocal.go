@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"util"
 )
 
 var userMap = map[string]string{
@@ -12,7 +13,7 @@ var userMap = map[string]string{
 	"admin": "admin",
 }
 
-func handleConnectionFromLocal(listener net.Listener) {
+func HandleConnectionFromLocal(listener net.Listener) {
 
 	for {
 		conn, err := listener.Accept()
@@ -80,10 +81,10 @@ func handleSignIn(msg map[string]string) string {
 			/*if realPassword, exist := userMap[name]; exist && password == realPassword {
 			//	return "success"
 			}*/
-			return databaseSignIn(name, password)
+			return util.DatabaseSignIn(name, password)
 		}
 	}
-	return "failed"
+	return "Message Error"
 }
 
 func handleSignUp(msg map[string]string) string {
@@ -91,7 +92,7 @@ func handleSignUp(msg map[string]string) string {
 	if name, exist := msg["username"]; exist {
 		if password, exist := msg["password"]; exist {
 			if email, exist := msg["email"]; exist {
-				return databaseSignUp(name, password, email)
+				return util.DatabaseSignUp(name, password, email)
 			}
 		}
 		/*if _, exist := userMap[name]; exist {

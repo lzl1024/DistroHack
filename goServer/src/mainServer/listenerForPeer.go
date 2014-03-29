@@ -5,7 +5,7 @@ import (
 	"net"
 )
 
-func handleConnectionFromPeers(listener net.Listener) {
+func HandleConnectionFromPeers(listener net.Listener) {
 	for {
 		conn, err := listener.Accept()
 
