@@ -76,7 +76,8 @@ func databaseSignUp(username string, password string, email string) string {
 	return "success"
 }
 
-func main() {
+// TODO create table when server start
+func dbTest() {
 	databaseInit()
 
 	result := databaseSignIn("kb24", "nddndd")

@@ -15,7 +15,7 @@ const rcvBufLen = 1024
 
 var isSN = false
 
-func maina() {
+func main() {
 	parseArguments()
 
 	// open the listen port for peers
@@ -28,9 +28,6 @@ func maina() {
 
 	go handleConnectionFromPeers(listenerPeer)
 
-	// active connect to application
-	activeTest()
-
 	// open the listen port for local app
 	listenerLocal, errLocal := net.Listen("tcp", ListenPortLocal)
 
@@ -40,8 +37,12 @@ func maina() {
 	}
 	
 	// open SN port when is needed
-	go superNodeThread()
+	if isSN == true {
+		go superNodeThread()
+	}
 
+	// tests
+	tests()
 	// main routine: commmunication between server and app
 	handleConnectionFromLocal(listenerLocal)
 }
@@ -61,4 +62,12 @@ func parseArguments() {
 			}
 		}
 	}
+}
+
+// tests
+func tests() {
+	// active connect to application
+	activeTest()
+	// test for database
+	dbTest()
 }
