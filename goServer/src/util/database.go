@@ -1,4 +1,4 @@
-package main
+package util
 
 import (
 	"database/sql"
@@ -9,7 +9,7 @@ import (
 var db *sql.DB
 var dbError error
 
-func databaseInit() {
+func DatabaseInit() {
 	db, dbError = sql.Open("mysql", ":@/test")
 
 	if dbError != nil {
@@ -19,11 +19,11 @@ func databaseInit() {
 	}
 }
 
-func databaseClose() {
+func DatabaseClose() {
 	db.Close()
 }
 
-func databaseSignIn(username string, password string) string {
+func DatabaseSignIn(username string, password string) string {
 	rows, e := db.Query("select count(*) from user_record where username = ? and password = ?", username, password)
 
 	if e != nil {
@@ -47,11 +47,11 @@ func databaseSignIn(username string, password string) string {
 	}
 }
 
-func databaseSignUp(username string, password string, email string) string {
+func DatabaseSignUp(username string, password string, email string) string {
 	rows, e := db.Query("select count(*) from user_record where username = ?", username)
 
 	if e != nil {
-		fmt.Println("Database: Query Error.")
+		fmt.Println("Database: Query Error.", e.Error())
 		return "failed"
 	}
 
@@ -60,28 +60,29 @@ func databaseSignUp(username string, password string, email string) string {
 		e = rows.Scan(&count)
 	}
 	if e != nil {
-		fmt.Println("Database: Scan Error.")
+		fmt.Println("Database: Scan Error.", e.Error())
 		return "failed"
 	}
 	if count > 0 {
-		return "failed"
+		return "This email/username has already been registered!"
 	}
 
 	_, e = db.Exec("insert into user_record set username = ?, password = ?, email = ?", username, password, email)
 	if e != nil {
-		fmt.Println("Database: Execute Error.")
+		fmt.Println("Database: Execute Error.", e.Error())
 		return "failed"
 	}
 
 	return "success"
 }
 
-func main() {
-	databaseInit()
+// TODO create table when server start
+func DBTest() {
+	//databaseInit()
 
-	result := databaseSignIn("kb24", "nddndd")
+	result := DatabaseSignIn("kb24", "nddndd")
 	fmt.Println(result)
-	result = databaseSignUp("chenzhuokb2", "nddndd", "kb24@cmu.edu")
+	result = DatabaseSignUp("chenzhuokb2", "nddndd", "kb24@cmu.edu")
 	fmt.Println(result)
 
 	/*rows, e := db.Query("select username from auth_user")
@@ -105,6 +106,6 @@ func main() {
 		}
 	}*/
 
-	databaseClose()
+//	databaseClose()
 
 }
