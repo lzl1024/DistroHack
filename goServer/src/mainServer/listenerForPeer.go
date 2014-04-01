@@ -7,17 +7,18 @@ import (
 	"encoding/gob"
 )
 
-func initConnectionFromPeers() {
+func InitConnectionFromPeers() {
 	channel := make(chan error)
 	go serverthread(msg.MsgPasser, channel)
 	value := <- channel
 	fmt.Println(value)
-	
 }
 
 func serverthread(mp *msg.Messagepasser, c chan error) {
 	fmt.Println("Started server thread")
-	service := fmt.Sprint(":", mp.ServerPort)
+	sockAddr := fmt.Sprint("localhost:", mp.ServerPort)
+	/*service := fmt.Sprint(":", mp.ServerPort)
+	
 	tcpAddr, err := net.ResolveTCPAddr("ip", service)
 	if err != nil {
 		fmt.Println("Unrecoverable error trying to start go server")
@@ -30,7 +31,15 @@ func serverthread(mp *msg.Messagepasser, c chan error) {
 		fmt.Println("Unrecoverable error trying to start listening on server")
 		c <- err
 		return
+	}*/
+	
+	listener, err := net.Listen("tcp", sockAddr)
+	if err != nil {
+		fmt.Println("Unrecoverable error trying to start listening on server")
+		c <- err
+		return
 	}
+	
 	
 	for {
 		conn, err := listener.Accept()

@@ -26,7 +26,7 @@ func main() {
 	util.DatabaseInit()
 
 	initMessagePasser()
-	initConnectionFromPeers()
+	go InitConnectionFromPeers()
 	
 	// open SN port when is needed
 	if isSN == true {
@@ -67,10 +67,10 @@ func parseArguments() {
 // tests
 func tests() {
 	// active connect to application
-	activeTest()
+	//activeTest()
 	// test for database
-	util.DBTest()
-	msg.TestMessagePasser()
+	//util.DBTest()
+	go msg.TestMessagePasser()
 }
 
 func initMessagePasser() {
