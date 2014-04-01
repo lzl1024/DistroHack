@@ -16,10 +16,10 @@ func InitConnectionFromPeers() {
 
 func serverthread(mp *msg.Messagepasser, c chan error) {
 	fmt.Println("Started server thread")
-	sockAddr := fmt.Sprint(":", mp.ServerPort)
-	/*service := fmt.Sprint(":", mp.ServerPort)
-	
-	tcpAddr, err := net.ResolveTCPAddr("ip", service)
+	//sockAddr := fmt.Sprint(":", mp.ServerPort)
+	service := fmt.Sprint(":", mp.ServerPort)
+
+	tcpAddr, err := net.ResolveTCPAddr("tcp", service)
 	if err != nil {
 		fmt.Println("Unrecoverable error trying to start go server")
 		c <- err
@@ -28,18 +28,10 @@ func serverthread(mp *msg.Messagepasser, c chan error) {
 	
 	listener, err := net.ListenTCP("tcp", tcpAddr)
 	if err != nil {
-		fmt.Println("Unrecoverable error trying to start listening on server")
-		c <- err
-		return
-	}*/
-	
-	listener, err := net.Listen("tcp", sockAddr)
-	if err != nil {
-		fmt.Println("Unrecoverable error trying to start listening on server")
+		fmt.Println("Unrecoverable error trying to start listening on server ", err)
 		c <- err
 		return
 	}
-	
 	
 	for {
 		conn, err := listener.Accept()

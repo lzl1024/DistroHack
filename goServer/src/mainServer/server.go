@@ -13,8 +13,6 @@ import (
 var ListenPortLocal = ":4213"
 var ListenPortPeer = 4214
 
-var localIP = "127.0.0.1"
-
 const rcvBufLen = 1024
 
 var isSN = false
