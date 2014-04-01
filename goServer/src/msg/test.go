@@ -2,45 +2,37 @@ package msg
 
 import (
 	"fmt"
-	"os"
 	"net"
 )
 
 const SERVER_PORT = 5989
 
-func TestMessagePasser(arg string) {
-	addrs, err := net.InterfaceAddrs()
-	if err != nil {
-		fmt.Println("error getting interfaces: ", err)
-		os.Exit(-1)
-	}
-	
-	var addr net.IP
-	for i := range addrs {
-		ip,_,_ := net.ParseCIDR(addrs[i].String())
-		if ip.IsLoopback() || ip.IsInterfaceLocalMulticast() || 
-		ip.IsLinkLocalMulticast() || ip.IsLinkLocalUnicast() || 
-		ip.IsMulticast() {
-			continue
-		} else {
-			addr = ip;
-			break;
-		}
-	}
-	
-	var mp *Messagepasser
-	mp = NewMsgPasser(addr.String(), SERVER_PORT)
+func TestMessagePasser() {
 	channel := make(chan error)
-	
-	isclient := arg
-	if isclient == "true" {
-		go clienthread(mp, channel)
-		value := <- channel
-		fmt.Println(value)
-	} else {
-		go serverthread(mp, channel)
-		value := <- channel
-		fmt.Println(value)
-	}
+
+	go clientTestThread(MsgPasser, channel)
+	value := <- channel
+	fmt.Println(value)
 }
 
+func clientTestThread(mp *Messagepasser, c chan error) {
+	var ip string
+	msg := new(Message)
+	for {
+		fmt.Println("Enter who you would like to connect to")
+		fmt.Scanf("%s", &ip)
+		if net.ParseIP(ip) == nil {
+			fmt.Println("Invalid ip: try again")
+			continue
+		}
+		
+		msg.Dest = ip
+		msg.Kind = STRING
+		err:= Handlers[msg.Kind].Encode(msg, "ashish kaila")
+		if err != nil {
+			fmt.Println(err);
+			continue
+		}
+		mp.Send(msg)
+	}
+}

@@ -14,3 +14,5 @@ After running it: please first request "http://127.0.0.1:8000/hacks/updateq/" to
 
 For Mac user, you should first install gtimeout, use
 "brew install coreutils"
+
+NTP service is required for the server. user "apt-get install ntp ntpdate ntp-doc" under ubuntu, similar cmd should be used on MAC. 

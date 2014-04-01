@@ -2,6 +2,16 @@ package msg
 
 import (
 	"bytes"
+	"time"
+	"util"
+)
+
+/* Represents message types */
+const (
+	STRING = iota
+	// add types below
+	
+	NUMTYPES
 )
 
 type Message struct {
@@ -9,6 +19,7 @@ type Message struct {
 	Seqnum int
 	Kind int
 	Data []byte
+	TimeStamp time.Time
 }
 
 func (msg *Message) NewMsg(dest string, kind int, data *bytes.Buffer) {
@@ -26,6 +37,10 @@ func (msg *Message) CopyMsg(m *Message) {
 }
 
 func (msg Message) String() string {
-	s := "dest: " + msg.Dest + " " + " src: " + msg.Src + " data: " + bytes.NewBuffer(msg.Data[0:]).String()
+	ts,_ := util.Time()
+	time_stamp := *ts
+	
+	s := "dest: " + msg.Dest + " " + " src: " + msg.Src + " kind: "	+ " timeStamp: " + 
+			msg.TimeStamp.String() + " ref time: " + time_stamp.String() 
 	return s
 }

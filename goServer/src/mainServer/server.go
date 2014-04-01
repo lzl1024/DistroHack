@@ -7,12 +7,11 @@ import (
 	"util"
 	"superNode"
 	"msg"
+	"strconv"
 )
 
 var ListenPortLocal = ":4213"
-var ListenPortPeer = ":4214"
-
-var localIP = "127.0.0.1"
+var ListenPortPeer = 4214
 
 const rcvBufLen = 1024
 
@@ -24,24 +23,9 @@ func main() {
 	// open database
 	util.DatabaseInit()
 
-	// open the listen port for peers
-	listenerPeer, errPeer := net.Listen("tcp", ListenPortPeer)
-
-	if errPeer != nil {
-		fmt.Println("Listener port has been used:", errPeer.Error())
-		return
-	}
-
-	go HandleConnectionFromPeers(listenerPeer)
-
-	// open the listen port for local app
-	listenerLocal, errLocal := net.Listen("tcp", ListenPortLocal)
-
-	if errLocal != nil {
-		fmt.Println("Server: Listener port has been used:", errLocal.Error())
-		return
-	}
-
+	initMessagePasser()
+	go InitConnectionFromPeers()
+	
 	// open SN port when is needed
 	if isSN == true {
 		go superNode.SuperNodeThread()
@@ -49,6 +33,14 @@ func main() {
 
 	// tests
 	tests()
+	
+	// open the listen port for local app
+	listenerLocal, errLocal := net.Listen("tcp", ListenPortLocal)
+
+	if errLocal != nil {
+		fmt.Println("Server: Listener port has been used:", errLocal.Error())
+		return
+	}
 	// main routine: commmunication between server and app
 	HandleConnectionFromLocal(listenerLocal)
 }
@@ -63,7 +55,7 @@ func parseArguments() {
 			if argLen > 2 {
 				ListenPortLocal = ":" + os.Args[2]
 				if argLen > 3 {
-					ListenPortPeer = ":" + os.Args[3]
+					ListenPortPeer, _ = strconv.Atoi(os.Args[3])
 				}
 			}
 		}
@@ -73,8 +65,39 @@ func parseArguments() {
 // tests
 func tests() {
 	// active connect to application
-	activeTest()
+	//activeTest()
 	// test for database
-	util.DBTest()
-	msg.TestMessagePasser(os.Args[1])
+	//util.DBTest()
+	go msg.TestMessagePasser()
+}
+
+func initMessagePasser() {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		fmt.Println("error getting interfaces: ", err)
+		os.Exit(-1)
+	}
+	
+	var addr net.IP
+	for i := range addrs {
+		ip,_,_ := net.ParseCIDR(addrs[i].String())
+		if ip.IsLoopback() || ip.IsInterfaceLocalMulticast() || 
+		ip.IsLinkLocalMulticast() || ip.IsLinkLocalUnicast() || 
+		ip.IsMulticast() {
+			continue
+		} else {
+			addr = ip;
+			break;
+		}
+	}
+
+	msg.MsgPasser,err = msg.NewMsgPasser(addr.String(), ListenPortPeer)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	
+	/* register handlers for all the types of messages */
+	msg.Handlers[msg.STRING].Encode = msg.SendString
+	msg.Handlers[msg.STRING].Decode = msg.RcvString
 }
