@@ -9,6 +9,8 @@ import (
 /* Represents message types */
 const (
 	STRING = iota
+	// add types below
+	
 	NUMTYPES
 )
 
