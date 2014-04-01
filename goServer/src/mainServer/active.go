@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"net"
 	"net/http"
 	"net/url"
 	"time"
@@ -28,7 +27,6 @@ func activeTest() {
 	sendoutGlobalRanking()
 	
 	fmt.Printf("ActiveTest\n")
-	testListenerForPeer()
 }
 
 // send out the updated local info to application
@@ -71,24 +69,5 @@ func sendout(urlAddress string, data string) {
 
 	if err != nil {
 		fmt.Println("Post failure: " + urlAddress + "," + data)
-	}
-}
-
-// test case for listenerForpeers
-func testListenerForPeer() {
-
-	conn, err := net.Dial("tcp", localIP+ListenPortPeer)
-
-	if err != nil {
-		fmt.Println("Peers: Connection dail failed in active test:", err.Error())
-		return
-	}
-
-	var sendStr string = "hello"
-
-	_, err = conn.Write([]byte(sendStr))
-
-	if err != nil {
-		fmt.Println("Peers: Connection write failed in active test:", err.Error())
 	}
 }

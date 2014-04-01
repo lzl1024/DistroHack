@@ -2,13 +2,12 @@ package msg
 
 import (
 	"net"
-	"bytes"
 	"fmt"
 )
 
-func clienthread(mp *Messagepasser, c chan error) {
+func Clienthread(mp *Messagepasser, c chan error) {
 	var ip string
-	var msg Message
+	msg := new(Message)
 	for {
 		fmt.Println("Enter who you would like to connect to")
 		fmt.Scanf("%s", &ip)
@@ -18,8 +17,13 @@ func clienthread(mp *Messagepasser, c chan error) {
 		}
 		
 		msg.Dest = ip
-		msg.Data = bytes.NewBufferString("ashish kaila").Bytes()
-		mp.Send(&msg)
+		msg.Kind = STRING
+		err:= Handlers[msg.Kind].Encode(msg, "ashish kaila")
+		if err != nil {
+			fmt.Println(err);
+			continue
+		}
+		mp.Send(msg)
 	}
 }
 
