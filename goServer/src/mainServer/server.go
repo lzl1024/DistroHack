@@ -113,4 +113,5 @@ func initMessagePasser() {
 	msg.Handlers[msg.SIGNUP].Decode = msg.RcvSignUp
 	msg.Handlers[msg.SIGNUPACK].Encode = msg.SendSignUpAck
 	msg.Handlers[msg.SIGNUPACK].Decode = msg.RcvSignUpAck
+	//TODO: msg to update global_ranking, hack_start, hack_end
 }

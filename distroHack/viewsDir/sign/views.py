@@ -4,7 +4,6 @@ from django.views.decorators.csrf import csrf_exempt
 import re
 import socket
 from dsProject.settings import GO_PORT
-import distroHack.views
 
 read_buf_len = 1024
 
@@ -72,11 +71,8 @@ def register(request):
             result_msg.append(rcv_msg)
         else:
             validate = "success"
-            # login and fill with the local_ranking
+            # login
             request.session['username'] = name
-            user_tuple = distroHack.views.default_tuple.copy()
-            user_tuple['name'] = name
-            distroHack.views.local_ranking[name] = user_tuple
 
     return render(request, 'hack/error.html', {'error': result_msg, 'msg': validate})
 

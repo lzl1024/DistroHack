@@ -4,6 +4,7 @@ import (
 	"errors"
 	"util"
 	"fmt"
+	"time"
 )
 
 var Handlers [NUMTYPES]Handler
@@ -18,6 +19,20 @@ type Handler struct {
 
 var SignInMap = map[string]string{}
 var SignUpMap = map[string]string{}
+
+type User_record struct {
+	UserName string
+	Score    int
+	Ctime    time.Time
+}
+
+var App_url = "http://localhost:8000/"
+
+var Global_ranking_size = 20
+
+var Global_ranking  = []User_record{}
+var Local_info  = map[string]User_record{}
+
 
 /*
  * Plain String send and receive
@@ -52,6 +67,8 @@ func RcvPblSuccess(msg *Message)(interface{}, error) {
 	if msg.Kind != PBLSUCCESS {
 		return nil, errors.New("message Kind indicates not a PBLSUCCESS")
 	}
+	
+	// TODO: for SN, it should merge to global ranking, and send back if needed
 	return ParseRcvMapStrings(msg)
 }
 
