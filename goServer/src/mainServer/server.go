@@ -100,4 +100,6 @@ func initMessagePasser() {
 	/* register handlers for all the types of messages */
 	msg.Handlers[msg.STRING].Encode = msg.SendString
 	msg.Handlers[msg.STRING].Decode = msg.RcvString
+	msg.Handlers[msg.PBLSUCCESS].Encode = msg.SendPblSuccess
+	msg.Handlers[msg.PBLSUCCESS].Decode = msg.RcvPblSuccess
 }

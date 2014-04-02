@@ -131,6 +131,7 @@ func (mp *Messagepasser) Send(msg *Message) error{
 func (mp *Messagepasser) DoAction(msg *Message) {
 	str, err := Handlers[msg.Kind].Decode(msg)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 	fmt.Println((*msg).String())

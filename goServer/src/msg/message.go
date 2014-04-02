@@ -10,7 +10,7 @@ import (
 const (
 	STRING = iota
 	// add types below
-	
+	PBLSUCCESS
 	NUMTYPES
 )
 

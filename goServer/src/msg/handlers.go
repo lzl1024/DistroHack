@@ -1,8 +1,6 @@
 package msg
 
 import (
-	"bytes"
-	"encoding/gob"
 	"errors"
 )
 
@@ -16,39 +14,38 @@ type Handler struct {
 	Decode Rcvhdlr
 }
 
+/*
+ * Plain String send and receive
+ */
 func SendString(msg *Message, data interface{}) error {
-	var buffer bytes.Buffer
-	if msg.Kind == STRING {
-		str, ok := data.(string)
-		if !ok {
-			return errors.New("data passed is not STRING")
-		}
-		encoder := gob.NewEncoder(&buffer)
-		err := encoder.Encode(str)
-		if err != nil {
-			return errors.New("unable to encode STRING data")
-		}
-		msg.Data = buffer.Bytes()
-		buffer.Reset()
-		
-		return nil
+	if msg.Kind != STRING {
+		return errors.New("message Kind indicates not a STRING")
 	}
 	
-	return errors.New("message Kind indicates not a STRING")
+	return ParseSendInterfaces(msg, data)
 }
 
 func RcvString(msg *Message)(interface{}, error) {
-	var str string
-	if msg.Kind == STRING {
-		buffer := bytes.NewBuffer(msg.Data)
-		tmpdecoder := gob.NewDecoder(buffer)
-		err := tmpdecoder.Decode(&str)
-		if err != nil {
-			return nil, errors.New("Unable to do conversion of data")
-		} else {
-			return str, nil
-		}
+	if msg.Kind != STRING {
+		return nil, errors.New("message Kind indicates not a STRING")
+	}
+	return ParseRcvString(msg)
+}
+
+/*
+ * Problem success send and receive
+ */
+func SendPblSuccess(msg *Message, data interface{}) error {
+	if msg.Kind != PBLSUCCESS {
+		return errors.New("message Kind indicates not a PBLSUCCESS")
 	}
 	
-	return nil, errors.New("message Kind indicates not a STRING")
+	return ParseSendInterfaces(msg, data)
+}
+
+func RcvPblSuccess(msg *Message)(interface{}, error) {
+	if msg.Kind != PBLSUCCESS {
+		return nil, errors.New("message Kind indicates not a PBLSUCCESS")
+	}
+	return ParseRcvMapStrings(msg)
 }

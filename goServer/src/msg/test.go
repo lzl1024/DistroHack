@@ -17,7 +17,6 @@ func TestMessagePasser() {
 
 func clientTestThread(mp *Messagepasser, c chan error) {
 	var ip string
-	msg := new(Message)
 	for {
 		fmt.Println("Enter who you would like to connect to")
 		fmt.Scanf("%s", &ip)
@@ -26,13 +25,27 @@ func clientTestThread(mp *Messagepasser, c chan error) {
 			continue
 		}
 		
-		msg.Dest = ip
-		msg.Kind = STRING
-		err:= Handlers[msg.Kind].Encode(msg, "ashish kaila")
+		msg1 := new(Message)
+		msg1.Dest = ip
+		msg1.Kind = STRING
+		err:= Handlers[msg1.Kind].Encode(msg1, "ashish kaila")
 		if err != nil {
 			fmt.Println(err);
 			continue
 		}
-		mp.Send(msg)
+		mp.Send(msg1)
+		
+		msg2 := new(Message)
+		msg2.Kind = PBLSUCCESS
+		mapData := map[string]string{
+			"1": "1",
+			"2": "2",
+		}
+		err = Handlers[msg2.Kind].Encode(msg2, mapData)
+		if err != nil {
+			fmt.Println(err);
+			continue
+		}
+		mp.Send(msg2)
 	}
 }
