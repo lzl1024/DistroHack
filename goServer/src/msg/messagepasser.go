@@ -14,11 +14,15 @@ type Connection struct {
 	encoder *gob.Encoder
 }
 
+// TODO: change it!
+var SuperNodeIP = "127.0.0.1"
+
 type Messagepasser struct {
 	Hostlist []string
 	Connmap map[string]Connection
 	ServerIP string
-	ServerPort int
+	ONPort int
+	SNPort int
 	drift time.Duration
 }
 
@@ -26,7 +30,7 @@ type Messagepasser struct {
 var MsgPasser *Messagepasser
 
 /* name is the IP address in string format */
-func NewMsgPasser(serverIP string, serverPort int) (*Messagepasser, error) {
+func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, error) {
 	var ts *time.Time
 	var err error
 	var retry int = 0
@@ -38,7 +42,8 @@ func NewMsgPasser(serverIP string, serverPort int) (*Messagepasser, error) {
 	}
 	mp.ServerIP = serverIP
 	mp.Connmap = make(map[string]Connection)
-	mp.ServerPort = serverPort
+	mp.ONPort = ONPort
+	mp.SNPort = SNPort
 	
 	for ;retry != 3; {
 		ts,err = util.Time()
@@ -66,18 +71,27 @@ func NewMsgPasser(serverIP string, serverPort int) (*Messagepasser, error) {
 	return mp, nil;
 }
 
-func (mp *Messagepasser) Send(msg *Message) error{
+func (mp *Messagepasser) Send(msg *Message, isSN bool) error{
 	var encoder *gob.Encoder
 	var err error
 	var conn net.Conn
+	var port string
+	var dest string
 	
 	msg.Src = mp.ServerIP
 	// TODO:!!
 	msg.TimeStamp = time.Now().Add(mp.drift)
 	
+	// check destination
+	if (isSN) {
+		msg.Dest = SuperNodeIP
+		port = fmt.Sprint(mp.SNPort)
+	} else {
+		port = fmt.Sprint(mp.ONPort)
+	}
+	
 	/* check if already existent connection is there */
-	port := fmt.Sprint(mp.ServerPort)
-	dest := net.JoinHostPort(msg.Dest, port)
+	dest = net.JoinHostPort(msg.Dest, port)
 	connection, ok := mp.Connmap[msg.Dest]
 	if !ok {
 		conn,err = net.Dial("tcp", dest)

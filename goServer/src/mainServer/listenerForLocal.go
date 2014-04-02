@@ -4,14 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
-	"util"
+	"msg"
+	"time"
 )
-
-var userMap = map[string]string{
-	"1":     "111111",
-	"2":     "222222",
-	"admin": "admin",
-}
 
 func HandleConnectionFromLocal(listener net.Listener) {
 
@@ -74,39 +69,72 @@ func handleConnectionFromLocalThread(conn net.Conn) {
 	}
 }
 
-func handleSignIn(msg map[string]string) string {
+func handleSignIn(message map[string]string) string {
 	// msg = {"type": "sign_in", "username": name, "password": password}
-	if name, exist := msg["username"]; exist {
-		if password, exist := msg["password"]; exist {
-			/*if realPassword, exist := userMap[name]; exist && password == realPassword {
-			//	return "success"
-			}*/
-			return util.DatabaseSignIn(name, password)
+	if name, exist := message["username"]; exist {
+		if _, exist := message["password"]; exist {
+			// send map[string]string messages to SN
+			sendoutMsg := new(msg.Message)
+			sendoutMsg.Kind = msg.SIGNIN
+
+			err := msg.Handlers[sendoutMsg.Kind].Encode(sendoutMsg, message)
+			if err != nil {
+				fmt.Println(err);
+			}
+
+			// send message to SN
+			msg.MsgPasser.Send(sendoutMsg, true)
+			
+			// busy waiting for rcv
+			var val string
+			for {
+				if val, exist = msg.SignInMap[name]; exist {
+					delete(msg.SignInMap, name)
+					break;
+				}
+				time.Sleep(20)
+			}		
+			return val
 		}
 	}
 	return "Message Error"
 }
 
-func handleSignUp(msg map[string]string) string {
+func handleSignUp(message map[string]string) string {
 	//  msg = {"type": "sign_up", "username": name, "password": password, "email": email}
-	if name, exist := msg["username"]; exist {
-		if password, exist := msg["password"]; exist {
-			if email, exist := msg["email"]; exist {
-				return util.DatabaseSignUp(name, password, email)
+	if _, exist := message["username"]; exist {
+		if _, exist := message["password"]; exist {
+			if email, exist := message["email"]; exist {
+				// send map[string]string messages to SN
+				sendoutMsg := new(msg.Message)
+				sendoutMsg.Kind = msg.SIGNUP
+
+				err := msg.Handlers[sendoutMsg.Kind].Encode(sendoutMsg, message)
+				if err != nil {
+					fmt.Println(err);
+				}
+
+				// send message to SN
+				msg.MsgPasser.Send(sendoutMsg, true)
+			
+				// busy waiting for rcv
+				var val string
+				for {
+					if val, exist = msg.SignUpMap[email]; exist {
+						delete(msg.SignUpMap, email)
+						break;
+					}
+					time.Sleep(20)
+				}		
+				return val
 			}
 		}
-		/*if _, exist := userMap[name]; exist {
-			return "This email/username has already been registered!"
-		}
-		if password, exist := msg["password"]; exist {
-			userMap[name] = password
-			return "success"
-		}*/
 	}
 	return "Message Error"
 }
 
 func handleSuccess(msg map[string]string) string {
+	// TODO: merge local_info
 	// msg = {"type": "submit_success", "username": user, "pid": problem_id}
 	// TODO: send success message to other servers
 

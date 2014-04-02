@@ -11,6 +11,12 @@ const (
 	STRING = iota
 	// add types below
 	PBLSUCCESS
+	SIGNIN
+	SIGNINACK
+	SIGNUP
+	SIGNUPACK
+	START
+	END
 	NUMTYPES
 )
 

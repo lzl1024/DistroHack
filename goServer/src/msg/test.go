@@ -3,9 +3,8 @@ package msg
 import (
 	"fmt"
 	"net"
+	"time"
 )
-
-const SERVER_PORT = 5989
 
 func TestMessagePasser() {
 	channel := make(chan error)
@@ -33,9 +32,12 @@ func clientTestThread(mp *Messagepasser, c chan error) {
 			fmt.Println(err);
 			continue
 		}
-		mp.Send(msg1)
+		mp.Send(msg1, false)
+		
+		time.Sleep(20)
 		
 		msg2 := new(Message)
+		msg2.Dest = ip
 		msg2.Kind = PBLSUCCESS
 		mapData := map[string]string{
 			"1": "1",
@@ -46,6 +48,6 @@ func clientTestThread(mp *Messagepasser, c chan error) {
 			fmt.Println(err);
 			continue
 		}
-		mp.Send(msg2)
+		mp.Send(msg2, false)
 	}
 }

@@ -16,8 +16,7 @@ func InitConnectionFromPeers() {
 
 func serverthread(mp *msg.Messagepasser, c chan error) {
 	fmt.Println("Started server thread")
-	//sockAddr := fmt.Sprint(":", mp.ServerPort)
-	service := fmt.Sprint(":", mp.ServerPort)
+	service := fmt.Sprint(":", mp.ONPort)
 
 	tcpAddr, err := net.ResolveTCPAddr("tcp", service)
 	if err != nil {

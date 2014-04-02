@@ -12,6 +12,8 @@ import (
 
 var ListenPortLocal = ":4213"
 var ListenPortPeer = 4214
+// TODO: change it!
+var SNListenPort = 4214
 
 const rcvBufLen = 1024
 
@@ -91,7 +93,8 @@ func initMessagePasser() {
 		}
 	}
 
-	msg.MsgPasser,err = msg.NewMsgPasser(addr.String(), ListenPortPeer)
+	msg.MsgPasser,err = msg.NewMsgPasser(addr.String(), ListenPortPeer, 
+		SNListenPort)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -102,4 +105,12 @@ func initMessagePasser() {
 	msg.Handlers[msg.STRING].Decode = msg.RcvString
 	msg.Handlers[msg.PBLSUCCESS].Encode = msg.SendPblSuccess
 	msg.Handlers[msg.PBLSUCCESS].Decode = msg.RcvPblSuccess
+	msg.Handlers[msg.SIGNIN].Encode = msg.SendSignIn
+	msg.Handlers[msg.SIGNIN].Decode = msg.RcvSignIn
+	msg.Handlers[msg.SIGNINACK].Encode = msg.SendSignInAck
+	msg.Handlers[msg.SIGNINACK].Decode = msg.RcvSignInAck	
+	msg.Handlers[msg.SIGNUP].Encode = msg.SendSignUp
+	msg.Handlers[msg.SIGNUP].Decode = msg.RcvSignUp
+	msg.Handlers[msg.SIGNUPACK].Encode = msg.SendSignUpAck
+	msg.Handlers[msg.SIGNUPACK].Decode = msg.RcvSignUpAck
 }
