@@ -1,27 +1,26 @@
 package msg
 
 import (
-	"net"
-	"fmt"
-	"os"
 	"encoding/gob"
+	"fmt"
+	"net"
+	"os"
 	"time"
 	"util"
 )
 
 type Connection struct {
-	conn net.Conn
+	conn    net.Conn
 	encoder *gob.Encoder
 }
 
 type Messagepasser struct {
-	Hostlist []string
-	Connmap map[string]Connection
-	ServerIP string
+	Hostlist   []string
+	Connmap    map[string]Connection
+	ServerIP   string
 	ServerPort int
-	drift time.Duration
+	drift      time.Duration
 }
-
 
 var MsgPasser *Messagepasser
 
@@ -30,7 +29,7 @@ func NewMsgPasser(serverIP string, serverPort int) (*Messagepasser, error) {
 	var ts *time.Time
 	var err error
 	var retry int = 0
-	
+
 	mp := new(Messagepasser)
 	if net.ParseIP(serverIP) == nil {
 		fmt.Println("Invalid IP address")
@@ -39,19 +38,19 @@ func NewMsgPasser(serverIP string, serverPort int) (*Messagepasser, error) {
 	mp.ServerIP = serverIP
 	mp.Connmap = make(map[string]Connection)
 	mp.ServerPort = serverPort
-	
-	for ;retry != 3; {
-		ts,err = util.Time()
+
+	for retry != 3 {
+		ts, err = util.Time()
 		if err != nil {
 			retry = retry + 1
 		}
 		break
 	}
-	
+
 	if retry > 2 {
-		return nil,err
+		return nil, err
 	}
-	
+
 	refTime := *ts
 	curTime := time.Now()
 	fmt.Println("current: " + curTime.String())
@@ -62,30 +61,30 @@ func NewMsgPasser(serverIP string, serverPort int) (*Messagepasser, error) {
 		mp.drift = refTime.Sub(curTime)
 	}
 	fmt.Println("Duration : " + mp.drift.String())
-	
-	return mp, nil;
+
+	return mp, nil
 }
 
-func (mp *Messagepasser) Send(msg *Message) error{
+func (mp *Messagepasser) Send(msg *Message) error {
 	var encoder *gob.Encoder
 	var err error
 	var conn net.Conn
-	
+
 	msg.Src = mp.ServerIP
 	// TODO:!!
 	msg.TimeStamp = time.Now().Add(mp.drift)
-	
+
 	/* check if already existent connection is there */
 	port := fmt.Sprint(mp.ServerPort)
 	dest := net.JoinHostPort(msg.Dest, port)
 	connection, ok := mp.Connmap[msg.Dest]
 	if !ok {
-		conn,err = net.Dial("tcp", dest)
+		conn, err = net.Dial("tcp", dest)
 		if err != nil {
 			fmt.Println("error connecting to: ", dest, "reason: ", err)
-			connection,ok := mp.Connmap[msg.Dest]
+			connection, ok := mp.Connmap[msg.Dest]
 			if ok {
-				connection.conn.Close();
+				connection.conn.Close()
 				delete(mp.Connmap, msg.Dest)
 			}
 			return err
@@ -98,7 +97,7 @@ func (mp *Messagepasser) Send(msg *Message) error{
 			if err != nil {
 				fmt.Println("cannot set keepalive on connection")
 			}
-			
+
 			err = tcpconn.SetLinger(0)
 			if err != nil {
 				fmt.Println("cannot set linger options")
@@ -112,18 +111,18 @@ func (mp *Messagepasser) Send(msg *Message) error{
 		fmt.Println("Re-using connection to: ", dest)
 		encoder = connection.encoder
 	}
-	
+
 	err = encoder.Encode(msg)
 	if err != nil {
 		fmt.Println("error encoding data: ", err)
-		connection,ok := mp.Connmap[msg.Dest]
+		connection, ok := mp.Connmap[msg.Dest]
 		if ok {
-			connection.conn.Close();
+			connection.conn.Close()
 			delete(mp.Connmap, msg.Dest)
 		}
 		return err
 	}
-	
+
 	return nil
 }
 
@@ -136,4 +135,3 @@ func (mp *Messagepasser) DoAction(msg *Message) {
 	fmt.Println((*msg).String())
 	fmt.Println(str)
 }
-

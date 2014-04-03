@@ -11,7 +11,7 @@ func TestMessagePasser() {
 	channel := make(chan error)
 
 	go clientTestThread(MsgPasser, channel)
-	value := <- channel
+	value := <-channel
 	fmt.Println(value)
 }
 
@@ -25,12 +25,12 @@ func clientTestThread(mp *Messagepasser, c chan error) {
 			fmt.Println("Invalid ip: try again")
 			continue
 		}
-		
+
 		msg.Dest = ip
 		msg.Kind = STRING
-		err:= Handlers[msg.Kind].Encode(msg, "ashish kaila")
+		err := Handlers[msg.Kind].Encode(msg, "ashish kaila")
 		if err != nil {
-			fmt.Println(err);
+			fmt.Println(err)
 			continue
 		}
 		mp.Send(msg)

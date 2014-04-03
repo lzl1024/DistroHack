@@ -10,15 +10,22 @@ import (
 const (
 	STRING = iota
 	// add types below
-	
+
+	// Receive rank update from other super node
+	SN_RANK
+	// Receive submit success from ordinary node
+	SN_ON_SUBMIT
+	// Receive sign in from ordinary node
+	SN_ON_SIGNIN
+
 	NUMTYPES
 )
 
 type Message struct {
 	Src, Dest string
-	Seqnum int
-	Kind int
-	Data []byte
+	Seqnum    int
+	Kind      int
+	Data      []byte
 	TimeStamp time.Time
 }
 
@@ -37,10 +44,10 @@ func (msg *Message) CopyMsg(m *Message) {
 }
 
 func (msg Message) String() string {
-	ts,_ := util.Time()
+	ts, _ := util.Time()
 	time_stamp := *ts
-	
-	s := "dest: " + msg.Dest + " " + " src: " + msg.Src + " kind: "	+ " timeStamp: " + 
-			msg.TimeStamp.String() + " ref time: " + time_stamp.String() 
+
+	s := "dest: " + msg.Dest + " " + " src: " + msg.Src + " kind: " + " timeStamp: " +
+		msg.TimeStamp.String() + " ref time: " + time_stamp.String()
 	return s
 }
