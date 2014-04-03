@@ -22,6 +22,10 @@ const rcvBufLen = 1024
 
 var isSN = false
 
+func main_test() {
+	superNode.SuperNodeThreadTest()
+}
+
 func main() {
 
 	parseArguments()

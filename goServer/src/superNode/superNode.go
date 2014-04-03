@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"msg"
 	"net"
+	"reflect"
 	"util"
 )
 
@@ -21,42 +22,70 @@ var scoreMap map[string]msg.UserRecord
 var Global_ranking = []msg.UserRecord{}
 var Local_info = map[string]msg.UserRecord{}
 
-func SuperNodeThread(serverPort int) {
-	// Get the list of other super node
-	//parseConfigFile()
-
-	fmt.Println("aaa")
-	fmt.Printf("%d\n", len(rankList))
-
+func SuperNodeThreadTest() {
 	scoreMap = make(map[string]msg.UserRecord)
 
+	record := new(msg.UserRecord)
+	fmt.Println(reflect.TypeOf(record))
+	record.NewUserRecord("aaa", 1, rankList[0].Ctime)
+	fmt.Printf("%p\n", record)
+
+	record1 := *record
+	fmt.Printf("%p\n", &record1)
+	record1.Score = 2
+
+	rankList[0] = record1
+	fmt.Printf("%p\n", &rankList[0])
+	rankList[1] = *record
+	fmt.Printf("%p\n", &rankList[1])
+
+	var tmprankList [msg.GlobalRankSize]msg.UserRecord
+
+	record1.Score = 3
+	tmprankList[0] = record1
+	tmprankList[1] = *record
+
+	updateGlobalRankList(tmprankList)
+}
+
+func SuperNodeThread(serverPort int) {
+	channel := make(chan error)
+	go superNodeListenThread(serverPort, channel)
+	value := <-channel
+	fmt.Println(value)
+}
+
+func superNodeListenThread(serverPort int, c chan error) {
+	// Get the list of other super node
+	parseConfigFile()
+
 	// Get the tcpAddr
-	/*fmt.Println("SuperNode: Started superNode server thread")
+	fmt.Println("SuperNode: Started superNode server thread")
 	service := fmt.Sprint(":", serverPort)
 	tcpAddr, err := net.ResolveTCPAddr("tcp", service)
 	if err != nil {
 		fmt.Println("SuperNode: Unrecoverable error trying to start go supernode server")
 		c <- err
 		return
-	}*/
+	}
 
 	// Create Listener
-	/*listener, err := net.ListenTCP("tcp", tcpAddr)
+	listener, err := net.ListenTCP("tcp", tcpAddr)
 	if err != nil {
 		fmt.Println("SuperNode: Unrecoverable error trying to start listening on server ", err)
 		c <- err
 		return
-	}*/
+	}
 
 	// Create new receive thread when a new msg arrives
-	/*for {
+	for {
 		conn, err := listener.Accept()
 		if err != nil {
 			fmt.Println("SuperNode: error accepting connection...continuing")
 			continue
 		}
 		go rcvThreadForSN(mp, conn)
-	}*/
+	}
 
 }
 
@@ -87,15 +116,16 @@ func rcvThreadForSN(mp *msg.Messagepasser, conn net.Conn) {
 	}
 }
 
+func parseConfigFile() {
+
+}
+
 func superNodeMsgDoAction(m *msg.Message) {
 	data, err := msg.Handlers[m.Kind](m)
 	if err != nil {
 		return
 	}
 	fmt.Println((*m).String())
-	//fmt.Println(str)
-
-	//updateGlobalRankList(str)
 
 	switch m.Kind {
 	case msg.SN_RANK:
@@ -107,31 +137,30 @@ func superNodeMsgDoAction(m *msg.Message) {
 	}
 }
 
-/*func globalRankForSN(m *msg.Message) {
-	tmpRankList := m.Data
-	if len(tmpRankList) != RankNum {
-		fmt.Println("SuperNode: Message data of rank list length incorrect")
-	}
-
-	updateGlobalRankList(tmpRankList)
-}*/
-
 func updateGlobalRankList(tmpRankList [msg.GlobalRankSize]msg.UserRecord) {
+	// Update global rank list
 	rankList = tmpRankList
 
+	// Update the local info map
 	for _, userRecord := range tmpRankList {
-		r := &userRecord
-		scoreMap[r.UserName] = userRecord
+		if _, present := scoreMap[userRecord.UserName]; present {
+			scoreMap[userRecord.UserName] = userRecord
+		}
 	}
 }
 
 func pblSuccessFromON(userRecord msg.UserRecord) {
-	r := &userRecord
+	//Update the local Info
+	if _, present := scoreMap[userRecord.UserName]; present {
+		scoreMap[userRecord.UserName] = userRecord
+	} else {
+		fmt.Println("SuperNode Error: Publish Successs ON not in SuperNode's Local List")
+		return
+	}
 
-	scoreMap[r.UserName] = userRecord
-
+	//Update the Global Rank
 	i := msg.GlobalRankSize - 1
-	if i >= 0 && r.Score > (&rankList[i]).Score {
+	if i >= 0 && userRecord.Score > rankList[i].Score {
 		tmpRank := rankList[i]
 		rankList[i] = userRecord
 		if i < msg.GlobalRankSize-1 {
