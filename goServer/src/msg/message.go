@@ -12,13 +12,12 @@ const (
 
 	// Receive rank update from other super node
 	SN_RANK
-	// Receive submit success from ordinary node
-	SN_ON_SUBMIT
 	// Receive sign in from ordinary node
-	SN_ON_SIGNIN
+	SN_SIGNIN
+	// Receive public success from ordinary node
+	SN_PBLSUCCESS
 
 	PBLSUCCESS
-	SIGNIN
 	SIGNINACK
 	SIGNUP
 	SIGNUPACK
@@ -56,7 +55,7 @@ func (msg *Message) CopyMsg(m *Message) {
 }
 
 func (msg Message) String() string {
-	s := "dest: " + msg.Dest + " " + " src: " + msg.Src + " kind: "	+ " timeStamp: " + 
-			msg.TimeStamp.String() 
+	s := "dest: " + msg.Dest + " " + " src: " + msg.Src + " kind: " + " timeStamp: " +
+		msg.TimeStamp.String()
 	return s
 }

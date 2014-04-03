@@ -23,17 +23,17 @@ func clientTestThread(mp *Messagepasser, c chan error) {
 			fmt.Println("Invalid ip: try again")
 			continue
 		}
-		
+
 		msg1 := new(Message)
 		err := msg1.NewMsgwithData(ip, STRING, "ashish kaila")
 		if err != nil {
-			fmt.Println(err);
+			fmt.Println(err)
 			continue
 		}
 		mp.Send(msg1, false)
-		
+
 		time.Sleep(20)
-		
+
 		msg2 := new(Message)
 		mapData := map[string]string{
 			"1": "1",

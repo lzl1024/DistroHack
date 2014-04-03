@@ -14,16 +14,18 @@ import (
 // function 4: connect with an ON and send all msg. userlist, local_info, global ranking.
 
 var mp = msg.MsgPasser
-var rankList [msg.RankNum]msg.Rank
-var scoreMap map[string]msg.Rank
-var RankNum int
+var rankList [msg.GlobalRankSize]msg.UserRecord
+var scoreMap map[string]msg.UserRecord
+
+var Global_ranking = []msg.UserRecord{}
+var Local_info = map[string]msg.UserRecord{}
+
 
 func SuperNodeThread(serverPort int) {
 	// Get the list of other super node
 	//parseConfigFile()
 
-	RankNum = msg.RankNum
-	scoreMap = make(map[string]msg.Rank)
+	scoreMap = make(map[string]msg.UserRecord)
 
 	// Get the tcpAddr
 	/*fmt.Println("SuperNode: Started superNode server thread")
@@ -94,11 +96,11 @@ func superNodeMsgDoAction(m *msg.Message) {
 
 	switch m.Kind {
 	case msg.SN_RANK:
-		updateGlobalRankList(data.([msg.RankNum]msg.Rank))
-	case msg.SN_ON_SUBMIT:
-		submitSuccessFromON(data.(msg.Rank))
+		updateGlobalRankList(data.([msg.GlobalRankSize]msg.UserRecord))
+	case msg.SN_PBLSUCCESS:
+		pblSuccessFromON(data.(msg.UserRecord))
 	case msg.SN_ON_SIGNIN:
-		signInFromON(m)
+		signInFromON(m, data.(map[string]string))
 	}
 }
 
@@ -111,19 +113,19 @@ func superNodeMsgDoAction(m *msg.Message) {
 	updateGlobalRankList(tmpRankList)
 }*/
 
-func updateGlobalRankList(tmpRankList [msg.RankNum]msg.Rank) {
+func updateGlobalRankList(tmpRankList [msg.GlobalRankSize]msg.UserRecord) {
 	rankList = tmpRankList
 
-	for _, singleRank := range tmpRankList {
-		r := &singleRank
-		scoreMap[r.Username] = singleRank
+	for _, userRecord := range tmpRankList {
+		r := &userRecord
+		scoreMap[r.Username] = userRecord
 	}
 }
 
-func submitSuccessFromON(singleRank msg.Rank) {
-	r := &singleRank
+func pblSuccessFromON(userRecord msg.UserRecord) {
+	r := &userRecord
 
-	scoreMap[r.Username] = singleRank
+	scoreMap[r.Username] = userRecord
 
 	i := RankNum - 1
 	if i >= 0 && r.Score > (&rankList[i]).Score {
@@ -136,8 +138,24 @@ func submitSuccessFromON(singleRank msg.Rank) {
 	}
 }
 
-func signInFromON(msg *msg.Message) {
+func signInFromON(m *msg.MessagesignInMsg map[string]string) {
+	// check database and send back SignInAck
+	// TODO: update number of node register, send by heartbeat
+	backMsg := util.DatabaseSignIn(signInMsg["username"], signInMsg["password"])
 
+	backData := map[string]string{
+		"user":   signInMsg["username"],
+		"status": backMsg,
+	}
+
+	sendoutMsg := new(Message)
+	err := sendoutMsg.NewMsgwithData(m.Src, msg.SIGNINACK, backData)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// send message to SN
+	mp.Send(sendoutMsg, false)
 }
 
 func InitiateWithON() {

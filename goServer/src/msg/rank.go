@@ -4,10 +4,10 @@ import (
 	"time"
 )
 
-type Rank struct {
-	Username string
+type UserRecord struct {
+	UserName string
 	Score    int
-	Time     time.Time
+	Ctime    time.Time
 }
 
-const RankNum = 10
+const GlobalRankSize = 20

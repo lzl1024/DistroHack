@@ -100,7 +100,7 @@ func initMessagePasser() {
 		}
 	}
 
-	msg.MsgPasser,err = msg.NewMsgPasser(addr.String(), ListenPortPeer, 
+	msg.MsgPasser, err = msg.NewMsgPasser(addr.String(), ListenPortPeer,
 		SNListenPort)
 	if err != nil {
 		fmt.Println(err)
@@ -110,13 +110,12 @@ func initMessagePasser() {
 	/* register handlers for all the types of messages */
 
 	msg.Handlers[msg.SN_RANK] = msg.RcvSnRank
-	msg.Handlers[msg.SN_ON_SUBMIT] = msg.RcvSnOnSubmit
-	msg.Handlers[msg.SN_ON_SIGNIN] = msg.RcvSnOnSignIn
+	msg.Handlers[msg.SN_SIGNIN] = msg.RcvSnOnSignIn
+	msg.Handlers[msg.SN_PBLSUCCESS] = msg.RcvPblSuccess
 
 	msg.Handlers[msg.STRING] = msg.RcvString
 	msg.Handlers[msg.PBLSUCCESS] = msg.RcvPblSuccess
-	msg.Handlers[msg.SIGNIN] = msg.RcvSignIn
-	msg.Handlers[msg.SIGNINACK] = msg.RcvSignInAck	
+	msg.Handlers[msg.SIGNINACK] = msg.RcvSignInAck
 	msg.Handlers[msg.SIGNUP] = msg.RcvSignUp
 	msg.Handlers[msg.SIGNUPACK] = msg.RcvSignUpAck
 	msg.Handlers[msg.STARTEND_SN] = msg.RcvStartEnd_SN
