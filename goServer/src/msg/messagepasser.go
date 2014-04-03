@@ -143,7 +143,7 @@ func (mp *Messagepasser) Send(msg *Message, isSN bool) error{
 
 /* based on message types take action */
 func (mp *Messagepasser) DoAction(msg *Message) {
-	str, err := Handlers[msg.Kind].Decode(msg)
+	str, err := Handlers[msg.Kind](msg)
 	if err != nil {
 		fmt.Println(err)
 		return

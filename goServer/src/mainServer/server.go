@@ -101,11 +101,11 @@ func initMessagePasser() {
 	}
 	
 	/* register handlers for all the types of messages */
-	msg.Handlers[msg.STRING].Decode = msg.RcvString
-	msg.Handlers[msg.PBLSUCCESS].Decode = msg.RcvPblSuccess
-	msg.Handlers[msg.SIGNIN].Decode = msg.RcvSignIn
-	msg.Handlers[msg.SIGNINACK].Decode = msg.RcvSignInAck	
-	msg.Handlers[msg.SIGNUP].Decode = msg.RcvSignUp
-	msg.Handlers[msg.SIGNUPACK].Decode = msg.RcvSignUpAck
+	msg.Handlers[msg.STRING] = msg.RcvString
+	msg.Handlers[msg.PBLSUCCESS] = msg.RcvPblSuccess
+	msg.Handlers[msg.SIGNIN] = msg.RcvSignIn
+	msg.Handlers[msg.SIGNINACK] = msg.RcvSignInAck	
+	msg.Handlers[msg.SIGNUP] = msg.RcvSignUp
+	msg.Handlers[msg.SIGNUPACK] = msg.RcvSignUpAck
 	//TODO: msg to update global_ranking, hack_start, hack_end
 }

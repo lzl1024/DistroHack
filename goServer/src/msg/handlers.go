@@ -7,14 +7,13 @@ import (
 	"time"
 )
 
-var Handlers [NUMTYPES]Handler
+var Handlers [NUMTYPES]Rcvhdlr
 
-type Sendhdlr func(*Message, interface{})error
 type Rcvhdlr func(*Message)(interface{},error)
 
-type Handler struct {
-	Decode Rcvhdlr
-}
+/*type Handler struct {
+	Action Rcvhdlr
+}*/
 
 var SignInChan chan string
 var SignUpChan chan string
@@ -37,7 +36,13 @@ func RcvString(msg *Message)(interface{}, error) {
 	if msg.Kind != STRING {
 		return nil, errors.New("message Kind indicates not a STRING")
 	}
-	return ParseRcvString(msg)
+	
+	var rcvString string
+	if err := ParseRcvInterfaces(msg, &rcvString); err!= nil {
+		return nil, err
+	}
+	
+	return rcvString, nil
 }
 
 func RcvPblSuccess(msg *Message)(interface{}, error) {
@@ -46,7 +51,11 @@ func RcvPblSuccess(msg *Message)(interface{}, error) {
 	}
 	
 	// TODO: for SN, it should merge to global ranking, and send back if needed
-	return ParseRcvMapStrings(msg)
+	var successMsg map[string]string
+	if err := ParseRcvInterfaces(msg, &successMsg); err!= nil {
+		return nil, err
+	}
+	return successMsg, nil
 }
 
 // should be in SN
@@ -54,10 +63,10 @@ func RcvSignIn(msg *Message)(interface{}, error) {
 	if msg.Kind != SIGNIN {
 		return nil, errors.New("message Kind indicates not a SIGNIN")
 	}
-
-	signInMsg, err :=  ParseRcvMapStrings(msg)
-	if err != nil {
-		return signInMsg, err
+	
+	var signInMsg map[string]string
+	if err := ParseRcvInterfaces(msg, &signInMsg); err!= nil {
+		return nil, err
 	}
 
 	// check database and send back SignInAck
@@ -69,7 +78,7 @@ func RcvSignIn(msg *Message)(interface{}, error) {
 	}
 
 	sendoutMsg := new(Message)
-	err = sendoutMsg.NewMsgwithData(msg.Src, SIGNINACK, backData)
+	err := sendoutMsg.NewMsgwithData(msg.Src, SIGNINACK, backData)
 	if err != nil {
 		fmt.Println(err);
 	}
@@ -84,15 +93,15 @@ func RcvSignInAck(msg *Message)(interface{}, error) {
 		return nil, errors.New("message Kind indicates not a SIGNINACK")
 	}
 	
-	signInAckMsg, err :=  ParseRcvMapStrings(msg)
-	if err != nil {
-		return signInAckMsg, err
+	var signInAckMsg map[string]string
+	if err := ParseRcvInterfaces(msg, &signInAckMsg); err!= nil {
+		return nil, err
 	}
 	
 	// update signIn channel to stop the channel waiting
 	SignInChan <- signInAckMsg["status"]
 	
-	return signInAckMsg, err
+	return signInAckMsg, nil
 }
 
 
@@ -100,10 +109,10 @@ func RcvSignUp(msg *Message)(interface{}, error) {
 	if msg.Kind != SIGNUP {
 		return nil, errors.New("message Kind indicates not a SIGNUP")
 	}
-
-	signUpMsg, err :=  ParseRcvMapStrings(msg)
-	if err != nil {
-		return signUpMsg, err
+	
+	var signUpMsg map[string]string
+	if err := ParseRcvInterfaces(msg, &signUpMsg); err!= nil {
+		return nil, err
 	}
 
 	// check database and send back SignInAck
@@ -116,7 +125,7 @@ func RcvSignUp(msg *Message)(interface{}, error) {
 	}
 
 	sendoutMsg := new(Message)
-	err = sendoutMsg.NewMsgwithData(msg.Src, SIGNUPACK, backData)
+	err := sendoutMsg.NewMsgwithData(msg.Src, SIGNUPACK, backData)
 	if err != nil {
 		fmt.Println(err);
 	}
@@ -130,13 +139,13 @@ func RcvSignUpAck(msg *Message)(interface{}, error) {
 		return nil, errors.New("message Kind indicates not a SIGNUPACK")
 	}
 	
-	signUpAckMsg, err :=  ParseRcvMapStrings(msg)
-	if err != nil {
-		return signUpAckMsg, err
+	var signUpAckMsg map[string]string
+	if err := ParseRcvInterfaces(msg, &signUpAckMsg); err!= nil {
+		return nil, err
 	}
 
 	// update signIn channel to stop the channel waiting
 	SignUpChan <- signUpAckMsg["status"]
 	
-	return signUpAckMsg, err
+	return signUpAckMsg, nil
 }
