@@ -3,8 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"net/url"
 	"time"
 	"msg"
 )
@@ -29,16 +27,6 @@ func sendoutGlobalRanking() {
 	data, _ := json.Marshal(global_ranking)
 
 	// send data out
-	sendout(msg.App_url+"hacks/update_rank/", string(data))
+	msg.SendtoApp(msg.App_url+"hacks/update_rank/", string(data))
 
-}
-
-// truely send out date
-func sendout(urlAddress string, data string) {
-	_, err := http.PostForm(urlAddress,
-		url.Values{"data": {data}})
-
-	if err != nil {
-		fmt.Println("Post failure: " + urlAddress + "," + data)
-	}
 }

@@ -7,6 +7,8 @@ import (
 	"encoding/gob"
 	"time"
 	"util"
+	"net/http"
+	"net/url"
 )
 
 type Connection struct {
@@ -152,3 +154,12 @@ func (mp *Messagepasser) DoAction(msg *Message) {
 	fmt.Println(str)
 }
 
+// truely send out data to app
+func SendtoApp(urlAddress string, data string) {
+	_, err := http.PostForm(urlAddress,
+		url.Values{"data": {data}})
+
+	if err != nil {
+		fmt.Println("Post failure: " + urlAddress + "," + data)
+	}
+}

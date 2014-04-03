@@ -51,8 +51,6 @@ func handleConnectionFromLocalThread(conn net.Conn) {
 		return
 	}
 
-	fmt.Println(message)
-
 	// handle different type of message
 	switch msgType {
 	case "sign_in":
@@ -62,16 +60,27 @@ func handleConnectionFromLocalThread(conn net.Conn) {
 	case "submit_success":
 		conn.Write([]byte(handleSuccess(message)))
 	case "end_hack":
-		conn.Write([]byte(handleEnd()))
+		conn.Write([]byte(handleEndandStart(message)))
 	case "start_hack":
-		conn.Write([]byte(handleStart()))
+		conn.Write([]byte(handleEndandStart(message)))
 	case "problem_id":
-		conn.Write([]byte(strconv.Itoa(
-			msg.Local_info[message["username"]].Score + 1)))
+		name := message["username"]
+		tuple, exist := msg.Local_info[name]
+		score := tuple.Score
+		
+		// add user if he use session cache to login
+		if !exist {
+			msg.Local_info[name] = msg.User_record{
+					name, 0, time.Now()}
+			score = 0
+		} 
+	
+		conn.Write([]byte(strconv.Itoa(score + 1)))
 	default:
 		fmt.Println("Messge Type Undefined")
 	}
 }
+
 
 func handleSignIn(message map[string]string) string {
 	// msg = {"type": "sign_in", "username": name, "password": password}
@@ -163,12 +172,17 @@ func handleSuccess(message map[string]string) string {
 	return "success"
 }
 
-func handleEnd() string {
+func handleEndandStart(meesage map[string]string) string {
 	// TODO: multicast or send to SN end hackthon message to other servers
-	return "success"
-}
+	// send to SN
+	sendoutMsg := new(msg.Message)
 
-func handleStart() string {
-	// TODO: multicast or send to SN start hackthon message to other servers
+	err := sendoutMsg.NewMsgwithData("", msg.STARTEND_SN, meesage)
+	if err != nil {
+		fmt.Println(err);
+	}
+
+	// send message to SN
+	msg.MsgPasser.Send(sendoutMsg, true)
 	return "success"
 }

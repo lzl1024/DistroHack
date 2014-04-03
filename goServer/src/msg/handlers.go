@@ -5,6 +5,7 @@ import (
 	"util"
 	"fmt"
 	"time"
+	"encoding/json"
 )
 
 var Handlers [NUMTYPES]Rcvhdlr
@@ -45,6 +46,7 @@ func RcvString(msg *Message)(interface{}, error) {
 	return rcvString, nil
 }
 
+// Received in SN
 func RcvPblSuccess(msg *Message)(interface{}, error) {
 	if msg.Kind != PBLSUCCESS {
 		return nil, errors.New("message Kind indicates not a PBLSUCCESS")
@@ -58,7 +60,7 @@ func RcvPblSuccess(msg *Message)(interface{}, error) {
 	return successMsg, nil
 }
 
-// should be in SN
+
 func RcvSignIn(msg *Message)(interface{}, error) {
 	if msg.Kind != SIGNIN {
 		return nil, errors.New("message Kind indicates not a SIGNIN")
@@ -70,6 +72,7 @@ func RcvSignIn(msg *Message)(interface{}, error) {
 	}
 
 	// check database and send back SignInAck
+	// TODO: update number of node register, send by heartbeat
 	backMsg := util.DatabaseSignIn(signInMsg["username"], signInMsg["password"])
 	
 	backData := map[string]string {
@@ -88,6 +91,7 @@ func RcvSignIn(msg *Message)(interface{}, error) {
 	return signInMsg, err
 }
 
+// received in SN
 func RcvSignInAck(msg *Message)(interface{}, error) {
 	if msg.Kind != SIGNINACK {
 		return nil, errors.New("message Kind indicates not a SIGNINACK")
@@ -104,7 +108,6 @@ func RcvSignInAck(msg *Message)(interface{}, error) {
 	return signInAckMsg, nil
 }
 
-
 func RcvSignUp(msg *Message)(interface{}, error) {
 	if msg.Kind != SIGNUP {
 		return nil, errors.New("message Kind indicates not a SIGNUP")
@@ -115,7 +118,8 @@ func RcvSignUp(msg *Message)(interface{}, error) {
 		return nil, err
 	}
 
-	// check database and send back SignInAck
+	// check database and send back SignUpAck
+	// TODO: send register to other SN if success
 	backMsg := util.DatabaseSignUp(signUpMsg["username"], 
 		signUpMsg["password"], signUpMsg["email"])
 
@@ -134,6 +138,7 @@ func RcvSignUp(msg *Message)(interface{}, error) {
 	return signUpMsg, err
 }
 
+// received in SN
 func RcvSignUpAck(msg *Message)(interface{}, error) {
 	if msg.Kind != SIGNUPACK {
 		return nil, errors.New("message Kind indicates not a SIGNUPACK")
@@ -148,4 +153,34 @@ func RcvSignUpAck(msg *Message)(interface{}, error) {
 	SignUpChan <- signUpAckMsg["status"]
 	
 	return signUpAckMsg, nil
+}
+
+//TODO: SN receive start or end, forward message to all ON and SN
+// use NewMsgwithBytes will be efficient without en/decode msg
+func RcvStartEnd_SN(msg *Message)(interface{}, error) {
+	return nil, nil	
+}
+
+// When ON receive start or end, call app url, to inform app
+func RcvStartEnd_ON(msg *Message)(interface{}, error) {
+	if msg.Kind != STARTEND_ON {
+		return nil, errors.New("message Kind indicates not a STARTEND_ON")
+	}
+	
+	var startEndMsg map[string]string
+	if err := ParseRcvInterfaces(msg, &startEndMsg); err!= nil {
+		return nil, err
+	}
+	
+	// end message
+	if startEndMsg["type"] == "end_hack"{
+		// send data out
+		SendtoApp(App_url+"hacks/end_hack/", "")
+	} else if startEndMsg["type"] == "start_hack" {
+		data, _ := json.Marshal(startEndMsg)
+		SendtoApp(App_url+"hacks/start_hack/", string(data))	
+	} else {
+		return nil, errors.New("STARTEND_ON message's inner type wrong")
+	}
+	return startEndMsg, nil
 }

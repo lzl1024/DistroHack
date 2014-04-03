@@ -67,7 +67,7 @@ func parseArguments() {
 // tests
 func tests() {
 	// active connect to application
-	//activeTest()
+	activeTest()
 	// test for database
 	//util.DBTest()
 	go msg.TestMessagePasser()
@@ -107,5 +107,7 @@ func initMessagePasser() {
 	msg.Handlers[msg.SIGNINACK] = msg.RcvSignInAck	
 	msg.Handlers[msg.SIGNUP] = msg.RcvSignUp
 	msg.Handlers[msg.SIGNUPACK] = msg.RcvSignUpAck
-	//TODO: msg to update global_ranking, hack_start, hack_end
+	msg.Handlers[msg.STARTEND_SN] = msg.RcvStartEnd_SN
+	msg.Handlers[msg.STARTEND_ON] = msg.RcvStartEnd_ON
+	//TODO: msg to update global_ranking
 }
