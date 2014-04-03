@@ -26,6 +26,7 @@ func SuperNodeThread(serverPort int) {
 	//parseConfigFile()
 
 	fmt.Println("aaa")
+	fmt.Printf("%d\n", len(rankList))
 
 	scoreMap = make(map[string]msg.UserRecord)
 

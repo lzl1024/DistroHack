@@ -24,35 +24,33 @@ var isSN = false
 
 func main() {
 
-	//parseArguments()
+	parseArguments()
 
 	// open database
-	//util.DatabaseInit()
+	util.DatabaseInit()
 
-	//initMessagePasser()
-	//go InitConnectionFromPeers()
+	initMessagePasser()
+	go InitConnectionFromPeers()
 
 	// open SN port when is needed
-	//if isSN == true {
-	//go superNode.SuperNodeThread(ListenPortSuperNode)
-	fmt.Println("superNode")
-	superNode.SuperNodeThread(ListenPortSuperNode)
-	//}
+	if isSN == true {
+		go superNode.SuperNodeThread(ListenPortSuperNode)
 
-	//fmt.Print("aaa")
+		//superNode.SuperNodeThread(ListenPortSuperNode)
+	}
 
 	// tests
-	//tests()
+	tests()
 
 	// open the listen port for local app
-	//listenerLocal, errLocal := net.Listen("tcp", ListenPortLocal)
+	listenerLocal, errLocal := net.Listen("tcp", ListenPortLocal)
 
-	/*if errLocal != nil {
+	if errLocal != nil {
 		fmt.Println("Server: Listener port has been used:", errLocal.Error())
 		return
-	}*/
+	}
 	// main routine: commmunication between server and app
-	//HandleConnectionFromLocal(listenerLocal)
+	HandleConnectionFromLocal(listenerLocal)
 }
 
 // parse the go argument [locaPort, peerPort] isSN
