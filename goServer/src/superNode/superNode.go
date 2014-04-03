@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"msg"
 	"net"
+	"util"
 )
 
 // TODO superNode Thread,
@@ -20,10 +21,11 @@ var scoreMap map[string]msg.UserRecord
 var Global_ranking = []msg.UserRecord{}
 var Local_info = map[string]msg.UserRecord{}
 
-
 func SuperNodeThread(serverPort int) {
 	// Get the list of other super node
 	//parseConfigFile()
+
+	fmt.Println("aaa")
 
 	scoreMap = make(map[string]msg.UserRecord)
 
@@ -85,7 +87,7 @@ func rcvThreadForSN(mp *msg.Messagepasser, conn net.Conn) {
 }
 
 func superNodeMsgDoAction(m *msg.Message) {
-	data, err := msg.Handlers[m.Kind].Decode(m)
+	data, err := msg.Handlers[m.Kind](m)
 	if err != nil {
 		return
 	}
@@ -99,7 +101,7 @@ func superNodeMsgDoAction(m *msg.Message) {
 		updateGlobalRankList(data.([msg.GlobalRankSize]msg.UserRecord))
 	case msg.SN_PBLSUCCESS:
 		pblSuccessFromON(data.(msg.UserRecord))
-	case msg.SN_ON_SIGNIN:
+	case msg.SN_SIGNIN:
 		signInFromON(m, data.(map[string]string))
 	}
 }
@@ -118,29 +120,30 @@ func updateGlobalRankList(tmpRankList [msg.GlobalRankSize]msg.UserRecord) {
 
 	for _, userRecord := range tmpRankList {
 		r := &userRecord
-		scoreMap[r.Username] = userRecord
+		scoreMap[r.UserName] = userRecord
 	}
 }
 
 func pblSuccessFromON(userRecord msg.UserRecord) {
 	r := &userRecord
 
-	scoreMap[r.Username] = userRecord
+	scoreMap[r.UserName] = userRecord
 
-	i := RankNum - 1
+	i := msg.GlobalRankSize - 1
 	if i >= 0 && r.Score > (&rankList[i]).Score {
 		tmpRank := rankList[i]
-		rankList[i] = singleRank
-		if i < RankNum-1 {
+		rankList[i] = userRecord
+		if i < msg.GlobalRankSize-1 {
 			rankList[i+1] = tmpRank
 		}
 		i--
 	}
 }
 
-func signInFromON(m *msg.MessagesignInMsg map[string]string) {
+func signInFromON(m *msg.Message, signInMsg map[string]string) {
 	// check database and send back SignInAck
 	// TODO: update number of node register, send by heartbeat
+
 	backMsg := util.DatabaseSignIn(signInMsg["username"], signInMsg["password"])
 
 	backData := map[string]string{
@@ -148,7 +151,7 @@ func signInFromON(m *msg.MessagesignInMsg map[string]string) {
 		"status": backMsg,
 	}
 
-	sendoutMsg := new(Message)
+	sendoutMsg := new(msg.Message)
 	err := sendoutMsg.NewMsgwithData(m.Src, msg.SIGNINACK, backData)
 	if err != nil {
 		fmt.Println(err)
