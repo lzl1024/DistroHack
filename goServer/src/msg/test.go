@@ -25,9 +25,7 @@ func clientTestThread(mp *Messagepasser, c chan error) {
 		}
 		
 		msg1 := new(Message)
-		msg1.Dest = ip
-		msg1.Kind = STRING
-		err:= Handlers[msg1.Kind].Encode(msg1, "ashish kaila")
+		err := msg1.NewMsgwithData(ip, STRING, "ashish kaila")
 		if err != nil {
 			fmt.Println(err);
 			continue
@@ -37,13 +35,11 @@ func clientTestThread(mp *Messagepasser, c chan error) {
 		time.Sleep(20)
 		
 		msg2 := new(Message)
-		msg2.Dest = ip
-		msg2.Kind = PBLSUCCESS
 		mapData := map[string]string{
 			"1": "1",
 			"2": "2",
 		}
-		err = Handlers[msg2.Kind].Encode(msg2, mapData)
+		err = msg2.NewMsgwithData(ip, PBLSUCCESS, mapData)
 		if err != nil {
 			fmt.Println(err);
 			continue

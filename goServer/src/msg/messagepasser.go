@@ -47,7 +47,7 @@ func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, erro
 	
 	for ;retry != 3; {
 		ts,err = util.Time()
-		if err != nil {
+		if err != nil || ts == nil{
 			retry = retry + 1
 		}
 		break

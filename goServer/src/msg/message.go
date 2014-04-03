@@ -3,7 +3,6 @@ package msg
 import (
 	"bytes"
 	"time"
-	"util"
 )
 
 /* Represents message types */
@@ -28,10 +27,16 @@ type Message struct {
 	TimeStamp time.Time
 }
 
-func (msg *Message) NewMsg(dest string, kind int, data *bytes.Buffer) {
+func (msg *Message) NewMsgwithBytes(dest string, kind int, data *bytes.Buffer) {
 	msg.Dest = dest
 	msg.Kind = kind
 	msg.Data = data.Bytes()
+}
+
+func (msg *Message) NewMsgwithData(dest string, kind int, data interface{}) error {
+	msg.Dest = dest
+	msg.Kind = kind
+	return ParseSendInterfaces(msg, data)
 }
 
 func (msg *Message) CopyMsg(m *Message) {
@@ -43,10 +48,7 @@ func (msg *Message) CopyMsg(m *Message) {
 }
 
 func (msg Message) String() string {
-	ts,_ := util.Time()
-	time_stamp := *ts
-	
 	s := "dest: " + msg.Dest + " " + " src: " + msg.Src + " kind: "	+ " timeStamp: " + 
-			msg.TimeStamp.String() + " ref time: " + time_stamp.String() 
+			msg.TimeStamp.String() 
 	return s
 }

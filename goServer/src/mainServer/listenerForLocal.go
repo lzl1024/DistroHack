@@ -79,9 +79,7 @@ func handleSignIn(message map[string]string) string {
 		if _, exist := message["password"]; exist {
 			// send map[string]string messages to SN
 			sendoutMsg := new(msg.Message)
-			sendoutMsg.Kind = msg.SIGNIN
-
-			err := msg.Handlers[sendoutMsg.Kind].Encode(sendoutMsg, message)
+			err := sendoutMsg.NewMsgwithData("", msg.SIGNIN, message)
 			if err != nil {
 				fmt.Println(err);
 			}
@@ -89,15 +87,9 @@ func handleSignIn(message map[string]string) string {
 			// send message to SN
 			msg.MsgPasser.Send(sendoutMsg, true)
 			
-			// busy waiting for rcv
-			var val string
-			for {
-				if val, exist = msg.SignInMap[name]; exist {
-					delete(msg.SignInMap, name)
-					break;
-				}
-				time.Sleep(20)
-			}
+			// channel waiting for rcv
+			msg.SignInChan = make(chan string)
+			val := <- msg.SignInChan
 			
 			// add user into local info
 			if _, exist := msg.Local_info[name]; !exist {
@@ -115,12 +107,10 @@ func handleSignUp(message map[string]string) string {
 	//  msg = {"type": "sign_up", "username": name, "password": password, "email": email}
 	if name, exist := message["username"]; exist {
 		if _, exist := message["password"]; exist {
-			if email, exist := message["email"]; exist {
+			if _, exist := message["email"]; exist {
 				// send map[string]string messages to SN
 				sendoutMsg := new(msg.Message)
-				sendoutMsg.Kind = msg.SIGNUP
-
-				err := msg.Handlers[sendoutMsg.Kind].Encode(sendoutMsg, message)
+				err := sendoutMsg.NewMsgwithData("", msg.SIGNUP, message)
 				if err != nil {
 					fmt.Println(err);
 				}
@@ -128,15 +118,9 @@ func handleSignUp(message map[string]string) string {
 				// send message to SN
 				msg.MsgPasser.Send(sendoutMsg, true)
 			
-				// busy waiting for rcv
-				var val string
-				for {
-					if val, exist = msg.SignUpMap[email]; exist {
-						delete(msg.SignUpMap, email)
-						break;
-					}
-					time.Sleep(20)
-				}
+				// channel waiting for rcv
+				msg.SignUpChan = make(chan string)
+				val := <- msg.SignUpChan
 				
 				// add user into local info
 				ntpTime, err := util.Time()
@@ -167,9 +151,8 @@ func handleSuccess(message map[string]string) string {
 		// TODO: send success message to other servers
 		// send map[string]string messages to SN
 		sendoutMsg := new(msg.Message)
-		sendoutMsg.Kind = msg.PBLSUCCESS
 
-		err := msg.Handlers[sendoutMsg.Kind].Encode(sendoutMsg, message)
+		err := sendoutMsg.NewMsgwithData("", msg.PBLSUCCESS, message)
 		if err != nil {
 			fmt.Println(err);
 		}

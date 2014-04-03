@@ -40,9 +40,7 @@ func ParseRcvMapStrings(msg *Message)(map[string]string, error) {
 	err := tmpdecoder.Decode(&mapstrings)
 	if err != nil {
 		return mapstrings, errors.New("Unable to do conversion of data")
-	} else {
-		return mapstrings, nil
 	}
 	
-	return mapstrings, errors.New("message Kind indicates not a map[string]string")
+	return mapstrings, nil
 }
