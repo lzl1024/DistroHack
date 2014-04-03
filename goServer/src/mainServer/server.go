@@ -35,6 +35,7 @@ func main() {
 	// open SN port when is needed
 	//if isSN == true {
 	//go superNode.SuperNodeThread(ListenPortSuperNode)
+	fmt.Println("superNode")
 	superNode.SuperNodeThread(ListenPortSuperNode)
 	//}
 
@@ -110,7 +111,7 @@ func initMessagePasser() {
 	/* register handlers for all the types of messages */
 
 	msg.Handlers[msg.SN_RANK] = msg.RcvSnRank
-	msg.Handlers[msg.SN_SIGNIN] = msg.RcvSnOnSignIn
+	msg.Handlers[msg.SN_SIGNIN] = msg.RcvSnSignIn
 	msg.Handlers[msg.SN_PBLSUCCESS] = msg.RcvPblSuccess
 
 	msg.Handlers[msg.STRING] = msg.RcvString
