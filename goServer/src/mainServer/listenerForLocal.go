@@ -4,17 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"msg"
+	"time"
+	"strconv"
 	"util"
 )
 
-var userMap = map[string]string{
-	"1":     "111111",
-	"2":     "222222",
-	"admin": "admin",
-}
-
 func HandleConnectionFromLocal(listener net.Listener) {
-
 	for {
 		conn, err := listener.Accept()
 
@@ -39,86 +35,154 @@ func handleConnectionFromLocalThread(conn net.Conn) {
 		return
 	}
 
-	var msg map[string]string
+	var message map[string]string
 
-	err = json.Unmarshal(rcvbuf[:size], &msg)
+	err = json.Unmarshal(rcvbuf[:size], &message)
 
 	if err != nil {
 		fmt.Println("Unmarshal Error:", err.Error())
 		return
 	}
 
-	msgType, exist := msg["type"]
+	msgType, exist := message["type"]
 
 	if exist == false {
 		fmt.Println("No Message Type!")
 		return
 	}
 
-	fmt.Println(msg)
-
 	// handle different type of message
 	switch msgType {
 	case "sign_in":
-		conn.Write([]byte(handleSignIn(msg)))
+		conn.Write([]byte(handleSignIn(message)))
 	case "sign_up":
-		conn.Write([]byte(handleSignUp(msg)))
+		conn.Write([]byte(handleSignUp(message)))
 	case "submit_success":
-		conn.Write([]byte(handleSuccess(msg)))
+		conn.Write([]byte(handleSuccess(message)))
 	case "end_hack":
-		conn.Write([]byte(handleEnd()))
+		conn.Write([]byte(handleEndandStart(message)))
 	case "start_hack":
-		conn.Write([]byte(handleStart()))
+		conn.Write([]byte(handleEndandStart(message)))
+	case "problem_id":
+		name := message["username"]
+		tuple, exist := msg.Local_info[name]
+		score := tuple.Score
+		
+		// add user if he use session cache to login
+		if !exist {
+			msg.Local_info[name] = msg.User_record{
+					name, 0, time.Now()}
+			score = 0
+		} 
+	
+		conn.Write([]byte(strconv.Itoa(score + 1)))
 	default:
 		fmt.Println("Messge Type Undefined")
 	}
 }
 
-func handleSignIn(msg map[string]string) string {
+
+func handleSignIn(message map[string]string) string {
 	// msg = {"type": "sign_in", "username": name, "password": password}
-	if name, exist := msg["username"]; exist {
-		if password, exist := msg["password"]; exist {
-			/*if realPassword, exist := userMap[name]; exist && password == realPassword {
-			//	return "success"
-			}*/
-			return util.DatabaseSignIn(name, password)
+	if name, exist := message["username"]; exist {
+		if _, exist := message["password"]; exist {
+			// send map[string]string messages to SN
+			sendoutMsg := new(msg.Message)
+			err := sendoutMsg.NewMsgwithData("", msg.SIGNIN, message)
+			if err != nil {
+				fmt.Println(err);
+			}
+
+			// send message to SN
+			msg.MsgPasser.Send(sendoutMsg, true)
+			
+			// channel waiting for rcv
+			msg.SignInChan = make(chan string)
+			val := <- msg.SignInChan
+			
+			// add user into local info
+			if _, exist := msg.Local_info[name]; !exist {
+				msg.Local_info[name] = msg.User_record{
+					name, 0, time.Now(),
+				}
+			}	
+			return val
 		}
 	}
 	return "Message Error"
 }
 
-func handleSignUp(msg map[string]string) string {
+func handleSignUp(message map[string]string) string {
 	//  msg = {"type": "sign_up", "username": name, "password": password, "email": email}
-	if name, exist := msg["username"]; exist {
-		if password, exist := msg["password"]; exist {
-			if email, exist := msg["email"]; exist {
-				return util.DatabaseSignUp(name, password, email)
+	if name, exist := message["username"]; exist {
+		if _, exist := message["password"]; exist {
+			if _, exist := message["email"]; exist {
+				// send map[string]string messages to SN
+				sendoutMsg := new(msg.Message)
+				err := sendoutMsg.NewMsgwithData("", msg.SIGNUP, message)
+				if err != nil {
+					fmt.Println(err);
+				}
+
+				// send message to SN
+				msg.MsgPasser.Send(sendoutMsg, true)
+			
+				// channel waiting for rcv
+				msg.SignUpChan = make(chan string)
+				val := <- msg.SignUpChan
+				
+				// add user into local info
+				ntpTime, err := util.Time()
+				if err != nil {
+					fmt.Println(err)
+				}
+				
+				msg.Local_info[name] = msg.User_record{
+					name, 0, *ntpTime,
+				}	
+				return val
 			}
 		}
-		/*if _, exist := userMap[name]; exist {
-			return "This email/username has already been registered!"
-		}
-		if password, exist := msg["password"]; exist {
-			userMap[name] = password
-			return "success"
-		}*/
 	}
 	return "Message Error"
 }
 
-func handleSuccess(msg map[string]string) string {
+func handleSuccess(message map[string]string) string {
 	// msg = {"type": "submit_success", "username": user, "pid": problem_id}
-	// TODO: send success message to other servers
+	// merge local_info
+	pid, _ := strconv.Atoi(message["pid"])
+	name := message["username"]
+	
+	if msg.Local_info[name].Score < pid {
+		msg.Local_info[name] = msg.User_record{
+			UserName: name, Score: pid, Ctime: time.Now()}
+				
+		// TODO: send success message to other servers
+		// send map[string]string messages to SN
+		sendoutMsg := new(msg.Message)
 
+		err := sendoutMsg.NewMsgwithData("", msg.PBLSUCCESS, message)
+		if err != nil {
+			fmt.Println(err);
+		}
+
+		// send message to SN
+		msg.MsgPasser.Send(sendoutMsg, true)
+	}
 	return "success"
 }
 
-func handleEnd() string {
-	// TODO: send end hackthon message to other servers
-	return "success"
-}
+func handleEndandStart(meesage map[string]string) string {
+	// TODO: multicast or send to SN end hackthon message to other servers
+	// send to SN
+	sendoutMsg := new(msg.Message)
 
-func handleStart() string {
-	// TODO: send start hackthon message to other servers
+	err := sendoutMsg.NewMsgwithData("", msg.STARTEND_SN, meesage)
+	if err != nil {
+		fmt.Println(err);
+	}
+
+	// send message to SN
+	msg.MsgPasser.Send(sendoutMsg, true)
 	return "success"
 }

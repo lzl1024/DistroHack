@@ -14,7 +14,6 @@ import distroHack.views
 from distroHack.viewsDir.sign.views import connect_server
 from dsProject.settings import OJ_PATH, PRO_PATH
 import sys
-import distroHack.views
 
 # id_set to record the used submitted_id
 id_set = set()
@@ -51,16 +50,14 @@ def question(request):
         return render(request, 'hack/notready.html')
 
     login_user = request.session['username']
-    qid = 1
-    if distroHack.views.local_ranking.get(login_user) is not None:
-        # noinspection PyTypeChecker
-        qid = distroHack.views.local_ranking[login_user]['score'] + 1
 
-        if question_number < qid:
-            return render(request, 'hack/complete.html')
-    else:
-        distroHack.views.local_ranking[login_user] = default_tuple.copy()
-        distroHack.views.local_ranking[login_user]['name'] = login_user
+    #send success to server
+    msg = {"type": "problem_id", "username": login_user}
+
+    qid = int(connect_server(msg))
+
+    if question_number < qid:
+        return render(request, 'hack/complete.html')
 
     problem = Problem.objects.get(pk=qid)
 
@@ -148,37 +145,31 @@ def runcode(request):
         if problem.result.strip() == result_msg.strip():
             result_msg = "Accepted"
 
-            # add user into local ranking if he is not
-            if distroHack.views.local_ranking.get(user) is None:
-                user_tuple = default_tuple.copy()
-                user_tuple['name'] = user
-                distroHack.views.local_ranking[user] = user_tuple
+            user_tuple = default_tuple.copy()
+            user_tuple['name'] = user
+            user_tuple['score'] = problem_id
+            user_tuple['time'] = submit_time
 
-            # update the ranking locally
-            if distroHack.views.local_ranking[user]['score'] < problem_id:
-                distroHack.views.local_ranking[user]['score'] = problem_id
-                distroHack.views.local_ranking[user]['time'] = submit_time
+            # check user in global ranking
+            user_index = -1
+            for i in range(len(distroHack.views.global_ranking)):
+                if distroHack.views.global_ranking[i]['name'] == user:
+                    user_index = i
 
-                # check user in global ranking
-                user_index = -1
-                for i in range(len(distroHack.views.global_ranking)):
-                    if distroHack.views.global_ranking[i]['name'] == user:
-                        user_index = i
+            # update old global ranking
+            if user_index > 0:
+                distroHack.views.global_ranking[user_index]['score'] = problem_id
+            elif problem_id > distroHack.views.global_ranking[-1]['score'] \
+                    or len(distroHack.views.global_ranking) < show_rank_len:
+                distroHack.views.global_ranking.append(user_tuple)
 
-                # update old global ranking
-                if user_index > 0:
-                    distroHack.views.global_ranking[user_index]['score'] = problem_id
-                elif problem_id > distroHack.views.global_ranking[-1]['score'] \
-                        or len(distroHack.views.global_ranking) < show_rank_len:
-                    distroHack.views.global_ranking.append(distroHack.views.local_ranking[user])
+            # sort global ranking
+            distroHack.views.global_ranking.\
+                sort(key=lambda k: (k['name'], k['time']), reverse=True)
 
-                # sort global ranking
-                distroHack.views.global_ranking.\
-                    sort(key=lambda k: (k['name'], k['time']), reverse=True)
-
-                #send success to server
-                msg = {"type": "submit_success", "username": user, "pid": str(problem_id)}
-                connect_server(msg)
+            #send success to server
+            msg = {"type": "submit_success", "username": user, "pid": str(problem_id)}
+            connect_server(msg)
 
         elif result_msg.strip().endswith(error_flag):
             result_msg = "Denied\n" + result_msg

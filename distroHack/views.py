@@ -1,4 +1,5 @@
 import datetime
+import json
 from django.shortcuts import render
 
 # ranking constants
@@ -6,7 +7,6 @@ from distroHack.viewsDir.sign.views import connect_server
 
 default_time = datetime.datetime(2014, 1, 31, 8, 31, 24)
 global_ranking = [{'name': 'lzl', 'score': 4, 'time': default_time}]
-local_ranking = {'lzl': {'name': 'lzl', 'score': 4, 'time': default_time}}
 default_tuple = {'name': '', 'score': 0, 'time': ''}
 show_rank_len = 20
 min_show_rank_len = 3
@@ -31,14 +31,25 @@ def admin(request):
 
 # admin to start the hackathon
 def start_hack(request):
-    if request.session["username"] == "admin":
-        global hack_end_time, hack_is_started
+    global hack_end_time, hack_is_started
+    if 'data' in request.POST:
+        # get info from others
+        data = json.loads(request.POST['data'])
+        hack_end_time = datetime.datetime(int(data['year']), int(data['month']),
+                                      int(data['day']), int(data['hour']),
+                                      int(data['minute']), int(data['second']))
+    else:
         hack_end_time = datetime.datetime(int(request.POST['year']), int(request.POST['month']),
-                                        int(request.POST['day']), int(request.POST['hour']),
-                                        int(request.POST['minute']), int(request.POST['second']))
-        hack_is_started = True
+                                      int(request.POST['day']), int(request.POST['hour']),
+                                      int(request.POST['minute']), int(request.POST['second']))
+    hack_is_started = True
+
+    # only admin connect to server
+    if request.session["username"] == "admin":
         # dump to json format and send out
-        msg = {"type": "start_hack"}
+        msg = {"type": "start_hack", "year": request.POST['year'], "month": request.POST['month'],
+        "day": request.POST['day'], "hour": request.POST['hour'], "minute": request.POST['minute'],
+        "second": request.POST['second']}
         connect_server(msg)
 
     return render(request, 'index.html')
@@ -46,11 +57,13 @@ def start_hack(request):
 
 # admin to end the hackathon
 def end_hack(request):
+    global hack_is_started, hack_end_time
+    hack_is_started = False
+    hack_end_time = None
+
+    # only admin connect to server
     if request.session["username"] == "admin":
-        global hack_is_started, hack_end_time
-        hack_is_started = False
-        hack_end_time = None
-        # dump to json format and send out
+    # dump to json format and send out
         msg = {"type": "end_hack"}
         connect_server(msg)
 

@@ -38,19 +38,3 @@ def update_rank(request):
         distroHack.views.global_ranking.append(new_tuple)
 
     return render(request, 'index.html')
-
-
-@csrf_exempt
-def update_local(request):
-    data = json.loads(request.POST['data'])
-
-    # parse the data to new local_ranking
-    distroHack.views.local_ranking = {}
-    for key, value in data.iteritems():
-        new_tuple = default_tuple.copy()
-        new_tuple['name'] = value['UserName']
-        new_tuple['score'] = value['Score']
-        new_tuple['time'] = parser.parse(value['Ctime'])
-        distroHack.views.local_ranking[key] = new_tuple
-
-    return render(request, 'index.html')

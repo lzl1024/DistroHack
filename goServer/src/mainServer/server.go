@@ -12,7 +12,11 @@ import (
 
 var ListenPortLocal = ":4213"
 var ListenPortPeer = 4214
+
 var ListenPortSuperNode = 4215
+
+// TODO: change it!
+var SNListenPort = 4214
 
 const rcvBufLen = 1024
 
@@ -70,7 +74,7 @@ func parseArguments() {
 // tests
 func tests() {
 	// active connect to application
-	//activeTest()
+	activeTest()
 	// test for database
 	//util.DBTest()
 	go msg.TestMessagePasser()
@@ -96,22 +100,26 @@ func initMessagePasser() {
 		}
 	}
 
-	msg.MsgPasser, err = msg.NewMsgPasser(addr.String(), ListenPortPeer)
+	msg.MsgPasser,err = msg.NewMsgPasser(addr.String(), ListenPortPeer, 
+		SNListenPort)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
 	/* register handlers for all the types of messages */
-	msg.Handlers[msg.STRING].Encode = msg.SendString
-	msg.Handlers[msg.STRING].Decode = msg.RcvString
 
-	msg.Handlers[msg.SN_RANK].Encode = msg.SendSnRank
-	msg.Handlers[msg.SN_RANK].Decode = msg.RcvSnRank
+	msg.Handlers[msg.SN_RANK] = msg.RcvSnRank
+	msg.Handlers[msg.SN_ON_SUBMIT] = msg.RcvSnOnSubmit
+	msg.Handlers[msg.SN_ON_SIGNIN] = msg.RcvSnOnSignIn
 
-	msg.Handlers[msg.SN_ON_SUBMIT].Encode = msg.SendSnOnSubmit
-	msg.Handlers[msg.SN_ON_SUBMIT].Decode = msg.RcvSnOnSubmit
-
-	msg.Handlers[msg.SN_ON_SIGNIN].Encode = msg.SendSnOnSignIn
-	msg.Handlers[msg.SN_ON_SIGNIN].Decode = msg.RcvSnOnSignIn
+	msg.Handlers[msg.STRING] = msg.RcvString
+	msg.Handlers[msg.PBLSUCCESS] = msg.RcvPblSuccess
+	msg.Handlers[msg.SIGNIN] = msg.RcvSignIn
+	msg.Handlers[msg.SIGNINACK] = msg.RcvSignInAck	
+	msg.Handlers[msg.SIGNUP] = msg.RcvSignUp
+	msg.Handlers[msg.SIGNUPACK] = msg.RcvSignUpAck
+	msg.Handlers[msg.STARTEND_SN] = msg.RcvStartEnd_SN
+	msg.Handlers[msg.STARTEND_ON] = msg.RcvStartEnd_ON
+	//TODO: msg to update global_ranking
 }

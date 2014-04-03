@@ -7,6 +7,8 @@ import (
 	"os"
 	"time"
 	"util"
+	"net/http"
+	"net/url"
 )
 
 type Connection struct {
@@ -14,18 +16,22 @@ type Connection struct {
 	encoder *gob.Encoder
 }
 
+// TODO: change it!
+var SuperNodeIP = "127.0.0.1"
+
 type Messagepasser struct {
-	Hostlist   []string
-	Connmap    map[string]Connection
-	ServerIP   string
-	ServerPort int
-	drift      time.Duration
+	Hostlist []string
+	Connmap map[string]Connection
+	ServerIP string
+	ONPort int
+	SNPort int
+	drift time.Duration
 }
 
 var MsgPasser *Messagepasser
 
 /* name is the IP address in string format */
-func NewMsgPasser(serverIP string, serverPort int) (*Messagepasser, error) {
+func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, error) {
 	var ts *time.Time
 	var err error
 	var retry int = 0
@@ -37,11 +43,12 @@ func NewMsgPasser(serverIP string, serverPort int) (*Messagepasser, error) {
 	}
 	mp.ServerIP = serverIP
 	mp.Connmap = make(map[string]Connection)
-	mp.ServerPort = serverPort
-
-	for retry != 3 {
-		ts, err = util.Time()
-		if err != nil {
+	mp.ONPort = ONPort
+	mp.SNPort = SNPort
+	
+	for ;retry != 3; {
+		ts,err = util.Time()
+		if err != nil || ts == nil{
 			retry = retry + 1
 		}
 		break
@@ -65,18 +72,27 @@ func NewMsgPasser(serverIP string, serverPort int) (*Messagepasser, error) {
 	return mp, nil
 }
 
-func (mp *Messagepasser) Send(msg *Message) error {
+func (mp *Messagepasser) Send(msg *Message, isSN bool) error{
 	var encoder *gob.Encoder
 	var err error
 	var conn net.Conn
-
+	var port string
+	var dest string
+	
 	msg.Src = mp.ServerIP
 	// TODO:!!
 	msg.TimeStamp = time.Now().Add(mp.drift)
-
+	
+	// check destination
+	if (isSN) {
+		msg.Dest = SuperNodeIP
+		port = fmt.Sprint(mp.SNPort)
+	} else {
+		port = fmt.Sprint(mp.ONPort)
+	}
+	
 	/* check if already existent connection is there */
-	port := fmt.Sprint(mp.ServerPort)
-	dest := net.JoinHostPort(msg.Dest, port)
+	dest = net.JoinHostPort(msg.Dest, port)
 	connection, ok := mp.Connmap[msg.Dest]
 	if !ok {
 		conn, err = net.Dial("tcp", dest)
@@ -128,10 +144,21 @@ func (mp *Messagepasser) Send(msg *Message) error {
 
 /* based on message types take action */
 func (mp *Messagepasser) DoAction(msg *Message) {
-	str, err := Handlers[msg.Kind].Decode(msg)
+	str, err := Handlers[msg.Kind](msg)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 	fmt.Println((*msg).String())
 	fmt.Println(str)
+}
+
+// truely send out data to app
+func SendtoApp(urlAddress string, data string) {
+	_, err := http.PostForm(urlAddress,
+		url.Values{"data": {data}})
+
+	if err != nil {
+		fmt.Println("Post failure: " + urlAddress + "," + data)
+	}
 }
