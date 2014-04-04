@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"superNode"
 	"util"
+	"encoding/gob"
 )
 
 var ListenPortLocal = ":4213"
@@ -26,15 +27,16 @@ func main() {
 	superNode.SuperNodeThreadTest()
 }
 
-func main_original() {
-
+func main() {
+	gob.Register(msg.Message{})
+	gob.Register(msg.MultiCastMessage{})
+	
 	parseArguments()
-
 	// open database
 	util.DatabaseInit()
 
 	initMessagePasser()
-	go InitConnectionFromPeers()
+	go InitListenerForPeers()
 
 	// open SN port when is needed
 	if isSN == true {

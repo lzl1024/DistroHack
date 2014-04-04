@@ -9,6 +9,8 @@ import (
 	"util"
 	"net/http"
 	"net/url"
+	"container/list"
+	"strings"
 )
 
 type Connection struct {
@@ -41,6 +43,7 @@ func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, erro
 		fmt.Println("Invalid IP address")
 		os.Exit(-1)
 	}
+	
 	mp.ServerIP = serverIP
 	mp.Connmap = make(map[string]Connection)
 	mp.ONPort = ONPort
@@ -54,7 +57,7 @@ func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, erro
 		break
 	}
 
-	if retry > 2 {
+	if ts == nil {
 		return nil, err
 	}
 
@@ -72,38 +75,20 @@ func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, erro
 	return mp, nil
 }
 
-func (mp *Messagepasser) Send(msg *Message, isSN bool) error{
-	var encoder *gob.Encoder
-	var err error
-	var conn net.Conn
-	var port string
-	var dest string
-	
-	msg.Src = mp.ServerIP
-	// TODO:!!
-	msg.TimeStamp = time.Now().Add(mp.drift)
-	
-	// check destination
-	if (isSN) {
-		msg.Dest = SuperNodeIP
-		port = fmt.Sprint(mp.SNPort)
-	} else {
-		port = fmt.Sprint(mp.ONPort)
-	}
-	
+func (mp *Messagepasser) getConnection(msgDest string, port string) (*Connection, error) {
 	/* check if already existent connection is there */
-	dest = net.JoinHostPort(msg.Dest, port)
-	connection, ok := mp.Connmap[msg.Dest]
+	dest := net.JoinHostPort(msgDest, port)
+	connection, ok := mp.Connmap[msgDest]
 	if !ok {
-		conn, err = net.Dial("tcp", dest)
+		conn, err := net.Dial("tcp", dest)
 		if err != nil {
 			fmt.Println("error connecting to: ", dest, "reason: ", err)
-			connection, ok := mp.Connmap[msg.Dest]
+			connection, ok := mp.Connmap[msgDest]
 			if ok {
 				connection.conn.Close()
-				delete(mp.Connmap, msg.Dest)
+				delete(mp.Connmap, msgDest)
 			}
-			return err
+			return nil, err
 		}
 		fmt.Println("adding a new connection to: ", dest)
 		var tcpconn *net.TCPConn
@@ -119,27 +104,79 @@ func (mp *Messagepasser) Send(msg *Message, isSN bool) error{
 				fmt.Println("cannot set linger options")
 			}
 		}
-		encoder = gob.NewEncoder(conn)
+		encoder := gob.NewEncoder(conn)
 		connection.conn = conn
 		connection.encoder = encoder
-		mp.Connmap[msg.Dest] = connection
+		mp.Connmap[msgDest] = connection
+		return &connection, nil
 	} else {
 		fmt.Println("Re-using connection to: ", dest)
-		encoder = connection.encoder
 	}
+	
+	return &connection, nil
+}
 
-	err = encoder.Encode(msg)
+func (mp *Messagepasser) actuallySend(connection *Connection, dest string, msg interface{}) error {
+	encoder := connection.encoder
+	err := encoder.Encode(&msg)
 	if err != nil {
 		fmt.Println("error encoding data: ", err)
-		connection, ok := mp.Connmap[msg.Dest]
+		connection, ok := mp.Connmap[dest]
 		if ok {
 			connection.conn.Close()
-			delete(mp.Connmap, msg.Dest)
+			delete(mp.Connmap, dest)
 		}
 		return err
 	}
-
+	
 	return nil
+}
+
+func (mp *Messagepasser) Send(msg *Message, isSN bool) error{
+	var port string
+	var dest string
+	
+	msg.Src = mp.ServerIP
+	msg.TimeStamp = time.Now().Add(mp.drift)
+	
+	// check destination
+	if (isSN) {
+		msg.Dest = SuperNodeIP
+		port = fmt.Sprint(mp.SNPort)
+	} else {
+		port = fmt.Sprint(mp.ONPort)
+	}
+	
+	connection, err := mp.getConnection(msg.Dest, port)
+	if err != nil {
+		fmt.Println("Error getting connection")
+		return err
+	}
+	
+	err = mp.actuallySend(connection, dest, msg)
+	
+	return nil
+}
+
+func (mp *Messagepasser) SendMCast(msg *MultiCastMessage, hostlist *list.List) {
+	for e := hostlist.Front(); e != nil; e = e.Next() {
+		host := e.Value.(string)
+		if strings.EqualFold(host, mp.ServerIP) == false {
+			msg.Dest = host
+			msg.TimeStamp = time.Now().Add(mp.drift)
+			connection, err := mp.getConnection(host, fmt.Sprint(mp.ONPort))
+			if err != nil {
+				fmt.Println("Error getting connection to host:", host)
+				/* try to send to atleast 1 person in the list */
+				continue
+			}
+			/* try to send to atleast 1 person in the list */
+			err = mp.actuallySend(connection, host, msg)
+			if err != nil {
+				fmt.Println("Unable to send message to host:", host)
+			}
+		}
+	}
 }
 
 /* based on message types take action */
@@ -151,6 +188,18 @@ func (mp *Messagepasser) DoAction(msg *Message) {
 	}
 	fmt.Println((*msg).String())
 	fmt.Println(str)
+}
+
+func (mp *Messagepasser) HandleMCast(msg *MultiCastMessage) {
+	if strings.EqualFold(msg.Origin, mp.ServerIP) {
+		return
+	}
+	newMCastMsg := new(MultiCastMessage)
+	newMCastMsg.CopyMCastMsg(msg)
+	hostlist := list.New()
+	hostlist.PushBack("128.237.227.84")
+	hostlist.PushBack("128.2.210.206")
+	mp.SendMCast(newMCastMsg, hostlist)
 }
 
 // truely send out data to app
