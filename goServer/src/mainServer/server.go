@@ -22,11 +22,11 @@ const rcvBufLen = 1024
 
 var isSN = false
 
-func main_test() {
+func main() {
 	superNode.SuperNodeThreadTest()
 }
 
-func main() {
+func main_original() {
 
 	parseArguments()
 
@@ -115,6 +115,7 @@ func initMessagePasser() {
 	msg.Handlers[msg.SN_RANK] = msg.RcvSnRank
 	msg.Handlers[msg.SN_SIGNIN] = msg.RcvSnSignIn
 	msg.Handlers[msg.SN_PBLSUCCESS] = msg.RcvPblSuccess
+	msg.Handlers[msg.SN_TOCONNECT] = msg.RcvToConnect
 
 	msg.Handlers[msg.STRING] = msg.RcvString
 	msg.Handlers[msg.PBLSUCCESS] = msg.RcvPblSuccess
