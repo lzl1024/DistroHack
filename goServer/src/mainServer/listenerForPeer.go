@@ -7,7 +7,7 @@ import (
 	"encoding/gob"
 )
 
-func InitConnectionFromPeers() {
+func InitListenerForPeers() {
 	channel := make(chan error)
 	go serverthread(msg.MsgPasser, channel)
 	value := <- channel
@@ -47,7 +47,7 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 	var tcpconn *net.TCPConn
 	var ok bool
 	var err error
-	var msg msg.Message
+	var data interface{}
 	
 	tcpconn, ok = conn.(*net.TCPConn)
 	if ok {
@@ -59,13 +59,24 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 	
 	decoder := gob.NewDecoder(conn)
 	for {
-		err := decoder.Decode(&msg)
+		err := decoder.Decode(&data)
 		if err != nil {
 			fmt.Println("error while decoding: ", err)
 			conn.Close()
 			break
 		}
-		go mp.DoAction(&msg)
+		
+		fmt.Printf("%T\n", data)
+		switch t := data.(type) {
+			case msg.Message :
+				go mp.DoAction(&t)
+			case msg.MultiCastMessage :
+				fmt.Println("MultiCast Message")
+				go mp.HandleMCast(&t)
+				go mp.DoAction(&t.Message)
+			default :
+				fmt.Println("Issues are there")
+		}
 	}
 }
 

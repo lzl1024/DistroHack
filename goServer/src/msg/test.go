@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"time"
+	"container/list"
 )
 
 func TestMessagePasser() {
@@ -35,15 +36,25 @@ func clientTestThread(mp *Messagepasser, c chan error) {
 		time.Sleep(20)
 
 		msg2 := new(Message)
-		mapData := map[string]string{
-			"1": "1",
-			"2": "2",
+		userData := UserRecord{
+			"akaila",
+			100,
+			time.Now(),
 		}
-		err = msg2.NewMsgwithData(ip, PBLSUCCESS, mapData)
+		err = msg2.NewMsgwithData(ip, SN_PBLSUCCESS, userData)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("Reached here:", err)
 			continue
 		}
 		mp.Send(msg2, false)
+		
+		msg3 := new(MultiCastMessage)
+		msg3.NewMCastMsgwithData(ip, STRING, "ashish kaila rocks babe")
+		/* have to set the Origin */
+		msg3.Origin = mp.ServerIP
+		hostlist := list.New()
+		hostlist.PushBack("128.237.227.84")
+		hostlist.PushBack("128.2.210.206")
+		mp.SendMCast(msg3, hostlist)
 	}
 }
