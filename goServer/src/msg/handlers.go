@@ -76,8 +76,8 @@ func RcvSnSignIn(msg *Message) (interface{}, error) {
 	return signInMsg, err
 }
 
-func RcvToConnect(msg *Message) (interface{}, error) {
-	if msg.Kind != SN_TOCONNECT {
+func RcvNodeJoin(msg *Message) (interface{}, error) {
+	if msg.Kind != SN_NODEJOIN {
 		return nil, errors.New("message Kind indicates not a STRING")
 	}
 

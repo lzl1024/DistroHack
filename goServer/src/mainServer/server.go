@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/gob"
 	"fmt"
 	"msg"
 	"net"
@@ -8,7 +9,6 @@ import (
 	"strconv"
 	"superNode"
 	"util"
-	"encoding/gob"
 )
 
 var ListenPortLocal = ":4213"
@@ -27,10 +27,10 @@ func main() {
 	superNode.SuperNodeThreadTest()
 }
 
-func main() {
+func main_original() {
 	gob.Register(msg.Message{})
 	gob.Register(msg.MultiCastMessage{})
-	
+
 	parseArguments()
 	// open database
 	util.DatabaseInit()
@@ -117,7 +117,7 @@ func initMessagePasser() {
 	msg.Handlers[msg.SN_RANK] = msg.RcvSnRank
 	msg.Handlers[msg.SN_SIGNIN] = msg.RcvSnSignIn
 	msg.Handlers[msg.SN_PBLSUCCESS] = msg.RcvPblSuccess
-	msg.Handlers[msg.SN_TOCONNECT] = msg.RcvToConnect
+	msg.Handlers[msg.SN_NODEJOIN] = msg.RcvNodeJoin
 
 	msg.Handlers[msg.STRING] = msg.RcvString
 	msg.Handlers[msg.PBLSUCCESS] = msg.RcvPblSuccess
@@ -126,5 +126,4 @@ func initMessagePasser() {
 	msg.Handlers[msg.SIGNUPACK] = msg.RcvSignUpAck
 	msg.Handlers[msg.STARTEND_SN] = msg.RcvStartEnd_SN
 	msg.Handlers[msg.STARTEND_ON] = msg.RcvStartEnd_ON
-	//TODO: msg to update global_ranking
 }

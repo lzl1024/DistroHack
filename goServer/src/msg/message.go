@@ -17,8 +17,9 @@ const (
 	// Receive public success from ordinary node
 	SN_PBLSUCCESS
 	// Receive connect msg from ordinary node
-	SN_TOCONNECT
+	SN_NODEJOIN
 
+	GROUPINFO
 	PBLSUCCESS
 	SIGNINACK
 	SIGNUP
