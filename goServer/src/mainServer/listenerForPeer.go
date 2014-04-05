@@ -66,14 +66,13 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 			break
 		}
 		
-		fmt.Printf("%T\n", data)
 		switch t := data.(type) {
 			case msg.Message :
-				go mp.DoAction(&t)
+				mp.IncomingMsg <- t
+				break
 			case msg.MultiCastMessage :
-				fmt.Println("MultiCast Message")
-				go mp.HandleMCast(&t)
-				go mp.DoAction(&t.Message)
+				mp.IncomingMCastMsg <- t
+				break
 			default :
 				fmt.Println("Issues are there")
 		}
