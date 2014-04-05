@@ -24,10 +24,6 @@ const rcvBufLen = 1024
 var isSN = false
 
 func main() {
-	superNode.SuperNodeThreadTest()
-}
-
-func main() {
 	gob.Register(msg.Message{})
 	gob.Register(msg.MultiCastMessage{})
 	

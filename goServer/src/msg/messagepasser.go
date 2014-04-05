@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"container/list"
 	"strings"
+	"reflect"
 )
 
 type Connection struct {
@@ -22,12 +23,16 @@ type Connection struct {
 var SuperNodeIP = "127.0.0.1"
 
 type Messagepasser struct {
-	Hostlist []string
+	SNHostlist *list.List
+	ONHostlist *list.List
 	Connmap map[string]Connection
 	ServerIP string
 	ONPort int
 	SNPort int
 	drift time.Duration
+	IncomingMsg chan Message
+	IncomingMCastMsg chan MultiCastMessage
+	RcvdMCastMsgs []*MultiCastMessage
 }
 
 var MsgPasser *Messagepasser
@@ -46,8 +51,13 @@ func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, erro
 	
 	mp.ServerIP = serverIP
 	mp.Connmap = make(map[string]Connection)
+	mp.IncomingMsg = make(chan Message)
+	mp.IncomingMCastMsg = make(chan MultiCastMessage)
 	mp.ONPort = ONPort
 	mp.SNPort = SNPort
+	mp.ONHostlist = list.New()
+	mp.SNHostlist = list.New()
+	mp.RcvdMCastMsgs = make([]*MultiCastMessage, 0)
 	
 	for ;retry != 3; {
 		ts,err = util.Time()
@@ -71,7 +81,10 @@ func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, erro
 		mp.drift = refTime.Sub(curTime)
 	}
 	fmt.Println("Duration : " + mp.drift.String())
-
+	
+	go mp.RcvMessage()
+	go mp.RcvMCastMessage()
+	
 	return mp, nil
 }
 
@@ -158,13 +171,15 @@ func (mp *Messagepasser) Send(msg *Message, isSN bool) error{
 	return nil
 }
 
-func (mp *Messagepasser) SendMCast(msg *MultiCastMessage, hostlist *list.List) {
-	for e := hostlist.Front(); e != nil; e = e.Next() {
-		host := e.Value.(string)
+func (mp *Messagepasser) SendMCast(msg *MultiCastMessage) {
+	for e := range msg.HostList {
+		host := msg.HostList[e]
+		msg.Dest = host
+		msg.Src = mp.ServerIP
+		msg.TimeStamp = time.Now().Add(mp.drift)
 		if strings.EqualFold(host, mp.ServerIP) == false {
-			msg.Dest = host
-			msg.TimeStamp = time.Now().Add(mp.drift)
 			connection, err := mp.getConnection(host, fmt.Sprint(mp.ONPort))
+			fmt.Println("Sending message to: ", host)
 			if err != nil {
 				fmt.Println("Error getting connection to host:", host)
 				/* try to send to atleast 1 person in the list */
@@ -175,6 +190,8 @@ func (mp *Messagepasser) SendMCast(msg *MultiCastMessage, hostlist *list.List) {
 			if err != nil {
 				fmt.Println("Unable to send message to host:", host)
 			}
+		} else {
+			mp.RcvdMCastMsgs = append(mp.RcvdMCastMsgs, msg)
 		}
 	}
 }
@@ -196,10 +213,8 @@ func (mp *Messagepasser) HandleMCast(msg *MultiCastMessage) {
 	}
 	newMCastMsg := new(MultiCastMessage)
 	newMCastMsg.CopyMCastMsg(msg)
-	hostlist := list.New()
-	hostlist.PushBack("128.237.227.84")
-	hostlist.PushBack("128.2.210.206")
-	mp.SendMCast(newMCastMsg, hostlist)
+	mp.SendMCast(newMCastMsg)
+	mp.RcvdMCastMsgs = append(mp.RcvdMCastMsgs, msg)
 }
 
 // truely send out data to app
@@ -210,4 +225,34 @@ func SendtoApp(urlAddress string, data string) {
 	if err != nil {
 		fmt.Println("Post failure: " + urlAddress + "," + data)
 	}
+}
+
+func (mp *Messagepasser) RcvMessage() {
+	for {
+		msg := <-mp.IncomingMsg
+		mp.DoAction(&msg)
+	}
+}
+
+func (mp *Messagepasser) RcvMCastMessage() {
+	var v bool
+	for {
+		msg := <-mp.IncomingMCastMsg
+		v = mp.isAlreadyRcvd(&msg)
+		if  v == true {
+			mp.HandleMCast(&msg)
+		}
+		mp.DoAction(&msg.Message)
+	}
+}
+
+func (mp *Messagepasser) isAlreadyRcvd(msg *MultiCastMessage) bool {
+	var v bool
+	for e := range mp.RcvdMCastMsgs {
+		 v = reflect.DeepEqual(*mp.RcvdMCastMsgs[e], *msg)
+		if v == true {
+			return true
+		}
+	}
+	return false
 }
