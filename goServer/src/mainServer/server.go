@@ -7,27 +7,24 @@ import (
 	"net"
 	"os"
 	"strconv"
-	"superNode"
 	"util"
 )
 
 var ListenPortLocal = ":4213"
 var ListenPortPeer = 4214
 
-var ListenPortSuperNode = 4215
+var ListenPortSuperNode = 4214
 
 // TODO: change it!
 var SNListenPort = 4214
 
 const rcvBufLen = 1024
 
-var isSN = false
+var isSN = true
+
+//var isSN = false
 
 func main() {
-	superNode.SuperNodeThreadTest()
-}
-
-func main_original() {
 	gob.Register(msg.Message{})
 	gob.Register(msg.MultiCastMessage{})
 
@@ -37,13 +34,6 @@ func main_original() {
 
 	initMessagePasser()
 	go InitListenerForPeers()
-
-	// open SN port when is needed
-	if isSN == true {
-		go superNode.SuperNodeThread(ListenPortSuperNode)
-
-		//superNode.SuperNodeThread(ListenPortSuperNode)
-	}
 
 	// tests
 	tests()
@@ -79,7 +69,7 @@ func parseArguments() {
 // tests
 func tests() {
 	// active connect to application
-	activeTest()
+	//activeTest()
 	// test for database
 	//util.DBTest()
 	go msg.TestMessagePasser()
@@ -115,7 +105,7 @@ func initMessagePasser() {
 	/* register handlers for all the types of messages */
 
 	msg.Handlers[msg.SN_RANK] = msg.RcvSnRank
-	msg.Handlers[msg.SN_SIGNIN] = msg.RcvSnSignIn
+	msg.Handlers[msg.SN_ONSIGNIN] = msg.RcvSnSignIn
 	msg.Handlers[msg.SN_PBLSUCCESS] = msg.RcvPblSuccess
 	msg.Handlers[msg.SN_NODEJOIN] = msg.RcvNodeJoin
 

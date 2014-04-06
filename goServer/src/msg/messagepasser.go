@@ -1,17 +1,17 @@
 package msg
 
 import (
+	"container/list"
 	"encoding/gob"
 	"fmt"
 	"net"
-	"os"
-	"time"
-	"util"
 	"net/http"
 	"net/url"
-	"container/list"
-	"strings"
+	"os"
 	"reflect"
+	"strings"
+	"time"
+	"util"
 )
 
 type Connection struct {
@@ -23,16 +23,16 @@ type Connection struct {
 var SuperNodeIP = "127.0.0.1"
 
 type Messagepasser struct {
-	SNHostlist *list.List
-	ONHostlist *list.List
-	Connmap map[string]Connection
-	ServerIP string
-	ONPort int
-	SNPort int
-	drift time.Duration
-	IncomingMsg chan Message
+	SNHostlist       *list.List
+	ONHostlist       *list.List
+	Connmap          map[string]Connection
+	ServerIP         string
+	ONPort           int
+	SNPort           int
+	drift            time.Duration
+	IncomingMsg      chan Message
 	IncomingMCastMsg chan MultiCastMessage
-	RcvdMCastMsgs []*MultiCastMessage
+	RcvdMCastMsgs    []*MultiCastMessage
 }
 
 var MsgPasser *Messagepasser
@@ -48,7 +48,7 @@ func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, erro
 		fmt.Println("Invalid IP address")
 		os.Exit(-1)
 	}
-	
+
 	mp.ServerIP = serverIP
 	mp.Connmap = make(map[string]Connection)
 	mp.IncomingMsg = make(chan Message)
@@ -58,10 +58,10 @@ func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, erro
 	mp.ONHostlist = list.New()
 	mp.SNHostlist = list.New()
 	mp.RcvdMCastMsgs = make([]*MultiCastMessage, 0)
-	
-	for ;retry != 3; {
-		ts,err = util.Time()
-		if err != nil || ts == nil{
+
+	for retry != 3 {
+		ts, err = util.Time()
+		if err != nil || ts == nil {
 			retry = retry + 1
 		}
 		break
@@ -81,10 +81,10 @@ func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, erro
 		mp.drift = refTime.Sub(curTime)
 	}
 	fmt.Println("Duration : " + mp.drift.String())
-	
+
 	go mp.RcvMessage()
 	go mp.RcvMCastMessage()
-	
+
 	return mp, nil
 }
 
@@ -103,7 +103,7 @@ func (mp *Messagepasser) getConnection(msgDest string, port string) (*Connection
 			}
 			return nil, err
 		}
-		fmt.Println("adding a new connection to: ", dest)
+		fmt.Println("MessagePasser: adding a new connection to ", dest)
 		var tcpconn *net.TCPConn
 		tcpconn, ok = conn.(*net.TCPConn)
 		if ok {
@@ -125,7 +125,7 @@ func (mp *Messagepasser) getConnection(msgDest string, port string) (*Connection
 	} else {
 		fmt.Println("Re-using connection to: ", dest)
 	}
-	
+
 	return &connection, nil
 }
 
@@ -141,33 +141,27 @@ func (mp *Messagepasser) actuallySend(connection *Connection, dest string, msg i
 		}
 		return err
 	}
-	
+
 	return nil
 }
 
-func (mp *Messagepasser) Send(msg *Message, isSN bool) error{
+func (mp *Messagepasser) Send(msg *Message) error {
 	var port string
 	var dest string
-	
+
 	msg.Src = mp.ServerIP
 	msg.TimeStamp = time.Now().Add(mp.drift)
-	
-	// check destination
-	if (isSN) {
-		msg.Dest = SuperNodeIP
-		port = fmt.Sprint(mp.SNPort)
-	} else {
-		port = fmt.Sprint(mp.ONPort)
-	}
-	
+
+	port = fmt.Sprint(mp.ONPort)
+
 	connection, err := mp.getConnection(msg.Dest, port)
 	if err != nil {
 		fmt.Println("Error getting connection")
 		return err
 	}
-	
+
 	err = mp.actuallySend(connection, dest, msg)
-	
+
 	return nil
 }
 
@@ -179,7 +173,7 @@ func (mp *Messagepasser) SendMCast(msg *MultiCastMessage) {
 		msg.TimeStamp = time.Now().Add(mp.drift)
 		if strings.EqualFold(host, mp.ServerIP) == false {
 			connection, err := mp.getConnection(host, fmt.Sprint(mp.ONPort))
-			fmt.Println("Sending message to: ", host)
+			fmt.Println("MessagePasser : Sending message to ", host)
 			if err != nil {
 				fmt.Println("Error getting connection to host:", host)
 				/* try to send to atleast 1 person in the list */
@@ -203,8 +197,10 @@ func (mp *Messagepasser) DoAction(msg *Message) {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println((*msg).String())
+	fmt.Println("MessagePasser DoAction :", (*msg).String())
 	fmt.Println(str)
+
+	SuperNodeMsgDoAction(msg)
 }
 
 func (mp *Messagepasser) HandleMCast(msg *MultiCastMessage) {
@@ -238,8 +234,9 @@ func (mp *Messagepasser) RcvMCastMessage() {
 	var v bool
 	for {
 		msg := <-mp.IncomingMCastMsg
+		fmt.Println("MessagePasser: A Multicast Message received")
 		v = mp.isAlreadyRcvd(&msg)
-		if  v == true {
+		if v == true {
 			mp.HandleMCast(&msg)
 		}
 		mp.DoAction(&msg.Message)
@@ -249,7 +246,7 @@ func (mp *Messagepasser) RcvMCastMessage() {
 func (mp *Messagepasser) isAlreadyRcvd(msg *MultiCastMessage) bool {
 	var v bool
 	for e := range mp.RcvdMCastMsgs {
-		 v = reflect.DeepEqual(*mp.RcvdMCastMsgs[e], *msg)
+		v = reflect.DeepEqual(*mp.RcvdMCastMsgs[e], *msg)
 		if v == true {
 			return true
 		}

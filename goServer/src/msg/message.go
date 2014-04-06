@@ -13,7 +13,8 @@ const (
 	// Receive rank update from other super node
 	SN_RANK
 	// Receive sign in from ordinary node
-	SN_SIGNIN
+	SN_ONSIGNIN
+	SIGNINACK
 	// Receive public success from ordinary node
 	SN_PBLSUCCESS
 	// Receive connect msg from ordinary node
@@ -21,7 +22,6 @@ const (
 
 	GROUPINFO
 	PBLSUCCESS
-	SIGNINACK
 	SIGNUP
 	SIGNUPACK
 	STARTEND_ON

@@ -87,13 +87,13 @@ func handleSignIn(message map[string]string) string {
 		if _, exist := message["password"]; exist {
 			// send map[string]string messages to SN
 			sendoutMsg := new(msg.Message)
-			err := sendoutMsg.NewMsgwithData("", msg.SN_SIGNIN, message)
+			err := sendoutMsg.NewMsgwithData("", msg.SN_ONSIGNIN, message)
 			if err != nil {
 				fmt.Println(err)
 			}
 
 			// send message to SN
-			msg.MsgPasser.Send(sendoutMsg, true)
+			msg.MsgPasser.Send(sendoutMsg)
 
 			// channel waiting for rcv
 			msg.SignInChan = make(chan string)
@@ -124,7 +124,7 @@ func handleSignUp(message map[string]string) string {
 				}
 
 				// send message to SN
-				msg.MsgPasser.Send(sendoutMsg, true)
+				msg.MsgPasser.Send(sendoutMsg)
 
 				// channel waiting for rcv
 				msg.SignUpChan = make(chan string)
@@ -166,7 +166,7 @@ func handleSuccess(message map[string]string) string {
 		}
 
 		// send message to SN
-		msg.MsgPasser.Send(sendoutMsg, true)
+		msg.MsgPasser.Send(sendoutMsg)
 	}
 	return "success"
 }
@@ -182,6 +182,6 @@ func handleEndandStart(meesage map[string]string) string {
 	}
 
 	// send message to SN
-	msg.MsgPasser.Send(sendoutMsg, true)
+	msg.MsgPasser.Send(sendoutMsg)
 	return "success"
 }

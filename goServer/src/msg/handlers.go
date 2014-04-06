@@ -64,7 +64,7 @@ func RcvSnRank(msg *Message) (interface{}, error) {
 }
 
 func RcvSnSignIn(msg *Message) (interface{}, error) {
-	if msg.Kind != SN_SIGNIN {
+	if msg.Kind != SN_ONSIGNIN {
 		return nil, errors.New("message Kind indicates not a SN_SIGNIN")
 	}
 
@@ -127,7 +127,7 @@ func RcvSignUp(msg *Message) (interface{}, error) {
 		fmt.Println(err)
 	}
 	// send message to SN
-	MsgPasser.Send(sendoutMsg, false)
+	MsgPasser.Send(sendoutMsg)
 	return signUpMsg, err
 }
 
