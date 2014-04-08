@@ -10,20 +10,22 @@ const (
 	STRING = iota
 	// add types below
 
-	// Receive rank update from other super node
-	SN_RANK
+	// Receive sign up from ordinary node
+	SN_ONSIGNUP
+	SIGNUPACK
 	// Receive sign in from ordinary node
 	SN_ONSIGNIN
 	SIGNINACK
+	// Receive rank update from other super node
+	SN_RANK
 	// Receive public success from ordinary node
 	SN_PBLSUCCESS
+
 	// Receive connect msg from ordinary node
 	SN_NODEJOIN
 
 	GROUPINFO
 	PBLSUCCESS
-	SIGNUP
-	SIGNUPACK
 	STARTEND_ON
 	STARTEND_SN
 	NUMTYPES
