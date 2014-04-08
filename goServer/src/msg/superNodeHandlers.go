@@ -99,6 +99,12 @@ func RcvSnSignUp(msg *Message) (interface{}, error) {
 
 	fmt.Printf("SuperNode: ordinary sign up %s,  status %s\n", signUpMsg["username"], backMsg)
 
+	if backMsg == "success" {
+		userRecord := new(UserRecord)
+		userRecord.UserName = signUpMsg["username"]
+		updateLocalInfoWithOneRecord(*userRecord)
+	}
+
 	sendoutMsg := new(Message)
 	err = sendoutMsg.NewMsgwithData(msg.Src, SIGNUPACK, backData)
 	if err != nil {
@@ -131,6 +137,12 @@ func RcvSnSignIn(msg *Message) (interface{}, error) {
 	}
 
 	fmt.Printf("SuperNode: ordinary sign in %s,  status %s\n", signInMsg["username"], backMsg)
+
+	if backMsg == "success" {
+		userRecord := new(UserRecord)
+		userRecord.UserName = signInMsg["username"]
+		updateLocalInfoWithOneRecord(*userRecord)
+	}
 
 	sendoutMsg := new(Message)
 	err = sendoutMsg.NewMsgwithData(msg.Src, SIGNINACK, backData)
