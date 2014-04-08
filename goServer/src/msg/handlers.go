@@ -3,7 +3,7 @@ package msg
 import (
 	"encoding/json"
 	"errors"
-	//"fmt"
+	"fmt"
 	//"util"
 )
 
@@ -67,6 +67,18 @@ func RcvSignInAck(msg *Message) (interface{}, error) {
 	if err := ParseRcvInterfaces(msg, &signInAckMsg); err != nil {
 		return nil, err
 	}
+	
+	// if success, send update request
+	if signInAckMsg["status"] == "success" {
+		// send map[string]string messages to SN
+		sendoutMsg := new(Message)
+		err := sendoutMsg.NewMsgwithData(SuperNodeIP, SN_ASKINFO, "")
+		if err != nil {
+			fmt.Println(err)
+		}
+		// send message to SN
+		MsgPasser.Send(sendoutMsg)
+	}
 
 	// update signIn channel to stop the channel waiting
 	SignInChan <- signInAckMsg["status"]
@@ -83,6 +95,18 @@ func RcvSignUpAck(msg *Message) (interface{}, error) {
 	var signUpAckMsg map[string]string
 	if err := ParseRcvInterfaces(msg, &signUpAckMsg); err != nil {
 		return nil, err
+	}
+
+	// if success, send update request
+	if signUpAckMsg["status"] == "success" {
+		// send map[string]string messages to SN
+		sendoutMsg := new(Message)
+		err := sendoutMsg.NewMsgwithData(SuperNodeIP, SN_ASKINFO, "")
+		if err != nil {
+			fmt.Println(err)
+		}
+		// send message to SN
+		MsgPasser.Send(sendoutMsg)
 	}
 
 	// update signIn channel to stop the channel waiting

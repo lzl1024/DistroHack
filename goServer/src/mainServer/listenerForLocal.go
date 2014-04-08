@@ -87,7 +87,7 @@ func handleSignIn(message map[string]string) string {
 		if _, exist := message["password"]; exist {
 			// send map[string]string messages to SN
 			sendoutMsg := new(msg.Message)
-			err := sendoutMsg.NewMsgwithData("", msg.SN_ONSIGNIN, message)
+			err := sendoutMsg.NewMsgwithData(msg.SuperNodeIP, msg.SN_ONSIGNIN, message)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -118,7 +118,7 @@ func handleSignUp(message map[string]string) string {
 			if _, exist := message["email"]; exist {
 				// send map[string]string messages to SN
 				sendoutMsg := new(msg.Message)
-				err := sendoutMsg.NewMsgwithData("", msg.SN_ONSIGNUP, message)
+				err := sendoutMsg.NewMsgwithData(msg.SuperNodeIP, msg.SN_ONSIGNUP, message)
 				if err != nil {
 					fmt.Println(err)
 				}
@@ -160,7 +160,7 @@ func handleSuccess(message map[string]string) string {
 		// send map[string]string messages to SN
 		sendoutMsg := new(msg.Message)
 
-		err := sendoutMsg.NewMsgwithData("", msg.PBLSUCCESS, message)
+		err := sendoutMsg.NewMsgwithData(msg.SuperNodeIP, msg.PBLSUCCESS, message)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -176,7 +176,7 @@ func handleEndandStart(meesage map[string]string) string {
 	// send to SN
 	sendoutMsg := new(msg.Message)
 
-	err := sendoutMsg.NewMsgwithData("", msg.STARTEND_SN, meesage)
+	err := sendoutMsg.NewMsgwithData(msg.SuperNodeIP, msg.STARTEND_SN, meesage)
 	if err != nil {
 		fmt.Println(err)
 	}

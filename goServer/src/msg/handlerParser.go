@@ -2,6 +2,7 @@ package msg
 
 import (
 	"bytes"
+	"fmt"
 	"encoding/gob"
 	"errors"
 	"fmt"
