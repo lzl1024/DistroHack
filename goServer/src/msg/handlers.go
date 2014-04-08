@@ -36,52 +36,12 @@ func RcvString(msg *Message) (interface{}, error) {
 	return rcvString, nil
 }
 
-// Received in SN
-func RcvPblSuccess(msg *Message) (interface{}, error) {
-	if msg.Kind != SN_PBLSUCCESS {
-		return nil, errors.New("message Kind indicates not a PBLSUCCESS")
+func RcvAskInfoAck(msg *Message) (interface{}, error) {
+	if msg.Kind != ASKINFOACK {
+		return nil, errors.New("message Kind indicates not a ASKINFOACK")
 	}
 
-	// TODO: for SN, it should merge to global ranking, and send back if needed
-	var successMsg UserRecord
-	if err := ParseRcvInterfaces(msg, &successMsg); err != nil {
-		return nil, err
-	}
-	return successMsg, nil
-}
-
-func RcvSnRank(msg *Message) (interface{}, error) {
-	if msg.Kind != SN_RANK {
-		return nil, errors.New("message Kind indicates not a PBLSUCCESS")
-	}
-
-	// TODO: for SN, it should merge to global ranking, and send back if needed
-	var successMsg [GlobalRankSize]UserRecord
-	if err := ParseRcvInterfaces(msg, &successMsg); err != nil {
-		return nil, err
-	}
-	return successMsg, nil
-}
-
-func RcvSnSignUp(msg *Message) (interface{}, error) {
-	if msg.Kind != SN_ONSIGNUP {
-		return nil, errors.New("message Kind indicates not a SN_ONSIGNUP")
-	}
-
-	var signUpMsg map[string]string
-	err := ParseRcvInterfaces(msg, &signUpMsg)
-	if err != nil {
-		return nil, err
-	}
-	return signUpMsg, err
-}
-
-func RcvSnSignIn(msg *Message) (interface{}, error) {
-	if msg.Kind != SN_ONSIGNIN {
-		return nil, errors.New("message Kind indicates not a SN_ONSIGNIN")
-	}
-
-	var signInMsg map[string]string
+	var signInMsg localInfo
 	err := ParseRcvInterfaces(msg, &signInMsg)
 	if err != nil {
 		return nil, err

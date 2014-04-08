@@ -16,11 +16,13 @@ const (
 	// Receive sign in from ordinary node
 	SN_ONSIGNIN
 	SIGNINACK
+	// Receive information request from ordinary node
+	SN_ASKINFO
+	ASKINFOACK
 	// Receive rank update from other super node
 	SN_RANK
 	// Receive public success from ordinary node
 	SN_PBLSUCCESS
-
 	// Receive connect msg from ordinary node
 	SN_NODEJOIN
 

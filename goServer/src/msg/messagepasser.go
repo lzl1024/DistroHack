@@ -200,7 +200,7 @@ func (mp *Messagepasser) DoAction(msg *Message) {
 	fmt.Println("MessagePasser DoAction :", (*msg).String())
 	fmt.Println(str)
 
-	SuperNodeMsgDoAction(msg)
+	//SuperNodeMsgDoAction(msg)
 }
 
 func (mp *Messagepasser) HandleMCast(msg *MultiCastMessage) {

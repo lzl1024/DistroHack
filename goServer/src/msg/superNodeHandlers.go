@@ -2,6 +2,7 @@ package msg
 
 import (
 	"container/list"
+	"errors"
 	"fmt"
 	"sync"
 	"util"
@@ -14,8 +15,8 @@ import (
 // function 4: connect with an ON and send all msg. userlist, local_info, global ranking.
 
 type localInfo struct {
-	rankList [GlobalRankSize]UserRecord
-	scoreMap map[string]UserRecord
+	ranklist [GlobalRankSize]UserRecord
+	scoremap map[string]UserRecord
 }
 
 var mu sync.Mutex
@@ -27,17 +28,17 @@ func SuperNodeThreadTest() {
 
 	tmpLocalInfo := new(localInfo)
 
-	fmt.Printf("%p\n", &tmpLocalInfo.scoreMap)
+	fmt.Printf("%p\n", &tmpLocalInfo.scoremap)
 
-	tmpLocalInfo.rankList = rankList
+	tmpLocalInfo.ranklist = rankList
 	record := new(UserRecord)
 	record.NewUserRecord("aaa", 1, rankList[0].Ctime)
 	scoreMap["aaa"] = *record
-	tmpLocalInfo.scoreMap = scoreMap
+	tmpLocalInfo.scoremap = scoreMap
 
 	fmt.Printf("%p\n", &scoreMap)
-	fmt.Printf("%p\n", &tmpLocalInfo.scoreMap)
-	fmt.Println(tmpLocalInfo.scoreMap["aaa"].String())
+	fmt.Printf("%p\n", &tmpLocalInfo.scoremap)
+	fmt.Println(tmpLocalInfo.scoremap["aaa"].String())
 
 	a := list.New()
 	fmt.Printf("%p\n", a)
@@ -76,51 +77,50 @@ func SuperNodeThreadTest() {
 	updateGlobalRankList(tmprankList)*/
 }
 
-func SuperNodeMsgDoAction(m *Message) {
-	data, err := Handlers[m.Kind](m)
-	if err != nil {
-		return
-	}
-
-	switch m.Kind {
-	case SN_ONSIGNUP:
-		rcvSignUpFromON(m, data.(map[string]string))
-	case SN_ONSIGNIN:
-		rcvSignInFromON(m, data.(map[string]string))
-	case SN_RANK:
-		rcvGlobalRankList(m, data.([GlobalRankSize]UserRecord))
-	case SN_PBLSUCCESS:
-		rcvPblSuccessFromON(data.(UserRecord))
-	case SN_NODEJOIN:
-		rcvConnectWithON(m)
-	}
-}
-
-func rcvSignUpFromON(m *Message, signUpMsg map[string]string) {
+func RcvSnSignUp(msg *Message) (interface{}, error) {
 	// register user and send back SignUpAck
+	if msg.Kind != SN_ONSIGNUP {
+		return nil, errors.New("message Kind indicates not a SN_ONSIGNUP")
+	}
+
+	var signUpMsg map[string]string
+	err := ParseRcvInterfaces(msg, &signUpMsg)
+	if err != nil {
+		return nil, err
+	}
 
 	backMsg := util.DatabaseSignUp(signUpMsg["username"], signUpMsg["password"], signUpMsg["email"])
 
 	backData := map[string]string{
-		"user":   signUpMsg["username"],
-		"status": backMsg,
+		"user":     signUpMsg["username"],
+		"status":   backMsg,
+		"question": "url",
 	}
 
 	fmt.Printf("SuperNode: ordinary sign up %s,  status %s\n", signUpMsg["username"], backMsg)
 
 	sendoutMsg := new(Message)
-	err := sendoutMsg.NewMsgwithData(m.Src, SIGNUPACK, backData)
+	err = sendoutMsg.NewMsgwithData(msg.Src, SIGNUPACK, backData)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	// send message to SN
+	// send message to ON
 	MsgPasser.Send(sendoutMsg)
+
+	return signUpMsg, err
 }
 
-func rcvSignInFromON(m *Message, signInMsg map[string]string) {
-	// check database and send back SignInAck
-	// TODO: update number of node register, send by heartbeat
+func RcvSnSignIn(msg *Message) (interface{}, error) {
+	if msg.Kind != SN_ONSIGNIN {
+		return nil, errors.New("message Kind indicates not a SN_ONSIGNIN")
+	}
+
+	var signInMsg map[string]string
+	err := ParseRcvInterfaces(msg, &signInMsg)
+	if err != nil {
+		return nil, err
+	}
 
 	backMsg := util.DatabaseSignIn(signInMsg["username"], signInMsg["password"])
 
@@ -132,26 +132,59 @@ func rcvSignInFromON(m *Message, signInMsg map[string]string) {
 	fmt.Printf("SuperNode: ordinary sign in %s,  status %s\n", signInMsg["username"], backMsg)
 
 	sendoutMsg := new(Message)
-	err := sendoutMsg.NewMsgwithData(m.Src, SIGNINACK, backData)
+	err = sendoutMsg.NewMsgwithData(msg.Src, SIGNINACK, backData)
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	// send message to SN
 	MsgPasser.Send(sendoutMsg)
+
+	return signInMsg, err
 }
 
-func rcvGlobalRankList(m *Message, tmpRankList [GlobalRankSize]UserRecord) {
-	// Update global rank list
+// Received in SN
+func RcvPblSuccess(msg *Message) (interface{}, error) {
+	if msg.Kind != SN_PBLSUCCESS {
+		return nil, errors.New("message Kind indicates not a PBLSUCCESS")
+	}
+
+	// TODO: for SN, it should merge to global ranking, and send back if needed
+	var userRecord UserRecord
+	if err := ParseRcvInterfaces(msg, &userRecord); err != nil {
+		return nil, err
+	}
+
+	globalRankChanged := updateLocalInfoWithOneRecord(userRecord)
+
+	//multicast the new grobal rank to Sns
+	if globalRankChanged {
+		multicastGlobalRankToSNs()
+	}
+
+	return userRecord, nil
+}
+
+func RcvSnRank(msg *Message) (interface{}, error) {
+	if msg.Kind != SN_RANK {
+		return nil, errors.New("message Kind indicates not a PBLSUCCESS")
+	}
+
+	// TODO: for SN, it should merge to global ranking, and send back if needed
+	var newRankList [GlobalRankSize]UserRecord
+	if err := ParseRcvInterfaces(msg, &newRankList); err != nil {
+		return nil, err
+	}
+
 	mu.Lock()
 
 	fmt.Println("SuperNodeReceiver: SN_RANK Message Received")
 
 	//update the global rank list in local
-	rankList = tmpRankList
+	rankList = newRankList
 
 	// Update the local info map
-	for _, userRecord := range tmpRankList {
+	for _, userRecord := range newRankList {
 		if _, present := scoreMap[userRecord.UserName]; present {
 			if scoreMap[userRecord.UserName].Ctime.Before(userRecord.Ctime) {
 				scoreMap[userRecord.UserName] = userRecord
@@ -161,40 +194,41 @@ func rcvGlobalRankList(m *Message, tmpRankList [GlobalRankSize]UserRecord) {
 	mu.Unlock()
 
 	//multicast the global rank in group
-	multicastMsgInGroup(m)
+	multicastMsgInGroup(msg)
+
+	return newRankList, nil
 }
 
-func rcvPblSuccessFromON(userRecord UserRecord) {
-	//Update the local Info
-	globalRankChanged := updateLocalInfoWithOneRecord(userRecord)
-
-	//multicast the new grobal rank to Sns
-	if globalRankChanged {
-		multicastGlobalRankToSNs()
-	}
-}
-
-func rcvConnectWithON(m *Message) {
-	userRecord := new(UserRecord)
-	userRecord.UserName = m.Src
-
-	globalRankChanged := updateLocalInfoWithOneRecord(*userRecord)
-
-	//Multicast the userRecord
-	multicastMsgInGroup(m)
-
-	//multicast global rank to SNs
-	if globalRankChanged {
-		multicastGlobalRankToSNs()
+// Request from ordinary node to ask info from supernode
+func RcvSnAskInfo(msg *Message) (interface{}, error) {
+	if msg.Kind != SN_ASKINFO {
+		return nil, errors.New("message Kind indicates not a SN_ASKINFO")
 	}
 
-	//unicast local info to the new node
-	unicastLocalInfoToNode(m.Src)
+	backData := new(localInfo)
+	backData.ranklist = rankList
+	backData.scoremap = make(map[string]UserRecord)
+
+	mu.Lock()
+	for k, v := range scoreMap {
+		backData.scoremap[k] = v
+	}
+	mu.Unlock()
+
+	sendoutMsg := new(Message)
+	err := sendoutMsg.NewMsgwithData(msg.Src, SIGNUPACK, &backData)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// send message to SN
+	MsgPasser.Send(sendoutMsg)
+
+	return nil, nil
 }
 
 func updateLocalInfoWithOneRecord(userRecord UserRecord) bool {
 	mu.Lock()
-
 	rankChanged := false
 
 	if _, present := scoreMap[userRecord.UserName]; present {
@@ -249,16 +283,6 @@ func multicastGlobalRankToSNs() {
 		newMCastMsg.HostList = append(newMCastMsg.HostList, e.Value.(string))
 	}
 	MsgPasser.SendMCast(newMCastMsg)
-}
-
-func unicastLocalInfoToNode(dest string) {
-	tmpLocalInfo := new(localInfo)
-	tmpLocalInfo.rankList = rankList
-	tmpLocalInfo.scoreMap = scoreMap
-
-	message := new(Message)
-	message.NewMsgwithData(dest, GROUPINFO, *tmpLocalInfo)
-	MsgPasser.Send(message)
 }
 
 func parseConfigFile() {
