@@ -36,7 +36,7 @@ func main() {
 	go InitListenerForPeers()
 
 	// tests
-	tests()
+	//tests()
 
 	// open the listen port for local app
 	listenerLocal, errLocal := net.Listen("tcp", ListenPortLocal)

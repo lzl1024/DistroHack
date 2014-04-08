@@ -1,7 +1,7 @@
 package msg
 
 import (
-	"container/list"
+	//"container/list"
 	"errors"
 	"fmt"
 	"sync"
@@ -15,8 +15,8 @@ import (
 // function 4: connect with an ON and send all msg. userlist, local_info, global ranking.
 
 type localInfo struct {
-	ranklist [GlobalRankSize]UserRecord
-	scoremap map[string]UserRecord
+	Ranklist [GlobalRankSize]UserRecord
+	Scoremap map[string]UserRecord
 }
 
 var mu sync.Mutex
@@ -24,7 +24,7 @@ var rankList [GlobalRankSize]UserRecord
 var scoreMap map[string]UserRecord = make(map[string]UserRecord)
 
 func SuperNodeThreadTest() {
-	scoreMap = make(map[string]UserRecord)
+	/*scoreMap = make(map[string]UserRecord)
 
 	tmpLocalInfo := new(localInfo)
 
@@ -103,6 +103,7 @@ func RcvSnSignUp(msg *Message) (interface{}, error) {
 	err = sendoutMsg.NewMsgwithData(msg.Src, SIGNUPACK, backData)
 	if err != nil {
 		fmt.Println(err)
+		return nil, err
 	}
 
 	// send message to ON
@@ -135,6 +136,7 @@ func RcvSnSignIn(msg *Message) (interface{}, error) {
 	err = sendoutMsg.NewMsgwithData(msg.Src, SIGNINACK, backData)
 	if err != nil {
 		fmt.Println(err)
+		return nil, err
 	}
 
 	// send message to SN
@@ -206,19 +208,20 @@ func RcvSnAskInfo(msg *Message) (interface{}, error) {
 	}
 
 	backData := new(localInfo)
-	backData.ranklist = rankList
-	backData.scoremap = make(map[string]UserRecord)
+	backData.Ranklist = rankList
+	backData.Scoremap = make(map[string]UserRecord)
 
 	mu.Lock()
 	for k, v := range scoreMap {
-		backData.scoremap[k] = v
+		backData.Scoremap[k] = v
 	}
 	mu.Unlock()
 
 	sendoutMsg := new(Message)
-	err := sendoutMsg.NewMsgwithData(msg.Src, SIGNUPACK, &backData)
+	err := sendoutMsg.NewMsgwithData(msg.Src, ASKINFOACK, *backData)
 	if err != nil {
 		fmt.Println(err)
+		return nil, err
 	}
 
 	// send message to SN
