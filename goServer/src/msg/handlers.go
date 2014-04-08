@@ -20,7 +20,7 @@ var SignUpChan chan string
 
 var App_url = "http://localhost:8000/"
 
-var Global_ranking = []UserRecord{}
+var Global_ranking = [GlobalRankSize]UserRecord{}
 var Local_info = map[string]UserRecord{}
 
 func RcvString(msg *Message) (interface{}, error) {
@@ -41,11 +41,15 @@ func RcvAskInfoAck(msg *Message) (interface{}, error) {
 		return nil, errors.New("message Kind indicates not a ASKINFOACK")
 	}
 
-	var signInMsg localInfo
+	var signInMsg LocalInfo
 	err := ParseRcvInterfaces(msg, &signInMsg)
 	if err != nil {
 		return nil, err
 	}
+	
+	// update local info and ranking
+	Local_info = signInMsg.Scoremap
+	Global_ranking = signInMsg.Ranklist
 	return signInMsg, err
 }
 
@@ -79,6 +83,8 @@ func RcvSignInAck(msg *Message) (interface{}, error) {
 		// send message to SN
 		MsgPasser.Send(sendoutMsg)
 	}
+	
+	//TODO: read the question url if needed
 
 	// update signIn channel to stop the channel waiting
 	SignInChan <- signInAckMsg["status"]
@@ -108,6 +114,8 @@ func RcvSignUpAck(msg *Message) (interface{}, error) {
 		// send message to SN
 		MsgPasser.Send(sendoutMsg)
 	}
+	
+	//TODO: read the question url if needed
 
 	// update signIn channel to stop the channel waiting
 	SignUpChan <- signUpAckMsg["status"]

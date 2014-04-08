@@ -14,7 +14,7 @@ import (
 // function 3: when recieve "sign_in" from ON check available SN and send msg to it, to let him register the on or send back sign in fail.
 // function 4: connect with an ON and send all msg. userlist, local_info, global ranking.
 
-type localInfo struct {
+type LocalInfo struct {
 	Ranklist [GlobalRankSize]UserRecord
 	Scoremap map[string]UserRecord
 }
@@ -219,7 +219,7 @@ func RcvSnAskInfo(msg *Message) (interface{}, error) {
 		return nil, errors.New("message Kind indicates not a SN_ASKINFO")
 	}
 
-	backData := new(localInfo)
+	backData := new(LocalInfo)
 	backData.Ranklist = rankList
 	backData.Scoremap = make(map[string]UserRecord)
 
