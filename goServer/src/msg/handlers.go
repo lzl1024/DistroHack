@@ -3,8 +3,8 @@ package msg
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
-	"util"
+	//"fmt"
+	//"util"
 )
 
 var Handlers [NUMTYPES]Rcvhdlr
@@ -63,9 +63,22 @@ func RcvSnRank(msg *Message) (interface{}, error) {
 	return successMsg, nil
 }
 
+func RcvSnSignUp(msg *Message) (interface{}, error) {
+	if msg.Kind != SN_ONSIGNUP {
+		return nil, errors.New("message Kind indicates not a SN_ONSIGNUP")
+	}
+
+	var signUpMsg map[string]string
+	err := ParseRcvInterfaces(msg, &signUpMsg)
+	if err != nil {
+		return nil, err
+	}
+	return signUpMsg, err
+}
+
 func RcvSnSignIn(msg *Message) (interface{}, error) {
 	if msg.Kind != SN_ONSIGNIN {
-		return nil, errors.New("message Kind indicates not a SN_SIGNIN")
+		return nil, errors.New("message Kind indicates not a SN_ONSIGNIN")
 	}
 
 	var signInMsg map[string]string
@@ -99,36 +112,6 @@ func RcvSignInAck(msg *Message) (interface{}, error) {
 	SignInChan <- signInAckMsg["status"]
 
 	return signInAckMsg, nil
-}
-
-func RcvSignUp(msg *Message) (interface{}, error) {
-	if msg.Kind != SIGNUP {
-		return nil, errors.New("message Kind indicates not a SIGNUP")
-	}
-
-	var signUpMsg map[string]string
-	if err := ParseRcvInterfaces(msg, &signUpMsg); err != nil {
-		return nil, err
-	}
-
-	// check database and send back SignUpAck
-	// TODO: send register to other SN if success
-	backMsg := util.DatabaseSignUp(signUpMsg["username"],
-		signUpMsg["password"], signUpMsg["email"])
-
-	backData := map[string]string{
-		"email":  signUpMsg["email"],
-		"status": backMsg,
-	}
-
-	sendoutMsg := new(Message)
-	err := sendoutMsg.NewMsgwithData(msg.Src, SIGNUPACK, backData)
-	if err != nil {
-		fmt.Println(err)
-	}
-	// send message to SN
-	MsgPasser.Send(sendoutMsg)
-	return signUpMsg, err
 }
 
 // received in SN

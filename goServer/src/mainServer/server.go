@@ -103,16 +103,15 @@ func initMessagePasser() {
 	}
 
 	/* register handlers for all the types of messages */
-
-	msg.Handlers[msg.SN_RANK] = msg.RcvSnRank
+	msg.Handlers[msg.SN_ONSIGNUP] = msg.RcvSnSignUp
 	msg.Handlers[msg.SN_ONSIGNIN] = msg.RcvSnSignIn
+	msg.Handlers[msg.SN_RANK] = msg.RcvSnRank
 	msg.Handlers[msg.SN_PBLSUCCESS] = msg.RcvPblSuccess
 	msg.Handlers[msg.SN_NODEJOIN] = msg.RcvNodeJoin
 
 	msg.Handlers[msg.STRING] = msg.RcvString
 	msg.Handlers[msg.PBLSUCCESS] = msg.RcvPblSuccess
 	msg.Handlers[msg.SIGNINACK] = msg.RcvSignInAck
-	msg.Handlers[msg.SIGNUP] = msg.RcvSignUp
 	msg.Handlers[msg.SIGNUPACK] = msg.RcvSignUpAck
 	msg.Handlers[msg.STARTEND_SN] = msg.RcvStartEnd_SN
 	msg.Handlers[msg.STARTEND_ON] = msg.RcvStartEnd_ON

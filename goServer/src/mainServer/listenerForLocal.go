@@ -118,7 +118,7 @@ func handleSignUp(message map[string]string) string {
 			if _, exist := message["email"]; exist {
 				// send map[string]string messages to SN
 				sendoutMsg := new(msg.Message)
-				err := sendoutMsg.NewMsgwithData("", msg.SIGNUP, message)
+				err := sendoutMsg.NewMsgwithData("", msg.SN_ONSIGNUP, message)
 				if err != nil {
 					fmt.Println(err)
 				}

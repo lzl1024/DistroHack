@@ -83,15 +83,62 @@ func SuperNodeMsgDoAction(m *Message) {
 	}
 
 	switch m.Kind {
+	case SN_ONSIGNUP:
+		rcvSignUpFromON(m, data.(map[string]string))
+	case SN_ONSIGNIN:
+		rcvSignInFromON(m, data.(map[string]string))
 	case SN_RANK:
 		rcvGlobalRankList(m, data.([GlobalRankSize]UserRecord))
 	case SN_PBLSUCCESS:
 		rcvPblSuccessFromON(data.(UserRecord))
-	case SN_ONSIGNIN:
-		rcvSignInFromON(m, data.(map[string]string))
 	case SN_NODEJOIN:
 		rcvConnectWithON(m)
 	}
+}
+
+func rcvSignUpFromON(m *Message, signUpMsg map[string]string) {
+	// register user and send back SignUpAck
+
+	backMsg := util.DatabaseSignUp(signUpMsg["username"], signUpMsg["password"], signUpMsg["email"])
+
+	backData := map[string]string{
+		"user":   signUpMsg["username"],
+		"status": backMsg,
+	}
+
+	fmt.Printf("SuperNode: ordinary sign up %s,  status %s\n", signUpMsg["username"], backMsg)
+
+	sendoutMsg := new(Message)
+	err := sendoutMsg.NewMsgwithData(m.Src, SIGNUPACK, backData)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// send message to SN
+	MsgPasser.Send(sendoutMsg)
+}
+
+func rcvSignInFromON(m *Message, signInMsg map[string]string) {
+	// check database and send back SignInAck
+	// TODO: update number of node register, send by heartbeat
+
+	backMsg := util.DatabaseSignIn(signInMsg["username"], signInMsg["password"])
+
+	backData := map[string]string{
+		"user":   signInMsg["username"],
+		"status": backMsg,
+	}
+
+	fmt.Printf("SuperNode: ordinary sign in %s,  status %s\n", signInMsg["username"], backMsg)
+
+	sendoutMsg := new(Message)
+	err := sendoutMsg.NewMsgwithData(m.Src, SIGNINACK, backData)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// send message to SN
+	MsgPasser.Send(sendoutMsg)
 }
 
 func rcvGlobalRankList(m *Message, tmpRankList [GlobalRankSize]UserRecord) {
@@ -125,29 +172,6 @@ func rcvPblSuccessFromON(userRecord UserRecord) {
 	if globalRankChanged {
 		multicastGlobalRankToSNs()
 	}
-}
-
-func rcvSignInFromON(m *Message, signInMsg map[string]string) {
-	// check database and send back SignInAck
-	// TODO: update number of node register, send by heartbeat
-
-	backMsg := util.DatabaseSignIn(signInMsg["username"], signInMsg["password"])
-
-	backData := map[string]string{
-		"user":   signInMsg["username"],
-		"status": backMsg,
-	}
-
-	fmt.Printf("SuperNode: ordinary sign in %s,  status %s\n", signInMsg["username"], backMsg)
-
-	sendoutMsg := new(Message)
-	err := sendoutMsg.NewMsgwithData(m.Src, SIGNINACK, backData)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	// send message to SN
-	MsgPasser.Send(sendoutMsg)
 }
 
 func rcvConnectWithON(m *Message) {
