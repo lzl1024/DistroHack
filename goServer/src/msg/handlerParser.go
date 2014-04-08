@@ -2,6 +2,7 @@ package msg
 
 import (
 	"bytes"
+	"fmt"
 	"encoding/gob"
 	"errors"
 )
@@ -12,6 +13,7 @@ func ParseSendInterfaces(msg *Message, data interface{}) error {
 	encoder := gob.NewEncoder(&buffer)
 	err := encoder.Encode(data)
 	if err != nil {
+		fmt.Println(err)
 		return errors.New("unable to encode data")
 	}
 	
