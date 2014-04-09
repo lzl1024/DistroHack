@@ -66,6 +66,7 @@ def question(request):
 
 
 # update the database and fill with problems
+@csrf_exempt
 def update_question(request):
 
 
