@@ -137,6 +137,8 @@ func RcvSnMSignUp(msg *Message) (interface{}, error) {
 
 	backMsg := util.DatabaseSignUp(mSignUpMsg["username"], mSignUpMsg["password"], mSignUpMsg["email"])
 
+	fmt.Println("SuperNodeandlers RcvSnMSignUp: backMsg ", backMsg)
+
 	return msg, err
 }
 
@@ -260,6 +262,34 @@ func RcvSnAskInfo(msg *Message) (interface{}, error) {
 
 	// send message to SN
 	MsgPasser.Send(sendoutMsg)
+
+	return nil, nil
+}
+
+func RcvSnStartEndFromON(msg *Message) (interface{}, error) {
+	if msg.Kind != SN_STARTENDON {
+		return nil, errors.New("message Kind indicates not a SN_STARTENDON")
+	}
+
+	newMessage := new(Message)
+	newMessage.CopyMsg(msg)
+	newMessage.Kind = SN_STARTEND
+
+	multicastMsgInGroup(newMessage, true)
+
+	return nil, nil
+}
+
+func RcvSnStartEnd(msg *Message) (interface{}, error) {
+	if msg.Kind != SN_STARTEND {
+		return nil, errors.New("message Kind indicates not a SN_STARTEND")
+	}
+
+	newMessage := new(Message)
+	newMessage.CopyMsg(msg)
+	newMessage.Kind = STARTEND
+
+	multicastMsgInGroup(newMessage, false)
 
 	return nil, nil
 }

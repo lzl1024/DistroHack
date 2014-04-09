@@ -176,7 +176,7 @@ func handleEndandStart(meesage map[string]string) string {
 	// send to SN
 	sendoutMsg := new(msg.Message)
 
-	err := sendoutMsg.NewMsgwithData(msg.SuperNodeIP, msg.STARTEND_SN, meesage)
+	err := sendoutMsg.NewMsgwithData(msg.SuperNodeIP, msg.SN_STARTENDON, meesage)
 	if err != nil {
 		fmt.Println(err)
 	}

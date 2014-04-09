@@ -25,13 +25,16 @@ const (
 	SN_RANK
 	// Receive public success from ordinary node
 	SN_PBLSUCCESS
+	// Receive START or END from ordinary
+	SN_STARTENDON
+	// Receive START or END from sn
+	SN_STARTEND
 	// Receive connect msg from ordinary node
 	SN_NODEJOIN
 
 	GROUPINFO
 	PBLSUCCESS
-	STARTEND_ON
-	STARTEND_SN
+	STARTEND
 	NUMTYPES
 )
 

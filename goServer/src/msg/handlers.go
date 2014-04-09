@@ -133,17 +133,10 @@ func RcvSignUpAck(msg *Message) (interface{}, error) {
 	return signUpAckMsg, nil
 }
 
-//TODO: SN receive start or end, forward message to all ON and SN
-// use NewMsgwithBytes will be efficient without en/decode msg
-func RcvStartEnd_SN(msg *Message) (interface{}, error) {
-
-	return nil, nil
-}
-
 // When ON receive start or end, call app url, to inform app
-func RcvStartEnd_ON(msg *Message) (interface{}, error) {
-	if msg.Kind != STARTEND_ON {
-		return nil, errors.New("message Kind indicates not a STARTEND_ON")
+func RcvStartEnd(msg *Message) (interface{}, error) {
+	if msg.Kind != STARTEND {
+		return nil, errors.New("message Kind indicates not a STARTEND")
 	}
 
 	var startEndMsg map[string]string
@@ -159,7 +152,7 @@ func RcvStartEnd_ON(msg *Message) (interface{}, error) {
 		data, _ := json.Marshal(startEndMsg)
 		SendtoApp(App_url+"hacks/start_hack/", string(data))
 	} else {
-		return nil, errors.New("STARTEND_ON message's inner type wrong")
+		return nil, errors.New("STARTEND message's inner type wrong")
 	}
 	return startEndMsg, nil
 }

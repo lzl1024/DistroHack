@@ -110,6 +110,10 @@ func initMessagePasser() {
 	msg.Handlers[msg.SN_ASKINFO] = msg.RcvSnAskInfo
 	msg.Handlers[msg.SN_RANK] = msg.RcvSnRank
 	msg.Handlers[msg.SN_PBLSUCCESS] = msg.RcvPblSuccess
+
+	msg.Handlers[msg.SN_STARTENDON] = msg.RcvSnStartEndFromON
+	msg.Handlers[msg.SN_STARTEND] = msg.RcvSnStartEnd
+
 	msg.Handlers[msg.SN_NODEJOIN] = msg.RcvNodeJoin
 
 	msg.Handlers[msg.STRING] = msg.RcvString
@@ -118,6 +122,5 @@ func initMessagePasser() {
 	msg.Handlers[msg.SIGNUPACK] = msg.RcvSignUpAck
 	msg.Handlers[msg.ASKINFOACK] = msg.RcvAskInfoAck
 
-	msg.Handlers[msg.STARTEND_SN] = msg.RcvStartEnd_SN
-	msg.Handlers[msg.STARTEND_ON] = msg.RcvStartEnd_ON
+	msg.Handlers[msg.STARTEND] = msg.RcvStartEnd
 }
