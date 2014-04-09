@@ -117,7 +117,6 @@ func initMessagePasser() {
 	msg.Handlers[msg.SN_NODEJOIN] = msg.RcvNodeJoin
 
 	msg.Handlers[msg.STRING] = msg.RcvString
-	msg.Handlers[msg.PBLSUCCESS] = msg.RcvPblSuccess
 	msg.Handlers[msg.SIGNINACK] = msg.RcvSignInAck
 	msg.Handlers[msg.SIGNUPACK] = msg.RcvSignUpAck
 	msg.Handlers[msg.ASKINFOACK] = msg.RcvAskInfoAck

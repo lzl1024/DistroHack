@@ -20,6 +20,7 @@ func clientTestThread(mp *Messagepasser, c chan error) {
 	// TO CHANGE
 	mp.SNHostlist.PushBack("128.237.221.148")
 	mp.ONHostlist.PushBack("128.237.223.228")
+	mp.ONHostlist.PushBack("128.237.221.148")
 }
 
 func testConstructSNList(mp *Messagepasser, c chan error) {
