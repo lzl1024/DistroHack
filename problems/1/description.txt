@@ -1,5 +1,5 @@
-Beginner Question
+Round One
 
-This is a demo problem, please write a program printing "Hello World!"
+This is your first step to rescue the princess, you need to make an announcement. please write a program printing "Hello Princess!"
 
 
