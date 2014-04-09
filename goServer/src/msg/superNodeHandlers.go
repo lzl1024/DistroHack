@@ -271,6 +271,8 @@ func RcvSnStartEndFromON(msg *Message) (interface{}, error) {
 		return nil, errors.New("message Kind indicates not a SN_STARTENDON")
 	}
 
+	fmt.Println("SuperNodeHandler: Receive SN_STARTENDON ", msg.String())
+
 	newMessage := new(Message)
 	newMessage.CopyMsg(msg)
 	newMessage.Kind = SN_STARTEND
@@ -284,6 +286,8 @@ func RcvSnStartEnd(msg *Message) (interface{}, error) {
 	if msg.Kind != SN_STARTEND {
 		return nil, errors.New("message Kind indicates not a SN_STARTEND")
 	}
+
+	fmt.Println("SuperNodeHandler: Receive SN_STARTEND ", msg.String())
 
 	newMessage := new(Message)
 	newMessage.CopyMsg(msg)
@@ -364,6 +368,8 @@ func multicastMsgInGroup(m *Message, isSuper bool) {
 	newMCastMsg.HostList = make([]string, 0)
 
 	if isSuper {
+		fmt.Printf("SuperNOdeHandler: multicastMsgInGroup SNHostList %d\n", MsgPasser.SNHostlist.Len())
+
 		for e := MsgPasser.SNHostlist.Front(); e != nil; e = e.Next() {
 			newMCastMsg.HostList = append(newMCastMsg.HostList, e.Value.(string))
 		}

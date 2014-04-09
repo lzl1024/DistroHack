@@ -57,6 +57,7 @@ func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, erro
 	mp.SNPort = SNPort
 	mp.ONHostlist = list.New()
 	mp.SNHostlist = list.New()
+
 	mp.RcvdMCastMsgs = make([]*MultiCastMessage, 0)
 
 	for retry != 3 {
@@ -187,7 +188,8 @@ func (mp *Messagepasser) SendMCast(msg *MultiCastMessage) {
 				fmt.Println("Unable to send message to host:", host)
 			}
 		} else {
-			mp.RcvdMCastMsgs = append(mp.RcvdMCastMsgs, msg)
+			mp.IncomingMCastMsg <- *msg
+			//mp.RcvdMCastMsgs = append(mp.RcvdMCastMsgs, msg)
 		}
 	}
 }
