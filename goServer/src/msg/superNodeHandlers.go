@@ -258,12 +258,40 @@ func updateLocalInfoWithOneRecord(userRecord UserRecord) bool {
 	}
 
 	//Update the Global Rank
-	for i := GlobalRankSize - 1; i >= 0 && (userRecord.Score > rankList[i].Score || len(rankList[i].UserName) == 0); i-- {
-		rankChanged = true
-		tmpRank := rankList[i]
-		rankList[i] = userRecord
-		if i < GlobalRankSize-1 {
-			rankList[i+1] = tmpRank
+
+	var tmpUserRecord UserRecord
+	replaced := false
+	for i := 0; i < GlobalRankSize; i++ {
+		if !replaced {
+			if userRecord.UserName != rankList[i].UserName {
+				if rankList[i].CompareTo(userRecord) {
+					continue
+				} else {
+					tmpUserRecord = rankList[i]
+					rankList[i] = userRecord
+					replaced = true
+					if len(tmpUserRecord.UserName) == 0 {
+						break
+					}
+				}
+			} else {
+				if userRecord.CompareTo(rankList[i]) {
+					rankList[i] = userRecord
+				}
+				break
+			}
+		} else {
+			if userRecord.UserName != rankList[i].UserName {
+				tmpUserRecord1 := rankList[i]
+				rankList[i] = tmpUserRecord
+				tmpUserRecord = tmpUserRecord1
+				if len(tmpUserRecord.UserName) == 0 {
+					break
+				}
+			} else {
+				rankList[i] = tmpUserRecord
+				break
+			}
 		}
 	}
 

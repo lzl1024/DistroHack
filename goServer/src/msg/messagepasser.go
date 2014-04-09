@@ -130,10 +130,12 @@ func (mp *Messagepasser) getConnection(msgDest string, port string) (*Connection
 }
 
 func (mp *Messagepasser) actuallySend(connection *Connection, dest string, msg interface{}) error {
+	fmt.Println("MessagePasser: actuallySend")
+
 	encoder := connection.encoder
 	err := encoder.Encode(&msg)
 	if err != nil {
-		fmt.Println("error encoding data: ", err)
+		fmt.Println("MessagePasser actuallySend: error encoding data: ", err)
 		connection, ok := mp.Connmap[dest]
 		if ok {
 			connection.conn.Close()
@@ -156,7 +158,7 @@ func (mp *Messagepasser) Send(msg *Message) error {
 
 	connection, err := mp.getConnection(msg.Dest, port)
 	if err != nil {
-		fmt.Println("Error getting connection")
+		fmt.Println("MessagePasser Send: Error getting connection")
 		return err
 	}
 
