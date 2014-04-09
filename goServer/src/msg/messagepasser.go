@@ -164,7 +164,7 @@ func (mp *Messagepasser) Send(msg *Message) error {
 
 	err = mp.actuallySend(connection, dest, msg)
 
-	return nil
+	return err
 }
 
 func (mp *Messagepasser) SendMCast(msg *MultiCastMessage) {
