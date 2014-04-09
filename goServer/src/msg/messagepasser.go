@@ -20,7 +20,7 @@ type Connection struct {
 }
 
 // TODO: change it!
-var SuperNodeIP = "128.237.221.148"
+var SuperNodeIP = "128.237.211.63"
 
 type Messagepasser struct {
 	SNHostlist       *list.List
