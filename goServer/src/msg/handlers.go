@@ -54,7 +54,6 @@ func RcvAskInfoAck(msg *Message) (interface{}, error) {
 	// update the app's ranking
 	data, _ := json.Marshal(Global_ranking)
 
-	fmt.Println(data)
 
 	// send data out
 	SendtoApp(App_url+"hacks/update_rank/", string(data))
