@@ -104,6 +104,8 @@ func initMessagePasser() {
 
 	/* register handlers for all the types of messages */
 	msg.Handlers[msg.SN_ONSIGNUP] = msg.RcvSnSignUp
+	msg.Handlers[msg.SN_MSIGNUP] = msg.RcvSnMSignUp
+
 	msg.Handlers[msg.SN_ONSIGNIN] = msg.RcvSnSignIn
 	msg.Handlers[msg.SN_ASKINFO] = msg.RcvSnAskInfo
 	msg.Handlers[msg.SN_RANK] = msg.RcvSnRank

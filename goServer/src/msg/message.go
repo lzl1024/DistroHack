@@ -13,6 +13,8 @@ const (
 	// Receive sign up from ordinary node
 	SN_ONSIGNUP
 	SIGNUPACK
+	// Tell other sn the sign up of an ordinary node
+	SN_MSIGNUP
 	// Receive sign in from ordinary node
 	SN_ONSIGNIN
 	SIGNINACK

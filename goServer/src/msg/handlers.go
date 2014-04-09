@@ -46,19 +46,19 @@ func RcvAskInfoAck(msg *Message) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// update local info and ranking
 	Local_info = signInMsg.Scoremap
 	Global_ranking = signInMsg.Ranklist
-	
+
 	// update the app's ranking
 	data, _ := json.Marshal(Global_ranking)
-	
-	fmt.Println(data);
+
+	fmt.Println(data)
 
 	// send data out
 	SendtoApp(App_url+"hacks/update_rank/", string(data))
-	
+
 	return signInMsg, err
 }
 
@@ -70,7 +70,6 @@ func RcvNodeJoin(msg *Message) (interface{}, error) {
 	return nil, nil
 }
 
-
 func RcvSignInAck(msg *Message) (interface{}, error) {
 	if msg.Kind != SIGNINACK {
 		return nil, errors.New("message Kind indicates not a SIGNINACK")
@@ -80,12 +79,12 @@ func RcvSignInAck(msg *Message) (interface{}, error) {
 	if err := ParseRcvInterfaces(msg, &signInAckMsg); err != nil {
 		return nil, err
 	}
-	
+
 	// if success, send update request
 	if signInAckMsg["status"] == "success" {
 		// update app question set
-	    SendtoApp(App_url+"hacks/updateq/", string(signInAckMsg["question"]))
-	    
+		SendtoApp(App_url+"hacks/updateq/", string(signInAckMsg["question"]))
+
 		// send map[string]string messages to SN
 		sendoutMsg := new(Message)
 		err := sendoutMsg.NewMsgwithData(SuperNodeIP, SN_ASKINFO, "")
@@ -94,15 +93,14 @@ func RcvSignInAck(msg *Message) (interface{}, error) {
 		}
 		// send message to SN
 		MsgPasser.Send(sendoutMsg)
-		
+
 	}
-	
+
 	// update signIn channel to stop the channel waiting
 	SignInChan <- signInAckMsg["status"]
 
 	return signInAckMsg, nil
 }
-
 
 func RcvSignUpAck(msg *Message) (interface{}, error) {
 	if msg.Kind != SIGNUPACK {
@@ -117,8 +115,8 @@ func RcvSignUpAck(msg *Message) (interface{}, error) {
 	// if success, send update request
 	if signUpAckMsg["status"] == "success" {
 		// update app question set
-	    SendtoApp(App_url+"hacks/updateq/", string(signUpAckMsg["question"]))
-	
+		SendtoApp(App_url+"hacks/updateq/", string(signUpAckMsg["question"]))
+
 		// send map[string]string messages to SN
 		sendoutMsg := new(Message)
 		err := sendoutMsg.NewMsgwithData(SuperNodeIP, SN_ASKINFO, "")
@@ -138,6 +136,7 @@ func RcvSignUpAck(msg *Message) (interface{}, error) {
 //TODO: SN receive start or end, forward message to all ON and SN
 // use NewMsgwithBytes will be efficient without en/decode msg
 func RcvStartEnd_SN(msg *Message) (interface{}, error) {
+
 	return nil, nil
 }
 

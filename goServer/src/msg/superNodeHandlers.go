@@ -105,17 +105,39 @@ func RcvSnSignUp(msg *Message) (interface{}, error) {
 		updateLocalInfoWithOneRecord(*userRecord)
 	}
 
+	//Multicast the new user to other supernodes
+	sendCastMsg := new(Message)
+	sendCastMsg.CopyMsg(msg)
+	sendCastMsg.Kind = SN_MSIGNUP
+	multicastMsgInGroup(sendCastMsg, true)
+
 	sendoutMsg := new(Message)
 	err = sendoutMsg.NewMsgwithData(msg.Src, SIGNUPACK, backData)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
 	}
-
 	// send message to ON
 	MsgPasser.Send(sendoutMsg)
 
 	return signUpMsg, err
+}
+
+func RcvSnMSignUp(msg *Message) (interface{}, error) {
+	// register user and send back SignUpAck
+	if msg.Kind != SN_MSIGNUP {
+		return nil, errors.New("message Kind indicates not a SN_MSIGNUP")
+	}
+
+	var mSignUpMsg map[string]string
+	err := ParseRcvInterfaces(msg, &mSignUpMsg)
+	if err != nil {
+		return nil, err
+	}
+
+	backMsg := util.DatabaseSignUp(mSignUpMsg["username"], mSignUpMsg["password"], mSignUpMsg["email"])
+
+	return msg, err
 }
 
 func RcvSnSignIn(msg *Message) (interface{}, error) {
@@ -208,7 +230,7 @@ func RcvSnRank(msg *Message) (interface{}, error) {
 	mu.Unlock()
 
 	//multicast the global rank in group
-	multicastMsgInGroup(msg)
+	multicastMsgInGroup(msg, false)
 
 	return newRankList, nil
 }
@@ -303,16 +325,25 @@ func updateLocalInfoWithOneRecord(userRecord UserRecord) bool {
 	return rankChanged
 }
 
-func multicastMsgInGroup(m *Message) {
+func multicastMsgInGroup(m *Message, isSuper bool) {
 	newMCastMsg := new(MultiCastMessage)
 	tmpMsg := &newMCastMsg.Message
 	tmpMsg.CopyMsg(m)
 	newMCastMsg.Origin = MsgPasser.ServerIP
 
 	newMCastMsg.HostList = make([]string, 0)
-	for e := MsgPasser.ONHostlist.Front(); e != nil; e = e.Next() {
-		newMCastMsg.HostList = append(newMCastMsg.HostList, e.Value.(string))
+
+	if isSuper {
+		for e := MsgPasser.SNHostlist.Front(); e != nil; e = e.Next() {
+			newMCastMsg.HostList = append(newMCastMsg.HostList, e.Value.(string))
+		}
+
+	} else {
+		for e := MsgPasser.ONHostlist.Front(); e != nil; e = e.Next() {
+			newMCastMsg.HostList = append(newMCastMsg.HostList, e.Value.(string))
+		}
 	}
+
 	MsgPasser.SendMCast(newMCastMsg)
 }
 
