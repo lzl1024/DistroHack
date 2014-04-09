@@ -73,7 +73,7 @@ def update_question(request):
     #problems = os.listdir(PRO_PATH)
     #problemNum = len(problems)
 
-    problemNum = 4
+    problemNum = 2
     for i in range(1, problemNum + 1):
         p_id = i
         problem = Problem.objects.get_or_create(id=i)[0]
