@@ -183,6 +183,8 @@ func RcvSnSignIn(msg *Message) (interface{}, error) {
 
 // Received in SN
 func RcvPblSuccess(msg *Message) (interface{}, error) {
+	fmt.Println("superNodeHandler: RcvPblSuccess1")
+
 	if msg.Kind != SN_PBLSUCCESS {
 		return nil, errors.New("message Kind indicates not a PBLSUCCESS")
 	}
@@ -190,15 +192,36 @@ func RcvPblSuccess(msg *Message) (interface{}, error) {
 	// TODO: for SN, it should merge to global ranking, and send back if needed
 	var userRecord UserRecord
 	if err := ParseRcvInterfaces(msg, &userRecord); err != nil {
+		fmt.Println("superNodeHandler: RcvPblSuccess2")
 		return nil, err
 	}
 
-	globalRankChanged := updateLocalInfoWithOneRecord(userRecord)
+	fmt.Println("superNodeHandler: RcvPblSuccess3")
 
+	globalRankChanged := updateLocalInfoWithOneRecord(userRecord)
 	//multicast the new grobal rank to Sns
 	if globalRankChanged {
 		multicastGlobalRankToSNs()
 	}
+
+	backData := new(LocalInfo)
+	backData.Ranklist = rankList
+	backData.Scoremap = make(map[string]UserRecord)
+
+	mu.Lock()
+	for k, v := range scoreMap {
+		backData.Scoremap[k] = v
+	}
+	mu.Unlock()
+
+	sendoutMsg := new(Message)
+	err := sendoutMsg.NewMsgwithData(msg.Src, ASKINFOACK, *backData)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	// send message to SN
+	multicastMsgInGroup(sendoutMsg, false)
 
 	return userRecord, nil
 }
@@ -305,6 +328,8 @@ func updateLocalInfoWithOneRecord(userRecord UserRecord) bool {
 	if _, present := scoreMap[userRecord.UserName]; present {
 		if scoreMap[userRecord.UserName].Ctime.After(userRecord.Ctime) {
 			mu.Unlock()
+
+			fmt.Println("update local info return")
 			return rankChanged
 		}
 		scoreMap[userRecord.UserName] = userRecord
@@ -314,6 +339,8 @@ func updateLocalInfoWithOneRecord(userRecord UserRecord) bool {
 	}
 
 	//Update the Global Rank
+
+	fmt.Printf("SuperNodeHandler:  new record score %d\n", userRecord.Score)
 
 	var tmpUserRecord UserRecord
 	replaced := false

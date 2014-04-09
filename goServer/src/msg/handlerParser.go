@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"reflect"
 )
 
 // parse send interfaces
@@ -27,6 +28,10 @@ func ParseSendInterfaces(msg *Message, data interface{}) error {
 func ParseRcvInterfaces(msg *Message, realData interface{}) error {
 	buffer := bytes.NewBuffer(msg.Data)
 	tmpdecoder := gob.NewDecoder(buffer)
+
+	reflect.TypeOf(msg.Data)
+	fmt.Printf(reflect.TypeOf(msg.Data).String())
+
 	err := tmpdecoder.Decode(realData)
 
 	if err != nil {
