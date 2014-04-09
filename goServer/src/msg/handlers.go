@@ -50,6 +50,15 @@ func RcvAskInfoAck(msg *Message) (interface{}, error) {
 	// update local info and ranking
 	Local_info = signInMsg.Scoremap
 	Global_ranking = signInMsg.Ranklist
+	
+	// update the app's ranking
+	data, _ := json.Marshal(Global_ranking)
+	
+	fmt.Println(data);
+
+	// send data out
+	SendtoApp(App_url+"hacks/update_rank/", string(data))
+	
 	return signInMsg, err
 }
 
@@ -61,7 +70,7 @@ func RcvNodeJoin(msg *Message) (interface{}, error) {
 	return nil, nil
 }
 
-// received in SN
+
 func RcvSignInAck(msg *Message) (interface{}, error) {
 	if msg.Kind != SIGNINACK {
 		return nil, errors.New("message Kind indicates not a SIGNINACK")
@@ -74,6 +83,9 @@ func RcvSignInAck(msg *Message) (interface{}, error) {
 	
 	// if success, send update request
 	if signInAckMsg["status"] == "success" {
+		// update app question set
+	    SendtoApp(App_url+"hacks/updateq/", string(signInAckMsg["question"]))
+	    
 		// send map[string]string messages to SN
 		sendoutMsg := new(Message)
 		err := sendoutMsg.NewMsgwithData(SuperNodeIP, SN_ASKINFO, "")
@@ -82,17 +94,16 @@ func RcvSignInAck(msg *Message) (interface{}, error) {
 		}
 		// send message to SN
 		MsgPasser.Send(sendoutMsg)
+		
 	}
 	
-	//TODO: read the question url if needed
-
 	// update signIn channel to stop the channel waiting
 	SignInChan <- signInAckMsg["status"]
 
 	return signInAckMsg, nil
 }
 
-// received in SN
+
 func RcvSignUpAck(msg *Message) (interface{}, error) {
 	if msg.Kind != SIGNUPACK {
 		return nil, errors.New("message Kind indicates not a SIGNUPACK")
@@ -105,6 +116,9 @@ func RcvSignUpAck(msg *Message) (interface{}, error) {
 
 	// if success, send update request
 	if signUpAckMsg["status"] == "success" {
+		// update app question set
+	    SendtoApp(App_url+"hacks/updateq/", string(signUpAckMsg["question"]))
+	
 		// send map[string]string messages to SN
 		sendoutMsg := new(Message)
 		err := sendoutMsg.NewMsgwithData(SuperNodeIP, SN_ASKINFO, "")
@@ -114,8 +128,6 @@ func RcvSignUpAck(msg *Message) (interface{}, error) {
 		// send message to SN
 		MsgPasser.Send(sendoutMsg)
 	}
-	
-	//TODO: read the question url if needed
 
 	// update signIn channel to stop the channel waiting
 	SignUpChan <- signUpAckMsg["status"]
