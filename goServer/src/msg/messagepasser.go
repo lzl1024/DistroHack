@@ -20,7 +20,7 @@ type Connection struct {
 }
 
 // TODO: change it!
-var SuperNodeIP = "128.237.221.73"
+var SuperNodeIP = "128.237.221.148"
 
 type Messagepasser struct {
 	SNHostlist       *list.List
@@ -57,6 +57,7 @@ func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, erro
 	mp.SNPort = SNPort
 	mp.ONHostlist = list.New()
 	mp.SNHostlist = list.New()
+
 	mp.RcvdMCastMsgs = make([]*MultiCastMessage, 0)
 
 	for retry != 3 {
@@ -130,10 +131,12 @@ func (mp *Messagepasser) getConnection(msgDest string, port string) (*Connection
 }
 
 func (mp *Messagepasser) actuallySend(connection *Connection, dest string, msg interface{}) error {
+	fmt.Println("MessagePasser: actuallySend")
+
 	encoder := connection.encoder
 	err := encoder.Encode(&msg)
 	if err != nil {
-		fmt.Println("error encoding data: ", err)
+		fmt.Println("MessagePasser actuallySend: error encoding data: ", err)
 		connection, ok := mp.Connmap[dest]
 		if ok {
 			connection.conn.Close()
@@ -156,13 +159,13 @@ func (mp *Messagepasser) Send(msg *Message) error {
 
 	connection, err := mp.getConnection(msg.Dest, port)
 	if err != nil {
-		fmt.Println("Error getting connection")
+		fmt.Println("MessagePasser Send: Error getting connection")
 		return err
 	}
 
 	err = mp.actuallySend(connection, dest, msg)
 
-	return nil
+	return err
 }
 
 func (mp *Messagepasser) SendMCast(msg *MultiCastMessage) {
@@ -185,7 +188,9 @@ func (mp *Messagepasser) SendMCast(msg *MultiCastMessage) {
 				fmt.Println("Unable to send message to host:", host)
 			}
 		} else {
-			mp.RcvdMCastMsgs = append(mp.RcvdMCastMsgs, msg)
+			fmt.Println("MessagePasser SendMCast", msg.String())
+			mp.IncomingMCastMsg <- *msg
+			//mp.RcvdMCastMsgs = append(mp.RcvdMCastMsgs, msg)
 		}
 	}
 }
@@ -239,7 +244,7 @@ func (mp *Messagepasser) RcvMCastMessage() {
 		if v == true {
 			mp.HandleMCast(&msg)
 		}
-		mp.DoAction(&msg.Message)
+		go mp.DoAction(&msg.Message)
 	}
 }
 

@@ -46,10 +46,17 @@ func RcvAskInfoAck(msg *Message) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// update local info and ranking
 	Local_info = signInMsg.Scoremap
 	Global_ranking = signInMsg.Ranklist
+
+	// update the app's ranking
+	data, _ := json.Marshal(Global_ranking)
+
+	// send data out
+	SendtoApp(App_url+"hacks/update_rank/", string(data))
+
 	return signInMsg, err
 }
 
@@ -61,7 +68,6 @@ func RcvNodeJoin(msg *Message) (interface{}, error) {
 	return nil, nil
 }
 
-// received in SN
 func RcvSignInAck(msg *Message) (interface{}, error) {
 	if msg.Kind != SIGNINACK {
 		return nil, errors.New("message Kind indicates not a SIGNINACK")
@@ -71,9 +77,12 @@ func RcvSignInAck(msg *Message) (interface{}, error) {
 	if err := ParseRcvInterfaces(msg, &signInAckMsg); err != nil {
 		return nil, err
 	}
-	
+
 	// if success, send update request
 	if signInAckMsg["status"] == "success" {
+		// update app question set
+		SendtoApp(App_url+"hacks/updateq/", string(signInAckMsg["question"]))
+
 		// send map[string]string messages to SN
 		sendoutMsg := new(Message)
 		err := sendoutMsg.NewMsgwithData(SuperNodeIP, SN_ASKINFO, "")
@@ -82,9 +91,8 @@ func RcvSignInAck(msg *Message) (interface{}, error) {
 		}
 		// send message to SN
 		MsgPasser.Send(sendoutMsg)
+
 	}
-	
-	//TODO: read the question url if needed
 
 	// update signIn channel to stop the channel waiting
 	SignInChan <- signInAckMsg["status"]
@@ -92,7 +100,6 @@ func RcvSignInAck(msg *Message) (interface{}, error) {
 	return signInAckMsg, nil
 }
 
-// received in SN
 func RcvSignUpAck(msg *Message) (interface{}, error) {
 	if msg.Kind != SIGNUPACK {
 		return nil, errors.New("message Kind indicates not a SIGNUPACK")
@@ -105,6 +112,9 @@ func RcvSignUpAck(msg *Message) (interface{}, error) {
 
 	// if success, send update request
 	if signUpAckMsg["status"] == "success" {
+		// update app question set
+		SendtoApp(App_url+"hacks/updateq/", string(signUpAckMsg["question"]))
+
 		// send map[string]string messages to SN
 		sendoutMsg := new(Message)
 		err := sendoutMsg.NewMsgwithData(SuperNodeIP, SN_ASKINFO, "")
@@ -114,8 +124,6 @@ func RcvSignUpAck(msg *Message) (interface{}, error) {
 		// send message to SN
 		MsgPasser.Send(sendoutMsg)
 	}
-	
-	//TODO: read the question url if needed
 
 	// update signIn channel to stop the channel waiting
 	SignUpChan <- signUpAckMsg["status"]
@@ -123,17 +131,13 @@ func RcvSignUpAck(msg *Message) (interface{}, error) {
 	return signUpAckMsg, nil
 }
 
-//TODO: SN receive start or end, forward message to all ON and SN
-// use NewMsgwithBytes will be efficient without en/decode msg
-func RcvStartEnd_SN(msg *Message) (interface{}, error) {
-	return nil, nil
-}
-
 // When ON receive start or end, call app url, to inform app
-func RcvStartEnd_ON(msg *Message) (interface{}, error) {
-	if msg.Kind != STARTEND_ON {
-		return nil, errors.New("message Kind indicates not a STARTEND_ON")
+func RcvStartEnd(msg *Message) (interface{}, error) {
+	if msg.Kind != STARTEND {
+		return nil, errors.New("message Kind indicates not a STARTEND")
 	}
+
+	fmt.Println("Handlers RcvStartEnd: ", msg.String())
 
 	var startEndMsg map[string]string
 	if err := ParseRcvInterfaces(msg, &startEndMsg); err != nil {
@@ -148,7 +152,7 @@ func RcvStartEnd_ON(msg *Message) (interface{}, error) {
 		data, _ := json.Marshal(startEndMsg)
 		SendtoApp(App_url+"hacks/start_hack/", string(data))
 	} else {
-		return nil, errors.New("STARTEND_ON message's inner type wrong")
+		return nil, errors.New("STARTEND message's inner type wrong")
 	}
 	return startEndMsg, nil
 }

@@ -1,7 +1,7 @@
 import datetime
 import json
 from django.shortcuts import render
-
+from django.views.decorators.csrf import csrf_exempt
 # ranking constants
 from distroHack.viewsDir.sign.views import connect_server
 
@@ -30,6 +30,7 @@ def admin(request):
 
 
 # admin to start the hackathon
+@csrf_exempt
 def start_hack(request):
     global hack_end_time, hack_is_started
     if 'data' in request.POST:

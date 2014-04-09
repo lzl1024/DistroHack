@@ -159,21 +159,21 @@ def runcode(request):
             user_tuple['time'] = submit_time
 
             # check user in global ranking
-            user_index = -1
-            for i in range(len(distroHack.views.global_ranking)):
-                if distroHack.views.global_ranking[i]['name'] == user:
-                    user_index = i
+           # user_index = -1
+          #  for i in range(len(distroHack.views.global_ranking)):
+          #      if distroHack.views.global_ranking[i]['name'] == user:
+          #          user_index = i
 
             # update old global ranking
-            if user_index > 0:
-                distroHack.views.global_ranking[user_index]['score'] = problem_id
-            elif problem_id > distroHack.views.global_ranking[-1]['score'] \
-                    or len(distroHack.views.global_ranking) < show_rank_len:
-                distroHack.views.global_ranking.append(user_tuple)
+         #   if user_index > 0:
+         #       distroHack.views.global_ranking[user_index]['score'] = problem_id
+         #   elif problem_id > distroHack.views.global_ranking[-1]['score'] \
+         #           or len(distroHack.views.global_ranking) < show_rank_len:
+         #       distroHack.views.global_ranking.append(user_tuple)
 
             # sort global ranking
-            distroHack.views.global_ranking.\
-                sort(key=lambda k: (k['name'], k['time']), reverse=True)
+        #    distroHack.views.global_ranking.\
+        #        sort(key=lambda k: (k['name'], k['time']), reverse=True)
 
             #send success to server
             msg = {"type": "submit_success", "username": user, "pid": str(problem_id)}

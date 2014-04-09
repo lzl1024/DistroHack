@@ -13,6 +13,8 @@ const (
 	// Receive sign up from ordinary node
 	SN_ONSIGNUP
 	SIGNUPACK
+	// Tell other sn the sign up of an ordinary node
+	SN_MSIGNUP
 	// Receive sign in from ordinary node
 	SN_ONSIGNIN
 	SIGNINACK
@@ -23,13 +25,15 @@ const (
 	SN_RANK
 	// Receive public success from ordinary node
 	SN_PBLSUCCESS
+	// Receive START or END from ordinary
+	SN_STARTENDON
+	// Receive START or END from sn
+	SN_STARTEND
 	// Receive connect msg from ordinary node
 	SN_NODEJOIN
 
 	GROUPINFO
-	PBLSUCCESS
-	STARTEND_ON
-	STARTEND_SN
+	STARTEND
 	NUMTYPES
 )
 
