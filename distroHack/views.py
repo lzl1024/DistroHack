@@ -57,6 +57,7 @@ def start_hack(request):
 
 
 # admin to end the hackathon
+@csrf_exempt
 def end_hack(request):
     global hack_is_started, hack_end_time
     hack_is_started = False
