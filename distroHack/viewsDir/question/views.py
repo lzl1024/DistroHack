@@ -67,21 +67,29 @@ def question(request):
 
 # update the database and fill with problems
 def update_question(request):
-    p_id = 1
-    problem = Problem.objects.get_or_create(id=1)[0]
-    problem_dir = os.path.join(PRO_PATH, str(p_id))
 
-    # title and description
-    descpt_file = open(os.path.join(problem_dir, descript_file_name), "rb")
-    problem.title = descpt_file.readline()
-    problem.description = descpt_file.read()
-    descpt_file.close()
 
-    # other fields
-    problem.result = read_fields(problem_dir, answer_file_name)
-    problem.startCode = read_fields(problem_dir, start_file_name)
-    problem.testCode = read_fields(problem_dir, test_file_name)
-    problem.save()
+    #problemUrl = request.POST['data']
+    #problems = os.listdir(PRO_PATH)
+    #problemNum = len(problems)
+
+    problemNum = 4
+    for i in range(1, problemNum + 1):
+        p_id = i
+        problem = Problem.objects.get_or_create(id=i)[0]
+        problem_dir = os.path.join(PRO_PATH, str(p_id))
+
+        # title and description
+        descpt_file = open(os.path.join(problem_dir, descript_file_name), "rb")
+        problem.title = descpt_file.readline()
+        problem.description = descpt_file.read()
+        descpt_file.close()
+
+        # other fields
+        problem.result = read_fields(problem_dir, answer_file_name)
+        problem.startCode = read_fields(problem_dir, start_file_name)
+        problem.testCode = read_fields(problem_dir, test_file_name)
+        problem.save()
 
     return render(request, 'index.html')
 
