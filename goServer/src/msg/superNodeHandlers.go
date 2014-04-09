@@ -375,6 +375,8 @@ func multicastMsgInGroup(m *Message, isSuper bool) {
 		}
 
 	} else {
+		fmt.Printf("SuperNOdeHandler: multicastMsgInGroup ONHostList %d\n", MsgPasser.ONHostlist.Len())
+
 		for e := MsgPasser.ONHostlist.Front(); e != nil; e = e.Next() {
 			newMCastMsg.HostList = append(newMCastMsg.HostList, e.Value.(string))
 		}

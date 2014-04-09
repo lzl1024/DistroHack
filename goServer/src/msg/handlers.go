@@ -54,7 +54,6 @@ func RcvAskInfoAck(msg *Message) (interface{}, error) {
 	// update the app's ranking
 	data, _ := json.Marshal(Global_ranking)
 
-
 	// send data out
 	SendtoApp(App_url+"hacks/update_rank/", string(data))
 
@@ -137,6 +136,8 @@ func RcvStartEnd(msg *Message) (interface{}, error) {
 	if msg.Kind != STARTEND {
 		return nil, errors.New("message Kind indicates not a STARTEND")
 	}
+
+	fmt.Println("Handlers RcvStartEnd: ", msg.String())
 
 	var startEndMsg map[string]string
 	if err := ParseRcvInterfaces(msg, &startEndMsg); err != nil {

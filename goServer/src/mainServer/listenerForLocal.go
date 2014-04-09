@@ -153,6 +153,7 @@ func handleSuccess(message map[string]string) string {
 	name := message["username"]
 
 	if msg.Local_info[name].Score < pid {
+
 		msg.Local_info[name] = msg.UserRecord{
 			UserName: name, Score: pid, Ctime: time.Now()}
 
@@ -160,7 +161,7 @@ func handleSuccess(message map[string]string) string {
 		// send map[string]string messages to SN
 		sendoutMsg := new(msg.Message)
 
-		err := sendoutMsg.NewMsgwithData(msg.SuperNodeIP, msg.SN_PBLSUCCESS, message)
+		err := sendoutMsg.NewMsgwithData(msg.SuperNodeIP, msg.SN_PBLSUCCESS, msg.Local_info[name])
 		if err != nil {
 			fmt.Println(err)
 		}

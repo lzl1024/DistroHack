@@ -188,6 +188,7 @@ func (mp *Messagepasser) SendMCast(msg *MultiCastMessage) {
 				fmt.Println("Unable to send message to host:", host)
 			}
 		} else {
+			fmt.Println("MessagePasser SendMCast", msg.String())
 			mp.IncomingMCastMsg <- *msg
 			//mp.RcvdMCastMsgs = append(mp.RcvdMCastMsgs, msg)
 		}
@@ -243,7 +244,7 @@ func (mp *Messagepasser) RcvMCastMessage() {
 		if v == true {
 			mp.HandleMCast(&msg)
 		}
-		mp.DoAction(&msg.Message)
+		go mp.DoAction(&msg.Message)
 	}
 }
 
