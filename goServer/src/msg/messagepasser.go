@@ -20,7 +20,7 @@ type Connection struct {
 }
 
 // TODO: change it!
-var SuperNodeIP = "128.237.221.73"
+var SuperNodeIP = "128.237.211.85"
 var rcvdlistMutex = &sync.Mutex{}
 
 type Messagepasser struct {
@@ -195,7 +195,7 @@ func (mp *Messagepasser) SendMCast(msg *MultiCastMessage) {
 			}
 		} else {
 			fmt.Println("MessagePasser SendMCast: Sending MCast to self", msg.String())
-			//mp.IncomingMCastMsg <- *msg
+			mp.IncomingMCastMsg <- *msg
 			//mp.RcvdMCastMsgs = append(mp.RcvdMCastMsgs, msg)
 		}
 	}

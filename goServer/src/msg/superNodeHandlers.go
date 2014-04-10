@@ -283,8 +283,7 @@ func RcvSnAskInfo(msg *Message) (interface{}, error) {
 		return nil, err
 	}
 
-	// send message to SN
-	MsgPasser.Send(sendoutMsg)
+	multicastMsgInGroup(sendoutMsg, false)
 
 	return nil, nil
 }

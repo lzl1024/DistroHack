@@ -21,9 +21,9 @@ func clientTestThread(mp *Messagepasser, c chan error) {
 
 	//testMulticast(mp, c)
 	// TO CHANGE
-	mp.SNHostlist.PushBack("128.237.221.148")
-	mp.ONHostlist.PushBack("128.237.223.228")
-	mp.ONHostlist.PushBack("128.237.221.148")
+	mp.SNHostlist.PushBack("128.237.211.85")
+	mp.ONHostlist.PushBack("128.237.211.85")
+	mp.ONHostlist.PushBack("128.237.250.37")
 }
 
 func testConstructSNList(mp *Messagepasser, c chan error) {
