@@ -43,7 +43,7 @@ func serverthread(mp *msg.Messagepasser, c chan error) {
 }
 
 func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
-	fmt.Println("Started recevier thread\n")
+	fmt.Println("Started recevier thread\n", conn.RemoteAddr().String())
 	var tcpconn *net.TCPConn
 	var ok bool
 	var err error

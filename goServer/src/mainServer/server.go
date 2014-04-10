@@ -5,41 +5,35 @@ import (
 	"fmt"
 	"msg"
 	"net"
-	"os"
 	"strconv"
 	"util"
+	"os"
 )
-
-var ListenPortLocal = ":4213"
-var ListenPortPeer = 4214
-
-var ListenPortSuperNode = 4214
-
-// TODO: change it!
-var SNListenPort = 4214
 
 const rcvBufLen = 1024
 
 var isSN = true
 
-//var isSN = false
-
 func main() {
 	gob.Register(msg.Message{})
 	gob.Register(msg.MultiCastMessage{})
-
+	
+	msg.ReadConfig()
 	parseArguments()
 	// open database
 	util.DatabaseInit()
 
 	initMessagePasser()
+	/*if isSN {
+		msg.BootStrapSN()
+	}*/
+
 	go InitListenerForPeers()
 
-	// tests
 	//tests()
 
 	// open the listen port for local app
-	listenerLocal, errLocal := net.Listen("tcp", ListenPortLocal)
+	listenerLocal, errLocal := net.Listen("tcp", fmt.Sprint(":", msg.ListenPortLocal))
 
 	if errLocal != nil {
 		fmt.Println("Server: Listener port has been used:", errLocal.Error())
@@ -57,16 +51,16 @@ func parseArguments() {
 		if os.Args[1] == "True" {
 			isSN = true
 			if argLen > 2 {
-				ListenPortLocal = ":" + os.Args[2]
+				msg.ListenPortLocal,_ = strconv.Atoi(os.Args[2])
 				if argLen > 3 {
-					ListenPortPeer, _ = strconv.Atoi(os.Args[3])
+					msg.ListenPortPeer, _ = strconv.Atoi(os.Args[3])
 				}
 			}
 		}
 	}
 }
 
-// tests
+
 func tests() {
 	// active connect to application
 	//activeTest()
@@ -95,8 +89,8 @@ func initMessagePasser() {
 		}
 	}
 
-	msg.MsgPasser, err = msg.NewMsgPasser(addr.String(), ListenPortPeer,
-		SNListenPort)
+	msg.MsgPasser, err = msg.NewMsgPasser(addr.String(), msg.ListenPortPeer,
+		msg.ListenPortSuperNode)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -118,4 +112,5 @@ func initMessagePasser() {
 
 	msg.Handlers[msg.STARTEND_SN] = msg.RcvStartEnd_SN
 	msg.Handlers[msg.STARTEND_ON] = msg.RcvStartEnd_ON
+	msg.Handlers[msg.SN_JOIN] = msg.RcvSnJoin
 }

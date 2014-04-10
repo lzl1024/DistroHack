@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"time"
+	"sync/atomic"
 )
 
 func TestMessagePasser() {
@@ -16,7 +17,8 @@ func TestMessagePasser() {
 
 func clientTestThread(mp *Messagepasser, c chan error) {
 	//testPublishSuccess(mp, c)
-	testGlobalRank(mp, c)
+	//testGlobalRank(mp, c)
+	testMulticast(mp, c)
 }
 
 func testConstructSNList(mp *Messagepasser, c chan error) {
@@ -60,11 +62,12 @@ func testMulticast(mp *Messagepasser, c chan error) {
 		msg3 := new(MultiCastMessage)
 		msg3.NewMCastMsgwithData(ip, STRING, "Sending MCAST")
 		hostlist := make([]string, 0)
-		hostlist = append(hostlist, "128.237.227.84")
+		hostlist = append(hostlist, "128.237.124.82")
 		hostlist = append(hostlist, "128.2.13.133")
 		hostlist = append(hostlist, "128.2.13.134")
 		msg3.Origin = mp.ServerIP
 		msg3.HostList = hostlist
+		msg3.Seqnum = atomic.AddInt32(&mp.SeqNum, 1)
 		mp.SendMCast(msg3)
 	}
 }

@@ -19,7 +19,7 @@ func Time() (*time.Time, error) {
 	}
 
 	defer con.Close()
-	con.SetDeadline(time.Now().Add(5 * time.Second))
+	con.SetDeadline(time.Now().Add(10 * time.Second))
 
 	data := make([]byte, 48)
 	data[0] = 3<<3 | 3

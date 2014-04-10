@@ -1,10 +1,10 @@
 package msg
 
 import (
-	//"container/list"
 	"errors"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"util"
 )
 
@@ -280,11 +280,13 @@ func multicastMsgInGroup(m *Message) {
 	tmpMsg := &newMCastMsg.Message
 	tmpMsg.CopyMsg(m)
 	newMCastMsg.Origin = MsgPasser.ServerIP
+	newMCastMsg.Seqnum = atomic.AddInt32(&MsgPasser.SeqNum, 1)
 
 	newMCastMsg.HostList = make([]string, 0)
 	for e := MsgPasser.ONHostlist.Front(); e != nil; e = e.Next() {
 		newMCastMsg.HostList = append(newMCastMsg.HostList, e.Value.(string))
 	}
+	
 	MsgPasser.SendMCast(newMCastMsg)
 }
 
@@ -292,6 +294,7 @@ func multicastGlobalRankToSNs() {
 	newMCastMsg := new(MultiCastMessage)
 	newMCastMsg.NewMCastMsgwithData("", SN_RANK, rankList)
 	newMCastMsg.Origin = MsgPasser.ServerIP
+	newMCastMsg.Seqnum = atomic.AddInt32(&MsgPasser.SeqNum, 1)
 
 	newMCastMsg.HostList = make([]string, 0)
 	for e := MsgPasser.SNHostlist.Front(); e != nil; e = e.Next() {
