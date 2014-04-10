@@ -24,3 +24,17 @@ func (userRecord UserRecord) String() string {
 		userRecord.Ctime.String()
 	return s
 }
+
+func (userRecord UserRecord) CompareTo(userRecord1 UserRecord) bool {
+	if len(userRecord1.UserName) == 0 {
+		return true
+	}
+
+	if userRecord.Score > userRecord1.Score {
+		return true
+	} else if userRecord.Score < userRecord1.Score {
+		return false
+	} else {
+		return userRecord.Ctime.Before(userRecord1.Ctime)
+	}
+}

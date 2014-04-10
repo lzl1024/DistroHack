@@ -14,7 +14,7 @@ import (
 // function 3: when recieve "sign_in" from ON check available SN and send msg to it, to let him register the on or send back sign in fail.
 // function 4: connect with an ON and send all msg. userlist, local_info, global ranking.
 
-type localInfo struct {
+type LocalInfo struct {
 	Ranklist [GlobalRankSize]UserRecord
 	Scoremap map[string]UserRecord
 }
@@ -105,17 +105,41 @@ func RcvSnSignUp(msg *Message) (interface{}, error) {
 		updateLocalInfoWithOneRecord(*userRecord)
 	}
 
+	//Multicast the new user to other supernodes
+	sendCastMsg := new(Message)
+	sendCastMsg.CopyMsg(msg)
+	sendCastMsg.Kind = SN_MSIGNUP
+	multicastMsgInGroup(sendCastMsg, true)
+
 	sendoutMsg := new(Message)
 	err = sendoutMsg.NewMsgwithData(msg.Src, SIGNUPACK, backData)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
 	}
-
 	// send message to ON
 	MsgPasser.Send(sendoutMsg)
 
 	return signUpMsg, err
+}
+
+func RcvSnMSignUp(msg *Message) (interface{}, error) {
+	// register user and send back SignUpAck
+	if msg.Kind != SN_MSIGNUP {
+		return nil, errors.New("message Kind indicates not a SN_MSIGNUP")
+	}
+
+	var mSignUpMsg map[string]string
+	err := ParseRcvInterfaces(msg, &mSignUpMsg)
+	if err != nil {
+		return nil, err
+	}
+
+	backMsg := util.DatabaseSignUp(mSignUpMsg["username"], mSignUpMsg["password"], mSignUpMsg["email"])
+
+	fmt.Println("SuperNodeandlers RcvSnMSignUp: backMsg ", backMsg)
+
+	return msg, err
 }
 
 func RcvSnSignIn(msg *Message) (interface{}, error) {
@@ -159,6 +183,8 @@ func RcvSnSignIn(msg *Message) (interface{}, error) {
 
 // Received in SN
 func RcvPblSuccess(msg *Message) (interface{}, error) {
+	fmt.Println("superNodeHandler: RcvPblSuccess1")
+
 	if msg.Kind != SN_PBLSUCCESS {
 		return nil, errors.New("message Kind indicates not a PBLSUCCESS")
 	}
@@ -166,15 +192,36 @@ func RcvPblSuccess(msg *Message) (interface{}, error) {
 	// TODO: for SN, it should merge to global ranking, and send back if needed
 	var userRecord UserRecord
 	if err := ParseRcvInterfaces(msg, &userRecord); err != nil {
+		fmt.Println("superNodeHandler: RcvPblSuccess2")
 		return nil, err
 	}
 
-	globalRankChanged := updateLocalInfoWithOneRecord(userRecord)
+	fmt.Println("superNodeHandler: RcvPblSuccess3")
 
+	globalRankChanged := updateLocalInfoWithOneRecord(userRecord)
 	//multicast the new grobal rank to Sns
 	if globalRankChanged {
 		multicastGlobalRankToSNs()
 	}
+
+	backData := new(LocalInfo)
+	backData.Ranklist = rankList
+	backData.Scoremap = make(map[string]UserRecord)
+
+	mu.Lock()
+	for k, v := range scoreMap {
+		backData.Scoremap[k] = v
+	}
+	mu.Unlock()
+
+	sendoutMsg := new(Message)
+	err := sendoutMsg.NewMsgwithData(msg.Src, ASKINFOACK, *backData)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	// send message to SN
+	multicastMsgInGroup(sendoutMsg, false)
 
 	return userRecord, nil
 }
@@ -208,7 +255,7 @@ func RcvSnRank(msg *Message) (interface{}, error) {
 	mu.Unlock()
 
 	//multicast the global rank in group
-	multicastMsgInGroup(msg)
+	multicastMsgInGroup(msg, false)
 
 	return newRankList, nil
 }
@@ -219,7 +266,7 @@ func RcvSnAskInfo(msg *Message) (interface{}, error) {
 		return nil, errors.New("message Kind indicates not a SN_ASKINFO")
 	}
 
-	backData := new(localInfo)
+	backData := new(LocalInfo)
 	backData.Ranklist = rankList
 	backData.Scoremap = make(map[string]UserRecord)
 
@@ -242,6 +289,38 @@ func RcvSnAskInfo(msg *Message) (interface{}, error) {
 	return nil, nil
 }
 
+func RcvSnStartEndFromON(msg *Message) (interface{}, error) {
+	if msg.Kind != SN_STARTENDON {
+		return nil, errors.New("message Kind indicates not a SN_STARTENDON")
+	}
+
+	fmt.Println("SuperNodeHandler: Receive SN_STARTENDON ", msg.String())
+
+	newMessage := new(Message)
+	newMessage.CopyMsg(msg)
+	newMessage.Kind = SN_STARTEND
+
+	multicastMsgInGroup(newMessage, true)
+
+	return nil, nil
+}
+
+func RcvSnStartEnd(msg *Message) (interface{}, error) {
+	if msg.Kind != SN_STARTEND {
+		return nil, errors.New("message Kind indicates not a SN_STARTEND")
+	}
+
+	fmt.Println("SuperNodeHandler: Receive SN_STARTEND ", msg.String())
+
+	newMessage := new(Message)
+	newMessage.CopyMsg(msg)
+	newMessage.Kind = STARTEND
+
+	multicastMsgInGroup(newMessage, false)
+
+	return nil, nil
+}
+
 func updateLocalInfoWithOneRecord(userRecord UserRecord) bool {
 	mu.Lock()
 	rankChanged := false
@@ -249,6 +328,8 @@ func updateLocalInfoWithOneRecord(userRecord UserRecord) bool {
 	if _, present := scoreMap[userRecord.UserName]; present {
 		if scoreMap[userRecord.UserName].Ctime.After(userRecord.Ctime) {
 			mu.Unlock()
+
+			fmt.Println("update local info return")
 			return rankChanged
 		}
 		scoreMap[userRecord.UserName] = userRecord
@@ -258,12 +339,42 @@ func updateLocalInfoWithOneRecord(userRecord UserRecord) bool {
 	}
 
 	//Update the Global Rank
-	for i := GlobalRankSize - 1; i >= 0 && (userRecord.Score > rankList[i].Score || len(rankList[i].UserName) == 0); i-- {
-		rankChanged = true
-		tmpRank := rankList[i]
-		rankList[i] = userRecord
-		if i < GlobalRankSize-1 {
-			rankList[i+1] = tmpRank
+
+	fmt.Printf("SuperNodeHandler:  new record score %d\n", userRecord.Score)
+
+	var tmpUserRecord UserRecord
+	replaced := false
+	for i := 0; i < GlobalRankSize; i++ {
+		if !replaced {
+			if userRecord.UserName != rankList[i].UserName {
+				if rankList[i].CompareTo(userRecord) {
+					continue
+				} else {
+					tmpUserRecord = rankList[i]
+					rankList[i] = userRecord
+					replaced = true
+					if len(tmpUserRecord.UserName) == 0 {
+						break
+					}
+				}
+			} else {
+				if userRecord.CompareTo(rankList[i]) {
+					rankList[i] = userRecord
+				}
+				break
+			}
+		} else {
+			if userRecord.UserName != rankList[i].UserName {
+				tmpUserRecord1 := rankList[i]
+				rankList[i] = tmpUserRecord
+				tmpUserRecord = tmpUserRecord1
+				if len(tmpUserRecord.UserName) == 0 {
+					break
+				}
+			} else {
+				rankList[i] = tmpUserRecord
+				break
+			}
 		}
 	}
 
@@ -275,7 +386,7 @@ func updateLocalInfoWithOneRecord(userRecord UserRecord) bool {
 	return rankChanged
 }
 
-func multicastMsgInGroup(m *Message) {
+func multicastMsgInGroup(m *Message, isSuper bool) {
 	newMCastMsg := new(MultiCastMessage)
 	tmpMsg := &newMCastMsg.Message
 	tmpMsg.CopyMsg(m)
@@ -283,10 +394,21 @@ func multicastMsgInGroup(m *Message) {
 	newMCastMsg.Seqnum = atomic.AddInt32(&MsgPasser.SeqNum, 1)
 
 	newMCastMsg.HostList = make([]string, 0)
-	for e := MsgPasser.ONHostlist.Front(); e != nil; e = e.Next() {
-		newMCastMsg.HostList = append(newMCastMsg.HostList, e.Value.(string))
+
+	if isSuper {
+		fmt.Printf("SuperNOdeHandler: multicastMsgInGroup SNHostList %d\n", MsgPasser.SNHostlist.Len())
+
+		for e := MsgPasser.SNHostlist.Front(); e != nil; e = e.Next() {
+			newMCastMsg.HostList = append(newMCastMsg.HostList, e.Value.(string))
+		}
+
+	} else {
+		fmt.Printf("SuperNOdeHandler: multicastMsgInGroup ONHostList %d\n", MsgPasser.ONHostlist.Len())
+
+		for e := MsgPasser.ONHostlist.Front(); e != nil; e = e.Next() {
+			newMCastMsg.HostList = append(newMCastMsg.HostList, e.Value.(string))
+		}
 	}
-	
 	MsgPasser.SendMCast(newMCastMsg)
 }
 

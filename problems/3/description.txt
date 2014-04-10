@@ -1,0 +1,4 @@
+Round Three
+
+Hi, gentleman. Congratulations with the last round. Solve this! You are taking another step forward to rescue the princess.
+The task for this round is that you are given a bunch of numbers, every number appears twice except for one. The key is the special number that appears only once. So please write a program to get the key. Good luck!

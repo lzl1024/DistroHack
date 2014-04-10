@@ -66,22 +66,31 @@ def question(request):
 
 
 # update the database and fill with problems
+@csrf_exempt
 def update_question(request):
-    p_id = 1
-    problem = Problem.objects.get_or_create(id=1)[0]
-    problem_dir = os.path.join(PRO_PATH, str(p_id))
 
-    # title and description
-    descpt_file = open(os.path.join(problem_dir, descript_file_name), "rb")
-    problem.title = descpt_file.readline()
-    problem.description = descpt_file.read()
-    descpt_file.close()
 
-    # other fields
-    problem.result = read_fields(problem_dir, answer_file_name)
-    problem.startCode = read_fields(problem_dir, start_file_name)
-    problem.testCode = read_fields(problem_dir, test_file_name)
-    problem.save()
+    #problemUrl = request.POST['data']
+    #problems = os.listdir(PRO_PATH)
+    #problemNum = len(problems)
+
+    problemNum = 2
+    for i in range(1, problemNum + 1):
+        p_id = i
+        problem = Problem.objects.get_or_create(id=i)[0]
+        problem_dir = os.path.join(PRO_PATH, str(p_id))
+
+        # title and description
+        descpt_file = open(os.path.join(problem_dir, descript_file_name), "rb")
+        problem.title = descpt_file.readline()
+        problem.description = descpt_file.read()
+        descpt_file.close()
+
+        # other fields
+        problem.result = read_fields(problem_dir, answer_file_name)
+        problem.startCode = read_fields(problem_dir, start_file_name)
+        problem.testCode = read_fields(problem_dir, test_file_name)
+        problem.save()
 
     return render(request, 'index.html')
 
@@ -151,21 +160,21 @@ def runcode(request):
             user_tuple['time'] = submit_time
 
             # check user in global ranking
-            user_index = -1
-            for i in range(len(distroHack.views.global_ranking)):
-                if distroHack.views.global_ranking[i]['name'] == user:
-                    user_index = i
+           # user_index = -1
+          #  for i in range(len(distroHack.views.global_ranking)):
+          #      if distroHack.views.global_ranking[i]['name'] == user:
+          #          user_index = i
 
             # update old global ranking
-            if user_index > 0:
-                distroHack.views.global_ranking[user_index]['score'] = problem_id
-            elif problem_id > distroHack.views.global_ranking[-1]['score'] \
-                    or len(distroHack.views.global_ranking) < show_rank_len:
-                distroHack.views.global_ranking.append(user_tuple)
+         #   if user_index > 0:
+         #       distroHack.views.global_ranking[user_index]['score'] = problem_id
+         #   elif problem_id > distroHack.views.global_ranking[-1]['score'] \
+         #           or len(distroHack.views.global_ranking) < show_rank_len:
+         #       distroHack.views.global_ranking.append(user_tuple)
 
             # sort global ranking
-            distroHack.views.global_ranking.\
-                sort(key=lambda k: (k['name'], k['time']), reverse=True)
+        #    distroHack.views.global_ranking.\
+        #        sort(key=lambda k: (k['name'], k['time']), reverse=True)
 
             #send success to server
             msg = {"type": "submit_success", "username": user, "pid": str(problem_id)}

@@ -18,7 +18,12 @@ func TestMessagePasser() {
 func clientTestThread(mp *Messagepasser, c chan error) {
 	//testPublishSuccess(mp, c)
 	//testGlobalRank(mp, c)
-	testMulticast(mp, c)
+
+	//testMulticast(mp, c)
+	// TO CHANGE
+	mp.SNHostlist.PushBack("128.237.221.148")
+	mp.ONHostlist.PushBack("128.237.223.228")
+	mp.ONHostlist.PushBack("128.237.221.148")
 }
 
 func testConstructSNList(mp *Messagepasser, c chan error) {
@@ -141,6 +146,7 @@ func testGlobalRank(mp *Messagepasser, c chan error) {
 	hostlist = append(hostlist, "128.2.13.134")
 	msg3.Origin = mp.ServerIP
 	msg3.HostList = hostlist
+	msg3.Seqnum = atomic.AddInt32(&mp.SeqNum, 1)
 	mp.SendMCast(msg3)
 
 }

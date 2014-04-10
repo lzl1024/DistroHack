@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"reflect"
 )
 
 // parse send interfaces
@@ -14,7 +15,7 @@ func ParseSendInterfaces(msg *Message, data interface{}) error {
 	err := encoder.Encode(data)
 	if err != nil {
 		fmt.Println(err)
-		return errors.New("unable to encode data")
+		return errors.New("HandlerParser: unable to encode data")
 	}
 
 	msg.Data = buffer.Bytes()
@@ -27,10 +28,15 @@ func ParseSendInterfaces(msg *Message, data interface{}) error {
 func ParseRcvInterfaces(msg *Message, realData interface{}) error {
 	buffer := bytes.NewBuffer(msg.Data)
 	tmpdecoder := gob.NewDecoder(buffer)
+
+	reflect.TypeOf(msg.Data)
+	fmt.Printf(reflect.TypeOf(msg.Data).String())
+
 	err := tmpdecoder.Decode(realData)
 
 	if err != nil {
-		return errors.New("Unable to do conversion of data")
+		fmt.Println(err)
+		return errors.New("HandlerParser: Unable to do conversion of data")
 	}
 
 	return nil

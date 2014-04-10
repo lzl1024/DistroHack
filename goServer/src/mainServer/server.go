@@ -30,8 +30,7 @@ func main() {
 
 	go InitListenerForPeers()
 
-	//tests()
-
+	tests()
 	// open the listen port for local app
 	listenerLocal, errLocal := net.Listen("tcp", fmt.Sprint(":", msg.ListenPortLocal))
 
@@ -98,19 +97,24 @@ func initMessagePasser() {
 
 	/* register handlers for all the types of messages */
 	msg.Handlers[msg.SN_ONSIGNUP] = msg.RcvSnSignUp
+	msg.Handlers[msg.SN_MSIGNUP] = msg.RcvSnMSignUp
+
 	msg.Handlers[msg.SN_ONSIGNIN] = msg.RcvSnSignIn
 	msg.Handlers[msg.SN_ASKINFO] = msg.RcvSnAskInfo
 	msg.Handlers[msg.SN_RANK] = msg.RcvSnRank
 	msg.Handlers[msg.SN_PBLSUCCESS] = msg.RcvPblSuccess
+
+	msg.Handlers[msg.SN_STARTENDON] = msg.RcvSnStartEndFromON
+	msg.Handlers[msg.SN_STARTEND] = msg.RcvSnStartEnd
+
 	msg.Handlers[msg.SN_NODEJOIN] = msg.RcvNodeJoin
 
 	msg.Handlers[msg.STRING] = msg.RcvString
-	msg.Handlers[msg.PBLSUCCESS] = msg.RcvPblSuccess
 	msg.Handlers[msg.SIGNINACK] = msg.RcvSignInAck
 	msg.Handlers[msg.SIGNUPACK] = msg.RcvSignUpAck
 	msg.Handlers[msg.ASKINFOACK] = msg.RcvAskInfoAck
 
-	msg.Handlers[msg.STARTEND_SN] = msg.RcvStartEnd_SN
-	msg.Handlers[msg.STARTEND_ON] = msg.RcvStartEnd_ON
 	msg.Handlers[msg.SN_JOIN] = msg.RcvSnJoin
+
+	msg.Handlers[msg.STARTEND] = msg.RcvStartEnd
 }
