@@ -99,6 +99,8 @@ func initMessagePasser() {
 	msg.Handlers[msg.SN_SN_SIGNUP] = msg.RcvSnMSignUp		
 	msg.Handlers[msg.SN_SN_STARTEND] = msg.RcvSnStartEndFromSN
 	msg.Handlers[msg.SN_SN_RANK] = msg.RcvSnRankfromOrigin
+	msg.Handlers[msg.SN_SN_COMMIT_RD] = msg.RcvSnSignUpCommitReady
+	msg.Handlers[msg.SN_SN_COMMIT_RD_ACK] = msg.RcvSnSignUpCommitReadyACK
 	
 	// SN to ON
 	msg.Handlers[msg.SN_ON_SIGNIN_ACK] = msg.RcvSignInAck

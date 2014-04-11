@@ -23,7 +23,7 @@ func clientTestThread(mp *Messagepasser, c chan error) {
 	// TO CHANGE
 	mp.SNHostlist.PushBack("10.0.1.17")
 	mp.ONHostlist.PushBack("10.0.1.17")
-	mp.ONHostlist.PushBack("10.0.1.16")
+	//mp.ONHostlist.PushBack("10.0.1.16")
 }
 
 func testConstructSNList(mp *Messagepasser, c chan error) {

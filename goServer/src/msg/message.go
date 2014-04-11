@@ -13,6 +13,8 @@ const (
 	SN_SN_SIGNUP		// Tell other sn the sign up of an ordinary node
 	SN_SN_STARTEND		// Receive START or END from another SN 
 	SN_SN_RANK			// Receive rank update from other super node
+	SN_SN_COMMIT_RD		// SN send Commit_ready to other SNs
+	SN_SN_COMMIT_RD_ACK // SN workers send back commit_ready to master
 	
 	// SN to ON	
 	SN_ON_SIGNIN_ACK 	// ON Receivce the sign in status msg from SN
