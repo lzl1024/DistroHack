@@ -18,9 +18,10 @@ func clientTestThread(mp *Messagepasser, c chan error) {
 	//testPublishSuccess(mp, c)
 	//testGlobalRank(mp, c)
 	// TO CHANGE
-	mp.SNHostlist.PushBack("128.237.221.148")
-	mp.ONHostlist.PushBack("128.237.223.228")
-	mp.ONHostlist.PushBack("128.237.221.148")
+	mp.SNHostlist.PushBack("128.237.160.76")
+	mp.ONHostlist.PushBack("128.237.160.76")
+	mp.ONHostlist.PushBack("128.237.125.70")
+	mp.ONHostlist.PushBack("128.237.172.220")
 }
 
 func testConstructSNList(mp *Messagepasser, c chan error) {
