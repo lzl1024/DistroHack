@@ -51,10 +51,10 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 	
 	tcpconn, ok = conn.(*net.TCPConn)
 	if ok {
-			err = tcpconn.SetLinger(0)
-			if err != nil {
-				fmt.Println("cannot set linger options")
-			}
+		err = tcpconn.SetLinger(0)
+		if err != nil {
+			fmt.Println("cannot set linger options")
+		}
 	}
 	
 	decoder := gob.NewDecoder(conn)
@@ -69,12 +69,10 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 		switch t := data.(type) {
 			case msg.Message :
 				mp.IncomingMsg <- t
-				break
 			case msg.MultiCastMessage :
 				mp.IncomingMCastMsg <- t
-				break
 			default :
-				fmt.Println("Issues are there")
+				fmt.Println("Issues are there, msg is not message or multicasemsg")
 		}
 	}
 }

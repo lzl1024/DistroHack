@@ -75,37 +75,3 @@ func DatabaseSignUp(username string, password string, email string) string {
 
 	return "success"
 }
-
-// TODO create table when server start
-func DBTest() {
-	//databaseInit()
-
-	result := DatabaseSignIn("kb24", "nddndd")
-	fmt.Println(result)
-	result = DatabaseSignUp("chenzhuokb2", "nddndd", "kb24@cmu.edu")
-	fmt.Println(result)
-
-	/*rows, e := db.Query("select username from auth_user")
-	if e != nil {
-		fmt.Println("Database: Query Error.")
-		db.Close()
-		return
-	}
-
-	i := 0
-	for rows.Next() {
-		i++
-		var username string
-		e := rows.Scan(&username)
-
-		if e != nil {
-			fmt.Println("Database: Scan Error")
-			db.Close()
-		} else {
-			fmt.Println("Username: ", username)
-		}
-	}*/
-
-//	databaseClose()
-
-}

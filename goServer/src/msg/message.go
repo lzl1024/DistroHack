@@ -3,41 +3,37 @@ package msg
 import (
 	"bytes"
 	"time"
+	"strconv"
 )
 
 /* Represents message types */
 const (
 	STRING = iota
-	// add types below
-
-	// Receive sign up from ordinary node
-	SN_ONSIGNUP
-	SIGNUPACK
-	// Tell other sn the sign up of an ordinary node
-	SN_MSIGNUP
-	// Receive sign in from ordinary node
-	SN_ONSIGNIN
-	SIGNINACK
-	// Receive information request from ordinary node
-	SN_ASKINFO
-	ASKINFOACK
-	// Receive rank update from other super node
-	SN_RANK
-	// Receive public success from ordinary node
-	SN_PBLSUCCESS
-	// Receive START or END from ordinary
-	SN_STARTENDON
-	// Receive START or END from sn
-	SN_STARTEND
-	// Receive connect msg from ordinary node
-	SN_NODEJOIN
-	// Super Node Join from another super Node
-	SN_JOIN
-	// Send change in super node list to other super nodes
-	SN_SNLISTUPDATE
-
+	// SN to SN
+	SN_SN_SIGNUP		// Tell other sn the sign up of an ordinary node
+	SN_SN_STARTEND		// Receive START or END from another SN 
+	SN_SN_RANK			// Receive rank update from other super node
+	
+	// SN to ON	
+	SN_ON_SIGNIN_ACK 	// ON Receivce the sign in status msg from SN
+	SN_ON_SIGNUP_ACK	// ON Receivce the sign up status msg from SN
+	SN_ON_ASKINFO_ACK	// SN ACK the global_ranking and local_info to ON
+	SN_ON_STARTEND		// ON get start/end msg from SN
+	SN_ON_RANK			// SN send new rank to ON
+		
+	// ON to SN
+	ON_SN_SIGNUP		// Receive sign up from ordinary node
+	ON_SN_SIGNIN		// Receive sign in from ordinary node
+	ON_SN_PBLSUCCESS	// Receive public success from ordinary node
+	ON_SN_ASKINFO		// Receive information request from ordinary node
+	ON_SN_STARTEND		// Receive START or END from ordinary
+	
+	// TO BE IMPLE
+	SN_NODEJOIN			// Receive connect msg from ordinary node
+	SN_SNLISTUPDATE		// Send change in super node list to other super nodes
 	GROUPINFO
-	STARTEND
+	SN_JOIN				// Super Node Join from another super Node
+
 	NUMTYPES
 )
 
@@ -70,7 +66,7 @@ func (msg *Message) CopyMsg(m *Message) {
 }
 
 func (msg Message) String() string {
-	s := "dest: " + msg.Dest + " " + " src: " + msg.Src + " kind: " + " timeStamp: " +
+	s := "dest: " + msg.Dest + " " + " src: " + msg.Src + " kind: " + strconv.Itoa(msg.Kind) + " timeStamp: " +
 		msg.TimeStamp.String()
 	return s
 }

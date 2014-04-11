@@ -7,7 +7,6 @@ import (
 	"net"
 	"strconv"
 	"time"
-	"util"
 )
 
 func HandleConnectionFromLocal(listener net.Listener) {
@@ -65,14 +64,14 @@ func handleConnectionFromLocalThread(conn net.Conn) {
 		conn.Write([]byte(handleEndandStart(message)))
 	case "problem_id":
 		name := message["username"]
-		tuple, exist := msg.Local_info[name]
-		score := tuple.Score
+		tuple, exist := msg.Local_map[name]
+		var score int
 
 		// add user if he use session cache to login
 		if !exist {
-			msg.Local_info[name] = msg.UserRecord{
-				name, 0, time.Now()}
 			score = 0
+		} else {
+			score = tuple.Score
 		}
 
 		conn.Write([]byte(strconv.Itoa(score + 1)))
@@ -83,11 +82,11 @@ func handleConnectionFromLocalThread(conn net.Conn) {
 
 func handleSignIn(message map[string]string) string {
 	// msg = {"type": "sign_in", "username": name, "password": password}
-	if name, exist := message["username"]; exist {
+	if _, exist := message["username"]; exist {
 		if _, exist := message["password"]; exist {
 			// send map[string]string messages to SN
 			sendoutMsg := new(msg.Message)
-			err := sendoutMsg.NewMsgwithData(msg.SuperNodeIP, msg.SN_ONSIGNIN, message)
+			err := sendoutMsg.NewMsgwithData(msg.SuperNodeIP, msg.ON_SN_SIGNIN, message)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -98,13 +97,6 @@ func handleSignIn(message map[string]string) string {
 			// channel waiting for rcv
 			msg.SignInChan = make(chan string)
 			val := <-msg.SignInChan
-
-			// add user into local info
-			if _, exist := msg.Local_info[name]; !exist {
-				msg.Local_info[name] = msg.UserRecord{
-					name, 0, time.Now(),
-				}
-			}
 			return val
 		}
 	}
@@ -113,12 +105,12 @@ func handleSignIn(message map[string]string) string {
 
 func handleSignUp(message map[string]string) string {
 	//  msg = {"type": "sign_up", "username": name, "password": password, "email": email}
-	if name, exist := message["username"]; exist {
+	if _, exist := message["username"]; exist {
 		if _, exist := message["password"]; exist {
 			if _, exist := message["email"]; exist {
 				// send map[string]string messages to SN
 				sendoutMsg := new(msg.Message)
-				err := sendoutMsg.NewMsgwithData(msg.SuperNodeIP, msg.SN_ONSIGNUP, message)
+				err := sendoutMsg.NewMsgwithData(msg.SuperNodeIP, msg.ON_SN_SIGNUP, message)
 				if err != nil {
 					fmt.Println(err)
 				}
@@ -130,15 +122,6 @@ func handleSignUp(message map[string]string) string {
 				msg.SignUpChan = make(chan string)
 				val := <-msg.SignUpChan
 
-				// add user into local info
-				ntpTime, err := util.Time()
-				if err != nil {
-					fmt.Println(err)
-				}
-
-				msg.Local_info[name] = msg.UserRecord{
-					name, 0, *ntpTime,
-				}
 				return val
 			}
 		}
@@ -152,16 +135,18 @@ func handleSuccess(message map[string]string) string {
 	pid, _ := strconv.Atoi(message["pid"])
 	name := message["username"]
 
-	if msg.Local_info[name].Score < pid {
+	currentScore := msg.Local_map[name].Score
 
-		msg.Local_info[name] = msg.UserRecord{
+	if currentScore < pid {
+
+		sendOutRecord := msg.UserRecord{
 			UserName: name, Score: pid, Ctime: time.Now()}
 
 		// TODO: send success message to other servers
 		// send map[string]string messages to SN
 		sendoutMsg := new(msg.Message)
 
-		err := sendoutMsg.NewMsgwithData(msg.SuperNodeIP, msg.SN_PBLSUCCESS, msg.Local_info[name])
+		err := sendoutMsg.NewMsgwithData(msg.SuperNodeIP, msg.ON_SN_PBLSUCCESS, sendOutRecord)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -169,6 +154,7 @@ func handleSuccess(message map[string]string) string {
 		// send message to SN
 		msg.MsgPasser.Send(sendoutMsg)
 	}
+	
 	return "success"
 }
 
@@ -177,7 +163,7 @@ func handleEndandStart(meesage map[string]string) string {
 	// send to SN
 	sendoutMsg := new(msg.Message)
 
-	err := sendoutMsg.NewMsgwithData(msg.SuperNodeIP, msg.SN_STARTENDON, meesage)
+	err := sendoutMsg.NewMsgwithData(msg.SuperNodeIP, msg.ON_SN_STARTEND, meesage)
 	if err != nil {
 		fmt.Println(err)
 	}

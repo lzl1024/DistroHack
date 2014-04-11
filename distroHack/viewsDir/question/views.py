@@ -33,6 +33,7 @@ descript_file_name = "description.txt"
 answer_file_name = "answer.txt"
 start_file_name = "startCode.java"
 test_file_name = "testCode.java"
+question_set_size = 2
 
 
 # question page
@@ -56,7 +57,7 @@ def question(request):
 
     qid = int(connect_server(msg))
 
-    if question_number < qid:
+    if question_set_size < qid:
         return render(request, 'hack/complete.html')
 
     problem = Problem.objects.get(pk=qid)
@@ -69,13 +70,10 @@ def question(request):
 @csrf_exempt
 def update_question(request):
 
-
     #problemUrl = request.POST['data']
     #problems = os.listdir(PRO_PATH)
-    #problemNum = len(problems)
-
-    problemNum = 2
-    for i in range(1, problemNum + 1):
+    #question_set_size = len(problems)
+    for i in range(1, question_set_size + 1):
         p_id = i
         problem = Problem.objects.get_or_create(id=i)[0]
         problem_dir = os.path.join(PRO_PATH, str(p_id))

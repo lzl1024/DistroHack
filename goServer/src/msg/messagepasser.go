@@ -20,7 +20,7 @@ type Connection struct {
 }
 
 // TODO: change it!
-var SuperNodeIP = "128.237.211.85"
+var SuperNodeIP = "10.0.1.17"
 var rcvdlistMutex = &sync.Mutex{}
 
 type Messagepasser struct {
@@ -206,10 +206,11 @@ func (mp *Messagepasser) DoAction(msg *Message) {
 	fmt.Println("MessagePasser DoAction :", (*msg).String())
 	str, err := Handlers[msg.Kind](msg)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("DO ACTION Error: ", err)
 		return
 	}
-	fmt.Println(str)
+	
+	fmt.Println("Receive data: ", str)
 }
 
 func (mp *Messagepasser) HandleMCast(msg *MultiCastMessage) {
