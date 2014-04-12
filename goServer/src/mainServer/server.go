@@ -21,7 +21,7 @@ func main() {
 	msg.ReadConfig()
 	parseArguments()
 	// open database
-	util.DatabaseInit()
+	util.DatabaseInit(isSN)
 
 	initMessagePasser()
 	/*if isSN {
