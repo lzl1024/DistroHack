@@ -65,11 +65,11 @@ func testMulticast(mp *Messagepasser, c chan error) {
 
 		msg3 := new(MultiCastMessage)
 		msg3.NewMCastMsgwithData(ip, STRING, "Sending MCAST")
-		hostlist := make([]string, 0)
-		hostlist = append(hostlist, "128.237.234.23")
-		hostlist = append(hostlist, "128.237.234.87")
-		hostlist = append(hostlist, "128.2.13.133")
-		hostlist = append(hostlist, "128.2.13.134")
+		hostlist := make(map[string]string)
+		hostlist["128.237.218.95"] = "128.237.218.95"
+		hostlist["128.237.234.87"]= "128.237.234.87"
+		hostlist["128.2.13.133"]= "128.2.13.133"
+		hostlist["128.2.13.134"] = "128.2.13.134"
 		msg3.Origin = mp.ServerIP
 		msg3.HostList = hostlist
 		msg3.Seqnum = atomic.AddInt32(&mp.SeqNum, 1)
@@ -140,10 +140,10 @@ func testGlobalRank(mp *Messagepasser, c chan error) {
 
 	msg3 := new(MultiCastMessage)
 	msg3.NewMCastMsgwithData(ip, SN_SN_RANK, testRankList)
-	hostlist := make([]string, 0)
-	hostlist = append(hostlist, "128.237.220.160")
-	hostlist = append(hostlist, "128.2.13.133")
-	hostlist = append(hostlist, "128.2.13.134")
+	hostlist := make(map[string]string)
+	hostlist["128.237.218.95"] = "128.237.218.95"
+	hostlist["128.2.13.133"] = "128.2.13.133"
+	hostlist["128.2.13.134"] = "128.2.13.134"
 	msg3.Origin = mp.ServerIP
 	msg3.HostList = hostlist
 	msg3.Seqnum = atomic.AddInt32(&mp.SeqNum, 1)

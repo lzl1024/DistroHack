@@ -71,7 +71,6 @@ func SuperNodeThreadTest() {
 	updateGlobalRankList(tmprankList)*/
 }
 
-
 // rcv sign up msg from ON
 func RcvSnSignUp(msg *Message) (interface{}, error) {
 	// register user and send back SignUpAck
@@ -612,20 +611,20 @@ func multicastMsgInGroup(m *Message, isSuper bool) {
 	newMCastMsg.Origin = MsgPasser.ServerIP
 	newMCastMsg.Seqnum = atomic.AddInt32(&MsgPasser.SeqNum, 1)
 
-	newMCastMsg.HostList = make([]string, 0)
+	newMCastMsg.HostList = make(map[string]string)
 
 	if isSuper {
 		fmt.Printf("SuperNOdeHandler: multicastMsgInGroup SNHostList %d\n", len(MsgPasser.SNHostlist))
 
 		for k,_ := range MsgPasser.SNHostlist {
-			newMCastMsg.HostList = append(newMCastMsg.HostList, MsgPasser.SNHostlist[k])
+			newMCastMsg.HostList[k] = MsgPasser.SNHostlist[k]
 		}
 
 	} else {
 		fmt.Printf("SuperNOdeHandler: multicastMsgInGroup ONHostList %d\n", len(MsgPasser.ONHostlist))
 
 		for k,_ := range MsgPasser.ONHostlist {
-			newMCastMsg.HostList = append(newMCastMsg.HostList, MsgPasser.ONHostlist[k])
+			newMCastMsg.HostList[k] = MsgPasser.ONHostlist[k]
 		}
 	}
 	MsgPasser.SendMCast(newMCastMsg)
@@ -638,9 +637,9 @@ func multicastGlobalRankToSNs() {
 	newMCastMsg.Origin = MsgPasser.ServerIP
 	newMCastMsg.Seqnum = atomic.AddInt32(&MsgPasser.SeqNum, 1)
 
-	newMCastMsg.HostList = make([]string, 0)
+	newMCastMsg.HostList = make(map[string]string)
 	for k,_ := range MsgPasser.SNHostlist {
-		newMCastMsg.HostList = append(newMCastMsg.HostList, MsgPasser.SNHostlist[k])
+		newMCastMsg.HostList[k] = MsgPasser.SNHostlist[k]
 	}
 	
 	MsgPasser.SendMCast(newMCastMsg)

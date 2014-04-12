@@ -91,10 +91,10 @@ func RcvSnJoin(msg *Message) (interface{}, error) {
 	/* a new super node has tried to join , add him to our list and multicast that 
 	 * a new node has joined, and everyone should update their lists
 	 */
-	hostlist := make([]string, 0)
-	hostlist = append(hostlist, ip)
+	hostlist := make(map[string]string)
+	hostlist[ip] = ip
 	for k,_ := range MsgPasser.SNHostlist {
-		hostlist = append(hostlist, MsgPasser.SNHostlist[k])
+		hostlist[k] = MsgPasser.SNHostlist[k]
 	}
 	
 	newMCastMsg := new(MultiCastMessage)

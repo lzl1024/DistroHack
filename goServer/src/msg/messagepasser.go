@@ -101,7 +101,7 @@ func (mp *Messagepasser) getConnection(msgDest string, port string) (*Connection
 	fmt.Println(dest)
 	connection, ok := mp.Connmap[msgDest]
 	if !ok {
-		conn, err := net.Dial("tcp", dest)
+		conn, err := net.DialTimeout("tcp", dest, (time.Duration(3) * time.Second))
 		if err != nil {
 			fmt.Println("error connecting to: ", dest, "reason: ", err)
 			connection, ok := mp.Connmap[msgDest]
@@ -113,7 +113,6 @@ func (mp *Messagepasser) getConnection(msgDest string, port string) (*Connection
 		}
 		fmt.Println("MessagePasser: adding a new connection to ", dest)
 		var tcpconn *net.TCPConn
-		conn.SetDeadline(time.Now().Add(3 * time.Second))
 		tcpconn, ok = conn.(*net.TCPConn)
 		if ok {
 			err = tcpconn.SetKeepAlive(true)
