@@ -28,7 +28,7 @@ func DatabaseInit(isSN bool) {
 	
 	// if is SN add admin into database
 	if isSN {
-		_, err := db.Exec(`insert into user_record (username, password, email) 
+		_, err := db.Exec(`insert ignore into user_record (username, password, email) 
 		values ('admin','admin', 'admin@admin'); `)
 		if err != nil {
 			fmt.Println("Failed to insert build-in admin")
