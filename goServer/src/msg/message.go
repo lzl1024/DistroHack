@@ -40,6 +40,7 @@ const (
 )
 
 type Message struct {
+	Origin string
 	Src, Dest string
 	Seqnum    int32
 	Kind      int
@@ -60,6 +61,7 @@ func (msg *Message) NewMsgwithData(dest string, kind int, data interface{}) erro
 }
 
 func (msg *Message) CopyMsg(m *Message) {
+	msg.Origin = m.Origin
 	msg.Dest = m.Dest
 	msg.Kind = m.Kind
 	msg.Data = m.Data

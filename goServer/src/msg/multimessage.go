@@ -6,7 +6,6 @@ import (
 
 type MultiCastMessage struct {
 	Message
-	Origin string
 	HostList []string
 }
 
@@ -25,7 +24,6 @@ func (msg *MultiCastMessage) NewMCastMsgwithData(dest string, kind int, data int
 func (msg *MultiCastMessage) CopyMCastMsg(m *MultiCastMessage) {
 	tmpMsg := &msg.Message
 	tmpMsg.CopyMsg(&m.Message)
-	msg.Origin = m.Origin
 	msg.HostList = make([]string, 0)
 	for i := range m.HostList {
 		msg.HostList = append(msg.HostList, m.HostList[i])
@@ -33,6 +31,6 @@ func (msg *MultiCastMessage) CopyMCastMsg(m *MultiCastMessage) {
 }
 
 func (msg MultiCastMessage) String() string {
-	s := msg.Message.String() + msg.Origin
+	s := msg.Message.String()
 	return s
 }

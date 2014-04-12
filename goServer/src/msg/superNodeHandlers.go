@@ -206,8 +206,7 @@ func RcvSnSignUpCommitReady(msg *Message) (interface{}, error) {
 		"username"	:	username,
 	}
 	
-	//TODO: change MsgPasser.ServerIP to msg.Origin
-	err := commitACKMsg.NewMsgwithData(MsgPasser.ServerIP, SN_SN_COMMIT_RD_ACK, readyMsg)
+	err := commitACKMsg.NewMsgwithData(msg.Origin, SN_SN_COMMIT_RD_ACK, readyMsg)
 	if err != nil {
 		fmt.Println("In RcvSnSignUpCommitReady:")
 		return nil, err

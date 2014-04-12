@@ -160,6 +160,7 @@ func (mp *Messagepasser) Send(msg *Message) error {
 	var port string
 	var dest string
 
+	msg.Origin = mp.ServerIP
 	msg.Src = mp.ServerIP
 	msg.TimeStamp = time.Now().Add(mp.drift)
 
@@ -256,7 +257,7 @@ func (mp *Messagepasser) RcvMCastMessage() {
 			go mp.HandleMCast(&msg)
 			go mp.DoAction(&msg.Message)
 		} else {
-			fmt.Println("The message has been seen before so moving on")
+			fmt.Println("MessagePasser: The message has been seen before so moving on")
 		}
 	}
 }
