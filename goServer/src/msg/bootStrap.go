@@ -93,8 +93,8 @@ func RcvSnJoin(msg *Message) (interface{}, error) {
 	 */
 	hostlist := make([]string, 0)
 	hostlist = append(hostlist, ip)
-	for e := MsgPasser.SNHostlist.Front(); e != nil; e = e.Next() {
-		hostlist = append(hostlist, e.Value.(string))
+	for k,_ := range MsgPasser.SNHostlist {
+		hostlist = append(hostlist, MsgPasser.SNHostlist[k])
 	}
 	
 	newMCastMsg := new(MultiCastMessage)

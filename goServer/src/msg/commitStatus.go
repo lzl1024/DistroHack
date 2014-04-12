@@ -35,7 +35,7 @@ func checkCommitStatus(commitStatusChan chan string, userName string) {
 		if signUp_requestMap[userName].HasAbort {
 			commitStatusChan <- "Abort"
 			return
-		} else if len(signUp_requestMap[userName].ReadySNIP) == MsgPasser.SNHostlist.Len() {
+		} else if len(signUp_requestMap[userName].ReadySNIP) == len(MsgPasser.SNHostlist) {
 			commitStatusChan <- "Commit"
 			return
 		}

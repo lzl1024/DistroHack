@@ -615,17 +615,17 @@ func multicastMsgInGroup(m *Message, isSuper bool) {
 	newMCastMsg.HostList = make([]string, 0)
 
 	if isSuper {
-		fmt.Printf("SuperNOdeHandler: multicastMsgInGroup SNHostList %d\n", MsgPasser.SNHostlist.Len())
+		fmt.Printf("SuperNOdeHandler: multicastMsgInGroup SNHostList %d\n", len(MsgPasser.SNHostlist))
 
-		for e := MsgPasser.SNHostlist.Front(); e != nil; e = e.Next() {
-			newMCastMsg.HostList = append(newMCastMsg.HostList, e.Value.(string))
+		for k,_ := range MsgPasser.SNHostlist {
+			newMCastMsg.HostList = append(newMCastMsg.HostList, MsgPasser.SNHostlist[k])
 		}
 
 	} else {
-		fmt.Printf("SuperNOdeHandler: multicastMsgInGroup ONHostList %d\n", MsgPasser.ONHostlist.Len())
+		fmt.Printf("SuperNOdeHandler: multicastMsgInGroup ONHostList %d\n", len(MsgPasser.ONHostlist))
 
-		for e := MsgPasser.ONHostlist.Front(); e != nil; e = e.Next() {
-			newMCastMsg.HostList = append(newMCastMsg.HostList, e.Value.(string))
+		for k,_ := range MsgPasser.ONHostlist {
+			newMCastMsg.HostList = append(newMCastMsg.HostList, MsgPasser.ONHostlist[k])
 		}
 	}
 	MsgPasser.SendMCast(newMCastMsg)
@@ -639,8 +639,8 @@ func multicastGlobalRankToSNs() {
 	newMCastMsg.Seqnum = atomic.AddInt32(&MsgPasser.SeqNum, 1)
 
 	newMCastMsg.HostList = make([]string, 0)
-	for e := MsgPasser.SNHostlist.Front(); e != nil; e = e.Next() {
-		newMCastMsg.HostList = append(newMCastMsg.HostList, e.Value.(string))
+	for k,_ := range MsgPasser.SNHostlist {
+		newMCastMsg.HostList = append(newMCastMsg.HostList, MsgPasser.SNHostlist[k])
 	}
 	
 	MsgPasser.SendMCast(newMCastMsg)

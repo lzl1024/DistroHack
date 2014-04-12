@@ -1,7 +1,6 @@
 package msg
 
 import (
-	"container/list"
 	"encoding/gob"
 	"fmt"
 	"net"
@@ -24,8 +23,8 @@ var SuperNodeIP = "10.0.1.17"
 var rcvdlistMutex = &sync.Mutex{}
 
 type Messagepasser struct {
-	SNHostlist       *list.List
-	ONHostlist       *list.List
+	SNHostlist       map[string]string
+	ONHostlist       map[string]string
 	Connmap          map[string]Connection
 	ServerIP         string
 	ONPort           int
@@ -57,8 +56,8 @@ func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, erro
 	mp.IncomingMCastMsg = make(chan MultiCastMessage)
 	mp.ONPort = ONPort
 	mp.SNPort = SNPort
-	mp.ONHostlist = list.New()
-	mp.SNHostlist = list.New()
+	mp.ONHostlist = make(map[string]string)
+	mp.SNHostlist = make(map[string]string)
 	
 	// sign up commit register
 	signUp_requestMap = make(map[string]*SignUpCommitStatus)
@@ -114,6 +113,7 @@ func (mp *Messagepasser) getConnection(msgDest string, port string) (*Connection
 		}
 		fmt.Println("MessagePasser: adding a new connection to ", dest)
 		var tcpconn *net.TCPConn
+		conn.SetDeadline(time.Now().Add(3 * time.Second))
 		tcpconn, ok = conn.(*net.TCPConn)
 		if ok {
 			err = tcpconn.SetKeepAlive(true)
@@ -201,7 +201,6 @@ func (mp *Messagepasser) SendMCast(msg *MultiCastMessage) {
 		} else {
 			fmt.Println("MessagePasser SendMCast: Sending MCast to self", msg.String())
 			mp.IncomingMCastMsg <- *msg
-			//mp.RcvdMCastMsgs = append(mp.RcvdMCastMsgs, msg)
 		}
 	}
 }
@@ -211,7 +210,7 @@ func (mp *Messagepasser) DoAction(msg *Message) {
 	fmt.Println("MessagePasser DoAction :", (*msg).String())
 	str, err := Handlers[msg.Kind](msg)
 	if err != nil {
-		fmt.Println("DO ACTION Error: ", err)
+		fmt.Println("DO ACTION ERROR: ", err)
 		return
 	}
 	

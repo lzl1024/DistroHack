@@ -19,16 +19,14 @@ func clientTestThread(mp *Messagepasser, c chan error) {
 	//testPublishSuccess(mp, c)
 	//testGlobalRank(mp, c)
 
-	//testMulticast(mp, c)
-	// TO CHANGE
-	mp.SNHostlist.PushBack("10.0.1.17")
-	mp.ONHostlist.PushBack("10.0.1.17")
-	//mp.ONHostlist.PushBack("10.0.1.16")
+	testMulticast(mp, c)
+	//mp.SNHostlist["10.0.1.17"] = "10.0.1.17"
+	//mp.ONHostlist["10.0.1.17"] = "10.0.1.17"
 }
 
 func testConstructSNList(mp *Messagepasser, c chan error) {
-	mp.SNHostlist.PushBack("128.2.13.134")
-	mp.SNHostlist.PushBack("128.2.13.133")
+	mp.SNHostlist["128.2.13.134"] = "128.2.13.134"
+	mp.SNHostlist["128.2.13.133"] = "128.2.13.133"
 }
 
 func testMulticast(mp *Messagepasser, c chan error) {
@@ -41,7 +39,7 @@ func testMulticast(mp *Messagepasser, c chan error) {
 			continue
 		}
 
-		msg1 := new(Message)
+/*		msg1 := new(Message)
 		err := msg1.NewMsgwithData(ip, STRING, "ashish kaila")
 		if err != nil {
 			fmt.Println(err)
@@ -63,11 +61,13 @@ func testMulticast(mp *Messagepasser, c chan error) {
 			continue
 		}
 		mp.Send(msg2)
+*/
 
 		msg3 := new(MultiCastMessage)
 		msg3.NewMCastMsgwithData(ip, STRING, "Sending MCAST")
 		hostlist := make([]string, 0)
-		hostlist = append(hostlist, "128.237.124.82")
+		hostlist = append(hostlist, "128.237.234.23")
+		hostlist = append(hostlist, "128.237.234.87")
 		hostlist = append(hostlist, "128.2.13.133")
 		hostlist = append(hostlist, "128.2.13.134")
 		msg3.Origin = mp.ServerIP
