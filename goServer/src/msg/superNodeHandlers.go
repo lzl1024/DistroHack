@@ -384,9 +384,9 @@ func RcvSnRankfromOrigin(msg *Message) (interface{}, error) {
 	
 	Local_Info_Mutex.Lock()
 
-	// TODO: should merge
 	//update the global rank list in local
-	Global_ranking = newRankList
+	mergeGlobalRankingWithList(newRankList)
+	//Global_ranking = newRankList
 
 	// Update the local info map
 	/*for _, userRecord := range newRankList {
@@ -530,6 +530,78 @@ func updateLocalInfoWithOneRecord(userRecord UserRecord) bool {
 
 	Local_Info_Mutex.Unlock()
 	return rankChanged
+}
+
+
+
+// merge global ranking with a new list
+func mergeGlobalRankingWithList(newRankList [GlobalRankSize]UserRecord){
+	newList := [GlobalRankSize]UserRecord{}
+	indexGlobalR := 0
+	indexNewR := 0
+	index := 0
+	userNameSet := map[string]bool{}
+	endGlobalR := getEmptyPos(Global_ranking)
+	endNewR := getEmptyPos(newRankList)
+	
+	// main merge
+	for index < GlobalRankSize && indexGlobalR < endGlobalR && indexNewR < endNewR {
+		if Global_ranking[indexGlobalR].CompareTo(newRankList[indexNewR]) {
+			// only when username not in set, add them
+			if _, exist := userNameSet[Global_ranking[indexGlobalR].UserName]; !exist {
+				newList[index] = Global_ranking[indexGlobalR]
+				// put username into map
+				userNameSet[Global_ranking[indexGlobalR].UserName] = true
+				index++
+			}
+			indexGlobalR++
+		} else {
+			// only when username not in set, add them
+			if _, exist := userNameSet[newRankList[indexNewR].UserName]; !exist {
+				newList[index] = newRankList[indexNewR]
+				userNameSet[newRankList[indexNewR].UserName] = true
+				index++
+			}
+			indexNewR++
+		}
+	}
+	
+	for index < GlobalRankSize && indexGlobalR < endGlobalR {
+		if _, exist := userNameSet[Global_ranking[indexGlobalR].UserName]; !exist {
+			newList[index] = Global_ranking[indexGlobalR]
+			userNameSet[Global_ranking[indexGlobalR].UserName] = true
+			index++
+		}
+		indexGlobalR++
+	}
+	
+	for index < GlobalRankSize && indexNewR < endNewR {
+		if _, exist := userNameSet[newRankList[indexNewR].UserName]; !exist {
+			newList[index] = newRankList[indexNewR]
+			userNameSet[newRankList[indexNewR].UserName] = true
+			index++
+		}
+		indexNewR++
+	}
+	
+	Global_ranking = newList
+	
+	//fmt.Println("NEW GLOBAL RANKING!!!!")
+	//for i := range Global_ranking {
+	//	fmt.Println(Global_ranking[i].String())
+	//}
+}
+
+
+// find the first empty slot of a ranklist
+func getEmptyPos(rankList [GlobalRankSize]UserRecord) int {
+	index := 0
+	for  ; index < GlobalRankSize; index++ {
+		if len(rankList[index].UserName) == 0 {
+			return index
+		}
+	}
+	return index
 }
 
 
