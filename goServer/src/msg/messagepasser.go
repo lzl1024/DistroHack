@@ -14,7 +14,7 @@ import (
 )
 
 type Connection struct {
-	conn    net.Conn
+	Conn    net.Conn
 	encoder *gob.Encoder
 }
 
@@ -26,6 +26,7 @@ type Messagepasser struct {
 	SNHostlist       map[string]string
 	ONHostlist       map[string]string
 	Connmap          map[string]Connection
+	ConnMutex		 sync.Mutex
 	ServerIP         string
 	ONPort           int
 	SNPort           int
@@ -106,7 +107,7 @@ func (mp *Messagepasser) getConnection(msgDest string, port string) (*Connection
 			fmt.Println("error connecting to: ", dest, "reason: ", err)
 			connection, ok := mp.Connmap[msgDest]
 			if ok {
-				connection.conn.Close()
+				connection.Conn.Close()
 				delete(mp.Connmap, msgDest)
 			}
 			return nil, err
@@ -126,7 +127,7 @@ func (mp *Messagepasser) getConnection(msgDest string, port string) (*Connection
 			}
 		}
 		encoder := gob.NewEncoder(conn)
-		connection.conn = conn
+		connection.Conn = conn
 		connection.encoder = encoder
 		mp.Connmap[msgDest] = connection
 		return &connection, nil
@@ -144,11 +145,13 @@ func (mp *Messagepasser) actuallySend(connection *Connection, dest string, msg i
 	err := encoder.Encode(&msg)
 	if err != nil {
 		fmt.Println("MessagePasser actuallySend: error encoding data: ", err)
+		mp.ConnMutex.Lock()
 		connection, ok := mp.Connmap[dest]
 		if ok {
-			connection.conn.Close()
+			connection.Conn.Close()
 			delete(mp.Connmap, dest)
 		}
+		mp.ConnMutex.Unlock()
 		return err
 	}
 
@@ -165,15 +168,15 @@ func (mp *Messagepasser) Send(msg *Message) error {
 
 
 	port = fmt.Sprint(mp.ONPort)
-
+	mp.ConnMutex.Lock()
 	connection, err := mp.getConnection(msg.Dest, port)
+	mp.ConnMutex.Unlock()
 	if err != nil {
 		fmt.Println("MessagePasser Send: Error getting connection")
 		return err
 	}
 	
 	err = mp.actuallySend(connection, dest, msg)
-
 	return err
 }
 
@@ -185,7 +188,9 @@ func (mp *Messagepasser) SendMCast(msg *MultiCastMessage) {
 		host := msg.HostList[e]
 		msg.Dest = host
 		if strings.EqualFold(host, mp.ServerIP) == false {
+			mp.ConnMutex.Lock()
 			connection, err := mp.getConnection(host, fmt.Sprint(mp.ONPort))
+			mp.ConnMutex.Unlock()
 			fmt.Println("MessagePasser : Sending message to ", host)
 			if err != nil {
 				fmt.Println("Error getting connection to host:", host)

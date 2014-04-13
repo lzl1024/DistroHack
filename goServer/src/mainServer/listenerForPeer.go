@@ -20,14 +20,14 @@ func serverthread(mp *msg.Messagepasser, c chan error) {
 
 	tcpAddr, err := net.ResolveTCPAddr("tcp", service)
 	if err != nil {
-		fmt.Println("Unrecoverable error trying to start go server")
+		fmt.Println("ServerThread: Unrecoverable error trying to start go server")
 		c <- err
 		return
 	}
 	
 	listener, err := net.ListenTCP("tcp", tcpAddr)
 	if err != nil {
-		fmt.Println("Unrecoverable error trying to start listening on server ", err)
+		fmt.Println("ServerThread: Unrecoverable error trying to start listening on server ", err)
 		c <- err
 		return
 	}
@@ -35,7 +35,7 @@ func serverthread(mp *msg.Messagepasser, c chan error) {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			fmt.Println("error accepting connection...continuing")
+			fmt.Println("ServerThread: error accepting connection...continuing")
 			continue
 		}
 		go rcvthread(mp, conn)
@@ -53,7 +53,7 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 	if ok {
 		err = tcpconn.SetLinger(0)
 		if err != nil {
-			fmt.Println("cannot set linger options")
+			fmt.Println("RcvThread: cannot set linger options")
 		}
 	}
 	
@@ -61,7 +61,7 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 	for {
 		err := decoder.Decode(&data)
 		if err != nil {
-			fmt.Println("error while decoding: ", err)
+			fmt.Println("RcvThread: error while decoding: ", err)
 			conn.Close()
 			break
 		}
@@ -72,8 +72,19 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 			case msg.MultiCastMessage :
 				mp.IncomingMCastMsg <- t
 			default :
-				fmt.Println("Issues are there, msg is not message or multicasemsg")
+				fmt.Println("RcvThread: Issues are there, msg is not message or multicasemsg")
 		}
 	}
+	
+	/* remove the connection */
+	mp.ConnMutex.Lock()
+	dest,_,_ := net.SplitHostPort(conn.RemoteAddr().String()) 
+	connection, ok := mp.Connmap[dest]
+	if ok {
+		fmt.Println("RcvThread: Removing connection to ", dest, " from connection map")
+		connection.Conn.Close()
+		delete(mp.Connmap, dest)
+	}
+	mp.ConnMutex.Unlock()
 }
 

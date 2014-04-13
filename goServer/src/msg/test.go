@@ -66,8 +66,7 @@ func testMulticast(mp *Messagepasser, c chan error) {
 		msg3 := new(MultiCastMessage)
 		msg3.NewMCastMsgwithData(ip, STRING, "Sending MCAST")
 		hostlist := make(map[string]string)
-		hostlist["128.237.218.95"] = "128.237.218.95"
-		hostlist["128.237.234.87"]= "128.237.234.87"
+		hostlist["10.0.0.2"] = "10.0.0.2"
 		hostlist["128.2.13.133"]= "128.2.13.133"
 		hostlist["128.2.13.134"] = "128.2.13.134"
 		msg3.Origin = mp.ServerIP
