@@ -19,14 +19,15 @@ func main() {
 	gob.Register(msg.MultiCastMessage{})
 	
 	msg.ReadConfig()
+
 	parseArguments()
 	// open database
 	util.DatabaseInit(isSN)
 
 	initMessagePasser()
-	/*if isSN {
+	if isSN {
 		msg.BootStrapSN()
-	}*/
+	}
 
 	go InitListenerForPeers()
 
@@ -118,5 +119,6 @@ func initMessagePasser() {
 	
 	// TO BE IMPLE
 	msg.Handlers[msg.SN_NODEJOIN] = msg.RcvNodeJoin
-	msg.Handlers[msg.SN_JOIN] = msg.RcvSnJoin	
+	msg.Handlers[msg.SN_JOIN] = msg.RcvSnJoin
+	msg.Handlers[msg.SN_SNLISTUPDATE] = msg.RcvSnListUpdate
 }

@@ -13,11 +13,6 @@ func ParseSendInterfaces(msg *Message, data interface{}) error {
 	encoder := gob.NewEncoder(&buffer)
 	err := encoder.Encode(data)
 	
-	//print information, for debug:
-	fmt.Println("Send msg: ", msg.String())
-	fmt.Println("Send: ", data)
-	fmt.Println();
-	
 	if err != nil {
 		fmt.Println(err)
 		return errors.New("HandlerParser: unable to encode data")

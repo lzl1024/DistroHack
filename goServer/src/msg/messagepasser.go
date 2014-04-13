@@ -59,6 +59,7 @@ func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, erro
 	mp.SNPort = SNPort
 	mp.ONHostlist = make(map[string]string)
 	mp.SNHostlist = make(map[string]string)
+	mp.SNHostlist[serverIP] = serverIP
 	
 	// sign up commit register
 	signUp_requestMap = make(map[string]*SignUpCommitStatus)

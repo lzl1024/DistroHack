@@ -76,7 +76,7 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 		}
 	}
 	
-	/* remove the connection */
+	/* remove the connection from all maps (SN/ON or Conn)*/
 	mp.ConnMutex.Lock()
 	dest,_,_ := net.SplitHostPort(conn.RemoteAddr().String()) 
 	connection, ok := mp.Connmap[dest]
@@ -86,5 +86,17 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 		delete(mp.Connmap, dest)
 	}
 	mp.ConnMutex.Unlock()
+	
+	_,ok = mp.SNHostlist[dest]
+	if ok {
+		fmt.Println("RcvThread: Removing entry to ", dest, " from SNHostList map")
+		delete(mp.SNHostlist, dest)
+	}
+
+	_,ok = mp.ONHostlist[dest]
+	if ok {
+		fmt.Println("RcvThread: Removing entry to ", dest, " from ONHostlist map")
+		delete(mp.ONHostlist, dest)
+	}
 }
 
