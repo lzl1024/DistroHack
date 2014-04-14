@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"reflect"
 	"strings"
+	"sync"
 	"time"
 	"util"
 )
@@ -20,7 +20,9 @@ type Connection struct {
 }
 
 // TODO: change it!
-var SuperNodeIP = "128.237.160.76"
+
+var SuperNodeIP = "10.0.1.17"
+var rcvdlistMutex = &sync.Mutex{}
 
 type Messagepasser struct {
 	SNHostlist       *list.List
@@ -33,6 +35,7 @@ type Messagepasser struct {
 	IncomingMsg      chan Message
 	IncomingMCastMsg chan MultiCastMessage
 	RcvdMCastMsgs    []*MultiCastMessage
+	SeqNum           int32
 }
 
 var MsgPasser *Messagepasser
@@ -59,6 +62,7 @@ func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, erro
 	mp.SNHostlist = list.New()
 
 	mp.RcvdMCastMsgs = make([]*MultiCastMessage, 0)
+	mp.SeqNum = 0
 
 	for retry != 3 {
 		ts, err = util.Time()
@@ -92,6 +96,7 @@ func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, erro
 func (mp *Messagepasser) getConnection(msgDest string, port string) (*Connection, error) {
 	/* check if already existent connection is there */
 	dest := net.JoinHostPort(msgDest, port)
+	fmt.Println(dest)
 	connection, ok := mp.Connmap[msgDest]
 	if !ok {
 		conn, err := net.Dial("tcp", dest)
@@ -169,11 +174,12 @@ func (mp *Messagepasser) Send(msg *Message) error {
 }
 
 func (mp *Messagepasser) SendMCast(msg *MultiCastMessage) {
+	msg.Src = mp.ServerIP
+	msg.TimeStamp = time.Now().Add(mp.drift)
+
 	for e := range msg.HostList {
 		host := msg.HostList[e]
 		msg.Dest = host
-		msg.Src = mp.ServerIP
-		msg.TimeStamp = time.Now().Add(mp.drift)
 		if strings.EqualFold(host, mp.ServerIP) == false {
 			connection, err := mp.getConnection(host, fmt.Sprint(mp.ONPort))
 			fmt.Println("MessagePasser : Sending message to ", host)
@@ -188,7 +194,7 @@ func (mp *Messagepasser) SendMCast(msg *MultiCastMessage) {
 				fmt.Println("Unable to send message to host:", host)
 			}
 		} else {
-			fmt.Println("MessagePasser SendMCast", msg.String())
+			fmt.Println("MessagePasser SendMCast: Sending MCast to self", msg.String())
 			mp.IncomingMCastMsg <- *msg
 			//mp.RcvdMCastMsgs = append(mp.RcvdMCastMsgs, msg)
 		}
@@ -197,15 +203,14 @@ func (mp *Messagepasser) SendMCast(msg *MultiCastMessage) {
 
 /* based on message types take action */
 func (mp *Messagepasser) DoAction(msg *Message) {
+	fmt.Println("MessagePasser DoAction :", (*msg).String())
 	str, err := Handlers[msg.Kind](msg)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("DO ACTION Error: ", err)
 		return
 	}
-	fmt.Println("MessagePasser DoAction :", (*msg).String())
-	fmt.Println(str)
 
-	//SuperNodeMsgDoAction(msg)
+	fmt.Println("Receive data: ", str)
 }
 
 func (mp *Messagepasser) HandleMCast(msg *MultiCastMessage) {
@@ -215,7 +220,6 @@ func (mp *Messagepasser) HandleMCast(msg *MultiCastMessage) {
 	newMCastMsg := new(MultiCastMessage)
 	newMCastMsg.CopyMCastMsg(msg)
 	mp.SendMCast(newMCastMsg)
-	mp.RcvdMCastMsgs = append(mp.RcvdMCastMsgs, msg)
 }
 
 // truely send out data to app
@@ -231,7 +235,7 @@ func SendtoApp(urlAddress string, data string) {
 func (mp *Messagepasser) RcvMessage() {
 	for {
 		msg := <-mp.IncomingMsg
-		mp.DoAction(&msg)
+		go mp.DoAction(&msg)
 	}
 }
 
@@ -239,22 +243,27 @@ func (mp *Messagepasser) RcvMCastMessage() {
 	var v bool
 	for {
 		msg := <-mp.IncomingMCastMsg
-		fmt.Println("MessagePasser: A Multicast Message received")
+		fmt.Println("MessagePasser: A Multicast Message received", msg.Origin, msg.Seqnum)
+		rcvdlistMutex.Lock()
 		v = mp.isAlreadyRcvd(&msg)
-		if v == true {
-			mp.HandleMCast(&msg)
+		rcvdlistMutex.Unlock()
+		if v == false {
+			fmt.Println("Never rcvd")
+			go mp.HandleMCast(&msg)
+			go mp.DoAction(&msg.Message)
+		} else {
+			fmt.Println("The message has been seen before so moving on")
 		}
-		go mp.DoAction(&msg.Message)
 	}
 }
 
 func (mp *Messagepasser) isAlreadyRcvd(msg *MultiCastMessage) bool {
-	var v bool
 	for e := range mp.RcvdMCastMsgs {
-		v = reflect.DeepEqual(*mp.RcvdMCastMsgs[e], *msg)
-		if v == true {
+		if msg.Seqnum == mp.RcvdMCastMsgs[e].Seqnum &&
+			strings.EqualFold(msg.Origin, mp.RcvdMCastMsgs[e].Origin) == true {
 			return true
 		}
 	}
+	mp.RcvdMCastMsgs = append(mp.RcvdMCastMsgs, msg)
 	return false
 }

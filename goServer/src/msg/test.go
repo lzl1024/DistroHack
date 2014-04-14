@@ -3,6 +3,7 @@ package msg
 import (
 	"fmt"
 	"net"
+	"sync/atomic"
 	"time"
 )
 
@@ -17,11 +18,12 @@ func TestMessagePasser() {
 func clientTestThread(mp *Messagepasser, c chan error) {
 	//testPublishSuccess(mp, c)
 	//testGlobalRank(mp, c)
+
+	//testMulticast(mp, c)
 	// TO CHANGE
-	mp.SNHostlist.PushBack("128.237.160.76")
-	mp.ONHostlist.PushBack("128.237.160.76")
-	mp.ONHostlist.PushBack("128.237.125.70")
-	mp.ONHostlist.PushBack("128.237.172.220")
+	mp.SNHostlist.PushBack("10.0.1.17")
+	mp.ONHostlist.PushBack("10.0.1.17")
+	mp.ONHostlist.PushBack("10.0.1.16")
 }
 
 func testConstructSNList(mp *Messagepasser, c chan error) {
@@ -55,7 +57,7 @@ func testMulticast(mp *Messagepasser, c chan error) {
 			100,
 			time.Now(),
 		}
-		err = msg2.NewMsgwithData(ip, SN_PBLSUCCESS, userData)
+		err = msg2.NewMsgwithData(ip, ON_SN_PBLSUCCESS, userData)
 		if err != nil {
 			fmt.Println("Reached here:", err)
 			continue
@@ -65,11 +67,12 @@ func testMulticast(mp *Messagepasser, c chan error) {
 		msg3 := new(MultiCastMessage)
 		msg3.NewMCastMsgwithData(ip, STRING, "Sending MCAST")
 		hostlist := make([]string, 0)
-		hostlist = append(hostlist, "128.237.227.84")
+		hostlist = append(hostlist, "128.237.124.82")
 		hostlist = append(hostlist, "128.2.13.133")
 		hostlist = append(hostlist, "128.2.13.134")
 		msg3.Origin = mp.ServerIP
 		msg3.HostList = hostlist
+		msg3.Seqnum = atomic.AddInt32(&mp.SeqNum, 1)
 		mp.SendMCast(msg3)
 	}
 }
@@ -88,7 +91,7 @@ func testSuperNodeONSIGNIN(mp *Messagepasser, c chan error) {
 	data["username"] = "kb24"
 	data["password"] = "nddndd"
 
-	err := msg1.NewMsgwithData(ip, SN_ONSIGNIN, data)
+	err := msg1.NewMsgwithData(ip, ON_SN_SIGNIN, data)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -110,7 +113,7 @@ func testPublishSuccess(mp *Messagepasser, c chan error) {
 	userRecord := new(UserRecord)
 	userRecord.NewUserRecord("kb24", 1, time.Now().Add(mp.drift))
 
-	err := msg1.NewMsgwithData(ip, SN_PBLSUCCESS, *userRecord)
+	err := msg1.NewMsgwithData(ip, ON_SN_PBLSUCCESS, *userRecord)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -136,13 +139,14 @@ func testGlobalRank(mp *Messagepasser, c chan error) {
 	testRankList[0] = *userRecord
 
 	msg3 := new(MultiCastMessage)
-	msg3.NewMCastMsgwithData(ip, SN_RANK, testRankList)
+	msg3.NewMCastMsgwithData(ip, SN_SN_RANK, testRankList)
 	hostlist := make([]string, 0)
 	hostlist = append(hostlist, "128.237.220.160")
 	hostlist = append(hostlist, "128.2.13.133")
 	hostlist = append(hostlist, "128.2.13.134")
 	msg3.Origin = mp.ServerIP
 	msg3.HostList = hostlist
+	msg3.Seqnum = atomic.AddInt32(&mp.SeqNum, 1)
 	mp.SendMCast(msg3)
 
 }

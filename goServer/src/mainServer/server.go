@@ -5,46 +5,40 @@ import (
 	"fmt"
 	"msg"
 	"net"
-	"os"
 	"strconv"
 	"util"
+	"os"
 )
-
-var ListenPortLocal = ":4213"
-var ListenPortPeer = 4214
-
-var ListenPortSuperNode = 4214
-
-// TODO: change it!
-var SNListenPort = 4214
 
 const rcvBufLen = 1024
 
 var isSN = true
 
-//var isSN = false
-
 func main() {
 	gob.Register(msg.Message{})
 	gob.Register(msg.MultiCastMessage{})
-
+	
+	msg.ReadConfig()
 	parseArguments()
 	// open database
 	util.DatabaseInit()
 
 	initMessagePasser()
+	/*if isSN {
+		msg.BootStrapSN()
+	}*/
+
 	go InitListenerForPeers()
 
-	// tests
 	tests()
-
 	// open the listen port for local app
-	listenerLocal, errLocal := net.Listen("tcp", ListenPortLocal)
+	listenerLocal, errLocal := net.Listen("tcp", fmt.Sprint(":", msg.ListenPortLocal))
 
 	if errLocal != nil {
 		fmt.Println("Server: Listener port has been used:", errLocal.Error())
 		return
 	}
+
 	// main routine: commmunication between server and app
 	HandleConnectionFromLocal(listenerLocal)
 }
@@ -57,21 +51,17 @@ func parseArguments() {
 		if os.Args[1] == "True" {
 			isSN = true
 			if argLen > 2 {
-				ListenPortLocal = ":" + os.Args[2]
+				msg.ListenPortLocal,_ = strconv.Atoi(os.Args[2])
 				if argLen > 3 {
-					ListenPortPeer, _ = strconv.Atoi(os.Args[3])
+					msg.ListenPortPeer, _ = strconv.Atoi(os.Args[3])
 				}
 			}
 		}
 	}
 }
 
-// tests
+
 func tests() {
-	// active connect to application
-	//activeTest()
-	// test for database
-	//util.DBTest()
 	go msg.TestMessagePasser()
 }
 
@@ -95,31 +85,36 @@ func initMessagePasser() {
 		}
 	}
 
-	msg.MsgPasser, err = msg.NewMsgPasser(addr.String(), ListenPortPeer,
-		SNListenPort)
+	msg.MsgPasser, err = msg.NewMsgPasser(addr.String(), msg.ListenPortPeer,
+		msg.ListenPortSuperNode)
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(1)
+		os.Exit(-1)
 	}
 
 	/* register handlers for all the types of messages */
-	msg.Handlers[msg.SN_ONSIGNUP] = msg.RcvSnSignUp
-	msg.Handlers[msg.SN_MSIGNUP] = msg.RcvSnMSignUp
-
-	msg.Handlers[msg.SN_ONSIGNIN] = msg.RcvSnSignIn
-	msg.Handlers[msg.SN_ASKINFO] = msg.RcvSnAskInfo
-	msg.Handlers[msg.SN_RANK] = msg.RcvSnRank
-	msg.Handlers[msg.SN_PBLSUCCESS] = msg.RcvPblSuccess
-
-	msg.Handlers[msg.SN_STARTENDON] = msg.RcvSnStartEndFromON
-	msg.Handlers[msg.SN_STARTEND] = msg.RcvSnStartEnd
-
-	msg.Handlers[msg.SN_NODEJOIN] = msg.RcvNodeJoin
-
 	msg.Handlers[msg.STRING] = msg.RcvString
-	msg.Handlers[msg.SIGNINACK] = msg.RcvSignInAck
-	msg.Handlers[msg.SIGNUPACK] = msg.RcvSignUpAck
-	msg.Handlers[msg.ASKINFOACK] = msg.RcvAskInfoAck
-
-	msg.Handlers[msg.STARTEND] = msg.RcvStartEnd
+	
+	// SN to SN
+	msg.Handlers[msg.SN_SN_SIGNUP] = msg.RcvSnMSignUp		
+	msg.Handlers[msg.SN_SN_STARTEND] = msg.RcvSnStartEndFromSN
+	msg.Handlers[msg.SN_SN_RANK] = msg.RcvSnRankfromOrigin
+	
+	// SN to ON
+	msg.Handlers[msg.SN_ON_SIGNIN_ACK] = msg.RcvSignInAck
+	msg.Handlers[msg.SN_ON_ASKINFO_ACK] = msg.RcvAskInfoAck
+	msg.Handlers[msg.SN_ON_SIGNUP_ACK] = msg.RcvSignUpAck
+	msg.Handlers[msg.SN_ON_STARTEND] = msg.RcvStartEnd
+	msg.Handlers[msg.SN_ON_RANK] = msg.RcvSnRankfromSN
+	
+	// ON to SN
+	msg.Handlers[msg.ON_SN_SIGNUP] = msg.RcvSnSignUp
+	msg.Handlers[msg.ON_SN_SIGNIN] = msg.RcvSnSignIn
+	msg.Handlers[msg.ON_SN_PBLSUCCESS] = msg.RcvSnPblSuccess
+	msg.Handlers[msg.ON_SN_ASKINFO] = msg.RcvSnAskInfo
+	msg.Handlers[msg.ON_SN_STARTEND] = msg.RcvSnStartEndFromON
+	
+	// TO BE IMPLE
+	msg.Handlers[msg.SN_NODEJOIN] = msg.RcvNodeJoin
+	msg.Handlers[msg.SN_JOIN] = msg.RcvSnJoin	
 }

@@ -13,11 +13,15 @@ type UserRecord struct {
 
 const GlobalRankSize = 20
 
+var Global_ranking = [GlobalRankSize]UserRecord{}
+var Local_map = map[string]UserRecord{}
+
 func (userRecord *UserRecord) NewUserRecord(userName string, score int, ctime time.Time) {
 	userRecord.UserName = userName
 	userRecord.Score = score
 	userRecord.Ctime = ctime
 }
+
 
 func (userRecord UserRecord) String() string {
 	s := "UserName: " + userRecord.UserName + " " + " Score: " + strconv.Itoa(userRecord.Score) + " time: " +
@@ -25,6 +29,7 @@ func (userRecord UserRecord) String() string {
 	return s
 }
 
+// return true: better, false: worse
 func (userRecord UserRecord) CompareTo(userRecord1 UserRecord) bool {
 	if len(userRecord1.UserName) == 0 {
 		return true
