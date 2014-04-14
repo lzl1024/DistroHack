@@ -23,7 +23,9 @@ func main() {
 	parseArguments()
 	// open database
 	util.DatabaseInit(isSN)
-
+	/* Initialize single distributed lock */
+	msg.DLock = new(msg.DsLock)
+	msg.DLock.Init()
 	initMessagePasser()
 	if isSN {
 		msg.BootStrapSN()
@@ -121,4 +123,7 @@ func initMessagePasser() {
 	msg.Handlers[msg.SN_NODEJOIN] = msg.RcvNodeJoin
 	msg.Handlers[msg.SN_JOIN] = msg.RcvSnJoin
 	msg.Handlers[msg.SN_SNLISTUPDATE] = msg.RcvSnListUpdate
+	msg.Handlers[msg.SN_SNLOCKREQ] = msg.RcvSnLockReq
+	msg.Handlers[msg.SN_SNLOCKREL] = msg.RcvSnLockRel
+	msg.Handlers[msg.SN_SNLOCKACK] = msg.RcvSnLockAck
 }

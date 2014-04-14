@@ -5,6 +5,7 @@ import (
 	"net"
 	"time"
 	"sync/atomic"
+	"strconv"
 )
 
 func TestMessagePasser() {
@@ -19,14 +20,38 @@ func clientTestThread(mp *Messagepasser, c chan error) {
 	//testPublishSuccess(mp, c)
 	//testGlobalRank(mp, c)
 
-	testMulticast(mp, c)
+	//testMulticast(mp, c)
 	//mp.SNHostlist["10.0.1.17"] = "10.0.1.17"
 	//mp.ONHostlist["10.0.1.17"] = "10.0.1.17"
+	testDLock(mp, c)
 }
 
 func testConstructSNList(mp *Messagepasser, c chan error) {
 	mp.SNHostlist["128.2.13.134"] = "128.2.13.134"
 	mp.SNHostlist["128.2.13.133"] = "128.2.13.133"
+}
+
+func testDLock(mp *Messagepasser, c chan error) {
+	for {
+		var option string
+		var opt int
+		fmt.Println("Enter what you want to do:")
+		fmt.Scanf("%s", &option)
+		opt,_ = strconv.Atoi(option)
+		if opt == 1 {
+			go optionLock()
+		} else {
+			continue
+		}
+	}
+}
+
+func optionLock() {
+	fmt.Println("Trying to get DLock()")
+	DLock.Lock()
+	time.Sleep(time.Duration(6) * time.Second)
+	fmt.Println("Unlocking the DLock()")
+	DLock.Unlock()
 }
 
 func testMulticast(mp *Messagepasser, c chan error) {

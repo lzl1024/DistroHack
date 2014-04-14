@@ -38,6 +38,7 @@ type Messagepasser struct {
 }
 
 var MsgPasser *Messagepasser
+var DLock *DsLock
 
 /* name is the IP address in string format */
 func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, error) {
@@ -268,11 +269,21 @@ func (mp *Messagepasser) RcvMCastMessage() {
 
 func (mp *Messagepasser) isAlreadyRcvd(msg *MultiCastMessage) bool {
 	for e := range mp.RcvdMCastMsgs {
-		if msg.Seqnum == mp.RcvdMCastMsgs[e].Seqnum && 
+		if mp.RcvdMCastMsgs[e] != nil && msg.Seqnum == mp.RcvdMCastMsgs[e].Seqnum && 
 		strings.EqualFold(msg.Origin, mp.RcvdMCastMsgs[e].Origin) == true {
 			return true
 		}
 	}
 	mp.RcvdMCastMsgs = append(mp.RcvdMCastMsgs, msg)
 	return false
+}
+
+func (mp *Messagepasser) RefreshAlreadyRcvdlist(src string) {
+	rcvdlistMutex.Lock()
+	for e := range mp.RcvdMCastMsgs {
+		if mp.RcvdMCastMsgs[e] != nil && strings.EqualFold(src, mp.RcvdMCastMsgs[e].Origin) {
+			mp.RcvdMCastMsgs[e] = nil
+		}
+	}
+	rcvdlistMutex.Unlock()
 }
