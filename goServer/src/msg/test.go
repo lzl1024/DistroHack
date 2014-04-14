@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net"
 	"sync/atomic"
-	"time"
+	"strconv"
 )
 
 func TestMessagePasser() {
@@ -20,15 +20,37 @@ func clientTestThread(mp *Messagepasser, c chan error) {
 	//testGlobalRank(mp, c)
 
 	//testMulticast(mp, c)
-	// TO CHANGE
-	mp.SNHostlist.PushBack("10.0.1.17")
-	mp.ONHostlist.PushBack("10.0.1.17")
-	mp.ONHostlist.PushBack("10.0.1.16")
+	//mp.SNHostlist["10.0.1.17"] = "10.0.1.17"
+	//mp.ONHostlist["10.0.1.17"] = "10.0.1.17"
+	testDLock(mp, c)
 }
 
 func testConstructSNList(mp *Messagepasser, c chan error) {
-	mp.SNHostlist.PushBack("128.2.13.134")
-	mp.SNHostlist.PushBack("128.2.13.133")
+	mp.SNHostlist["128.2.13.134"] = "128.2.13.134"
+	mp.SNHostlist["128.2.13.133"] = "128.2.13.133"
+}
+
+func testDLock(mp *Messagepasser, c chan error) {
+	for {
+		var option string
+		var opt int
+		fmt.Println("Enter what you want to do:")
+		fmt.Scanf("%s", &option)
+		opt,_ = strconv.Atoi(option)
+		if opt == 1 {
+			go optionLock()
+		} else {
+			continue
+		}
+	}
+}
+
+func optionLock() {
+	fmt.Println("Trying to get DLock()")
+	DLock.Lock()
+	time.Sleep(time.Duration(6) * time.Second)
+	fmt.Println("Unlocking the DLock()")
+	DLock.Unlock()
 }
 
 func testMulticast(mp *Messagepasser, c chan error) {
@@ -41,7 +63,7 @@ func testMulticast(mp *Messagepasser, c chan error) {
 			continue
 		}
 
-		msg1 := new(Message)
+/*		msg1 := new(Message)
 		err := msg1.NewMsgwithData(ip, STRING, "ashish kaila")
 		if err != nil {
 			fmt.Println(err)
@@ -63,13 +85,14 @@ func testMulticast(mp *Messagepasser, c chan error) {
 			continue
 		}
 		mp.Send(msg2)
+*/
 
 		msg3 := new(MultiCastMessage)
 		msg3.NewMCastMsgwithData(ip, STRING, "Sending MCAST")
-		hostlist := make([]string, 0)
-		hostlist = append(hostlist, "128.237.124.82")
-		hostlist = append(hostlist, "128.2.13.133")
-		hostlist = append(hostlist, "128.2.13.134")
+		hostlist := make(map[string]string)
+		hostlist["10.0.0.2"] = "10.0.0.2"
+		hostlist["128.2.13.133"]= "128.2.13.133"
+		hostlist["128.2.13.134"] = "128.2.13.134"
 		msg3.Origin = mp.ServerIP
 		msg3.HostList = hostlist
 		msg3.Seqnum = atomic.AddInt32(&mp.SeqNum, 1)
@@ -140,10 +163,10 @@ func testGlobalRank(mp *Messagepasser, c chan error) {
 
 	msg3 := new(MultiCastMessage)
 	msg3.NewMCastMsgwithData(ip, SN_SN_RANK, testRankList)
-	hostlist := make([]string, 0)
-	hostlist = append(hostlist, "128.237.220.160")
-	hostlist = append(hostlist, "128.2.13.133")
-	hostlist = append(hostlist, "128.2.13.134")
+	hostlist := make(map[string]string)
+	hostlist["128.237.218.95"] = "128.237.218.95"
+	hostlist["128.2.13.133"] = "128.2.13.133"
+	hostlist["128.2.13.134"] = "128.2.13.134"
 	msg3.Origin = mp.ServerIP
 	msg3.HostList = hostlist
 	msg3.Seqnum = atomic.AddInt32(&mp.SeqNum, 1)

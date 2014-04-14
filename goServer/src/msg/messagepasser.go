@@ -1,7 +1,6 @@
 package msg
 
 import (
-	"container/list"
 	"encoding/gob"
 	"fmt"
 	"net"
@@ -15,7 +14,7 @@ import (
 )
 
 type Connection struct {
-	conn    net.Conn
+	Conn    net.Conn
 	encoder *gob.Encoder
 }
 
@@ -25,9 +24,10 @@ var SuperNodeIP = "10.0.1.17"
 var rcvdlistMutex = &sync.Mutex{}
 
 type Messagepasser struct {
-	SNHostlist       *list.List
-	ONHostlist       *list.List
+	SNHostlist       map[string]string
+	ONHostlist       map[string]string
 	Connmap          map[string]Connection
+	ConnMutex		 sync.Mutex
 	ServerIP         string
 	ONPort           int
 	SNPort           int
@@ -39,6 +39,7 @@ type Messagepasser struct {
 }
 
 var MsgPasser *Messagepasser
+var DLock *DsLock
 
 /* name is the IP address in string format */
 func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, error) {
@@ -58,8 +59,13 @@ func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, erro
 	mp.IncomingMCastMsg = make(chan MultiCastMessage)
 	mp.ONPort = ONPort
 	mp.SNPort = SNPort
-	mp.ONHostlist = list.New()
-	mp.SNHostlist = list.New()
+	mp.ONHostlist = make(map[string]string)
+	mp.SNHostlist = make(map[string]string)
+	mp.SNHostlist[serverIP] = serverIP
+	
+	// sign up commit register
+	signUp_requestMap = make(map[string]*SignUpCommitStatus)
+	signUp_commit_readySet = make(map[string]bool) 
 
 	mp.RcvdMCastMsgs = make([]*MultiCastMessage, 0)
 	mp.SeqNum = 0
@@ -99,12 +105,12 @@ func (mp *Messagepasser) getConnection(msgDest string, port string) (*Connection
 	fmt.Println(dest)
 	connection, ok := mp.Connmap[msgDest]
 	if !ok {
-		conn, err := net.Dial("tcp", dest)
+		conn, err := net.DialTimeout("tcp", dest, (time.Duration(3) * time.Second))
 		if err != nil {
 			fmt.Println("error connecting to: ", dest, "reason: ", err)
 			connection, ok := mp.Connmap[msgDest]
 			if ok {
-				connection.conn.Close()
+				connection.Conn.Close()
 				delete(mp.Connmap, msgDest)
 			}
 			return nil, err
@@ -124,7 +130,7 @@ func (mp *Messagepasser) getConnection(msgDest string, port string) (*Connection
 			}
 		}
 		encoder := gob.NewEncoder(conn)
-		connection.conn = conn
+		connection.Conn = conn
 		connection.encoder = encoder
 		mp.Connmap[msgDest] = connection
 		return &connection, nil
@@ -142,11 +148,13 @@ func (mp *Messagepasser) actuallySend(connection *Connection, dest string, msg i
 	err := encoder.Encode(&msg)
 	if err != nil {
 		fmt.Println("MessagePasser actuallySend: error encoding data: ", err)
+		mp.ConnMutex.Lock()
 		connection, ok := mp.Connmap[dest]
 		if ok {
-			connection.conn.Close()
+			connection.Conn.Close()
 			delete(mp.Connmap, dest)
 		}
+		mp.ConnMutex.Unlock()
 		return err
 	}
 
@@ -157,19 +165,20 @@ func (mp *Messagepasser) Send(msg *Message) error {
 	var port string
 	var dest string
 
+	msg.Origin = mp.ServerIP
 	msg.Src = mp.ServerIP
 	msg.TimeStamp = time.Now().Add(mp.drift)
 
 	port = fmt.Sprint(mp.ONPort)
-
+	mp.ConnMutex.Lock()
 	connection, err := mp.getConnection(msg.Dest, port)
+	mp.ConnMutex.Unlock()
 	if err != nil {
 		fmt.Println("MessagePasser Send: Error getting connection")
 		return err
 	}
 
 	err = mp.actuallySend(connection, dest, msg)
-
 	return err
 }
 
@@ -181,7 +190,9 @@ func (mp *Messagepasser) SendMCast(msg *MultiCastMessage) {
 		host := msg.HostList[e]
 		msg.Dest = host
 		if strings.EqualFold(host, mp.ServerIP) == false {
+			mp.ConnMutex.Lock()
 			connection, err := mp.getConnection(host, fmt.Sprint(mp.ONPort))
+			mp.ConnMutex.Unlock()
 			fmt.Println("MessagePasser : Sending message to ", host)
 			if err != nil {
 				fmt.Println("Error getting connection to host:", host)
@@ -196,7 +207,6 @@ func (mp *Messagepasser) SendMCast(msg *MultiCastMessage) {
 		} else {
 			fmt.Println("MessagePasser SendMCast: Sending MCast to self", msg.String())
 			mp.IncomingMCastMsg <- *msg
-			//mp.RcvdMCastMsgs = append(mp.RcvdMCastMsgs, msg)
 		}
 	}
 }
@@ -206,7 +216,7 @@ func (mp *Messagepasser) DoAction(msg *Message) {
 	fmt.Println("MessagePasser DoAction :", (*msg).String())
 	str, err := Handlers[msg.Kind](msg)
 	if err != nil {
-		fmt.Println("DO ACTION Error: ", err)
+		fmt.Println("DO ACTION ERROR: ", err)
 		return
 	}
 
@@ -252,18 +262,28 @@ func (mp *Messagepasser) RcvMCastMessage() {
 			go mp.HandleMCast(&msg)
 			go mp.DoAction(&msg.Message)
 		} else {
-			fmt.Println("The message has been seen before so moving on")
+			fmt.Println("MessagePasser: The message has been seen before so moving on")
 		}
 	}
 }
 
 func (mp *Messagepasser) isAlreadyRcvd(msg *MultiCastMessage) bool {
 	for e := range mp.RcvdMCastMsgs {
-		if msg.Seqnum == mp.RcvdMCastMsgs[e].Seqnum &&
-			strings.EqualFold(msg.Origin, mp.RcvdMCastMsgs[e].Origin) == true {
+		if mp.RcvdMCastMsgs[e] != nil && msg.Seqnum == mp.RcvdMCastMsgs[e].Seqnum && 
+		strings.EqualFold(msg.Origin, mp.RcvdMCastMsgs[e].Origin) == true {
 			return true
 		}
 	}
 	mp.RcvdMCastMsgs = append(mp.RcvdMCastMsgs, msg)
 	return false
+}
+
+func (mp *Messagepasser) RefreshAlreadyRcvdlist(src string) {
+	rcvdlistMutex.Lock()
+	for e := range mp.RcvdMCastMsgs {
+		if mp.RcvdMCastMsgs[e] != nil && strings.EqualFold(src, mp.RcvdMCastMsgs[e].Origin) {
+			mp.RcvdMCastMsgs[e] = nil
+		}
+	}
+	rcvdlistMutex.Unlock()
 }

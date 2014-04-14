@@ -19,14 +19,17 @@ func main() {
 	gob.Register(msg.MultiCastMessage{})
 	
 	msg.ReadConfig()
+
 	parseArguments()
 	// open database
-	util.DatabaseInit()
-
+	util.DatabaseInit(isSN)
+	/* Initialize single distributed lock */
+	msg.DLock = new(msg.DsLock)
+	msg.DLock.Init()
 	initMessagePasser()
-	/*if isSN {
+	if isSN {
 		msg.BootStrapSN()
-	}*/
+	}
 
 	go InitListenerForPeers()
 
@@ -99,6 +102,8 @@ func initMessagePasser() {
 	msg.Handlers[msg.SN_SN_SIGNUP] = msg.RcvSnMSignUp		
 	msg.Handlers[msg.SN_SN_STARTEND] = msg.RcvSnStartEndFromSN
 	msg.Handlers[msg.SN_SN_RANK] = msg.RcvSnRankfromOrigin
+	msg.Handlers[msg.SN_SN_COMMIT_RD] = msg.RcvSnSignUpCommitReady
+	msg.Handlers[msg.SN_SN_COMMIT_RD_ACK] = msg.RcvSnSignUpCommitReadyACK
 	
 	// SN to ON
 	msg.Handlers[msg.SN_ON_SIGNIN_ACK] = msg.RcvSignInAck
@@ -116,5 +121,9 @@ func initMessagePasser() {
 	
 	// TO BE IMPLE
 	msg.Handlers[msg.SN_NODEJOIN] = msg.RcvNodeJoin
-	msg.Handlers[msg.SN_JOIN] = msg.RcvSnJoin	
+	msg.Handlers[msg.SN_JOIN] = msg.RcvSnJoin
+	msg.Handlers[msg.SN_SNLISTUPDATE] = msg.RcvSnListUpdate
+	msg.Handlers[msg.SN_SNLOCKREQ] = msg.RcvSnLockReq
+	msg.Handlers[msg.SN_SNLOCKREL] = msg.RcvSnLockRel
+	msg.Handlers[msg.SN_SNLOCKACK] = msg.RcvSnLockAck
 }
