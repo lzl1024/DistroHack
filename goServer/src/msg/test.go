@@ -5,6 +5,7 @@ import (
 	"net"
 	"sync/atomic"
 	"strconv"
+	"time"
 )
 
 func TestMessagePasser() {
@@ -63,7 +64,7 @@ func testMulticast(mp *Messagepasser, c chan error) {
 			continue
 		}
 
-/*		msg1 := new(Message)
+		msg1 := new(Message)
 		err := msg1.NewMsgwithData(ip, STRING, "ashish kaila")
 		if err != nil {
 			fmt.Println(err)
@@ -85,7 +86,7 @@ func testMulticast(mp *Messagepasser, c chan error) {
 			continue
 		}
 		mp.Send(msg2)
-*/
+
 
 		msg3 := new(MultiCastMessage)
 		msg3.NewMCastMsgwithData(ip, STRING, "Sending MCAST")
