@@ -33,6 +33,7 @@ const (
 	// TO BE IMPLE
 	SN_NODEJOIN			// Receive connect msg from ordinary node
 	SN_SNLISTUPDATE		// Send change in super node list to other super nodes
+	SN_SNLISTMERGE
 	GROUPINFO
 	SN_JOIN				// Super Node Join from another super Node
 	

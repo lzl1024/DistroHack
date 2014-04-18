@@ -123,29 +123,30 @@ func RcvSnListUpdate(msg *Message) (interface{}, error) {
 		MsgPasser.SNHostlist[k] = hostlist[k]
 	}
 	
-	/* verify that each connection is present in the map for every item in list */
-	var resendList bool
-	resendList = false
-	MsgPasser.ConnMutex.Lock()
-	for k,_ := range MsgPasser.SNHostlist {
-		_, ok := MsgPasser.Connmap[k]
-		if !ok && strings.EqualFold(k, MsgPasser.ServerIP) == false {
-			/* send out another SNLISTUPDATE message */
-			resendList = true
-			delete(MsgPasser.SNHostlist, k)
-			fmt.Println("This key is not present", k)
-		}
+	newMCastMsg := new(MultiCastMessage)
+	newMCastMsg.NewMCastMsgwithData("", SN_SNLISTMERGE, MsgPasser.SNHostlist)
+	newMCastMsg.HostList = MsgPasser.SNHostlist
+	newMCastMsg.Origin = MsgPasser.ServerIP
+	newMCastMsg.Seqnum = atomic.AddInt32(&MsgPasser.SeqNum, 1)
+	MsgPasser.SendMCast(newMCastMsg)
+
+	return hostlist, nil
+}
+
+func RcvSnListMerge(msg *Message) (interface{}, error) {
+	if msg.Kind != SN_SNLISTMERGE {
+		return nil, errors.New("message Kind indicates not a SN_SNLISTMERGE")
 	}
-	MsgPasser.ConnMutex.Unlock()
 	
-	if resendList == true {
-		fmt.Println("RcvSnListUpdate: Need to resend list, there is some difference")
-		newMCastMsg := new(MultiCastMessage)
-		newMCastMsg.NewMCastMsgwithData("", SN_SNLISTUPDATE, MsgPasser.SNHostlist)
-		newMCastMsg.HostList = MsgPasser.SNHostlist
-		newMCastMsg.Origin = MsgPasser.ServerIP
-		newMCastMsg.Seqnum = atomic.AddInt32(&MsgPasser.SeqNum, 1)
-		MsgPasser.SendMCast(newMCastMsg)
+	var hostlist map[string]string
+	err := ParseRcvInterfaces(msg, &hostlist)
+	if err != nil {
+		return nil, err
+	}
+	
+	/* merge the hostlist with current SNlist */
+	for k,_ := range hostlist {
+		MsgPasser.SNHostlist[k] = hostlist[k]
 	}
 	
 	return hostlist, nil

@@ -123,6 +123,7 @@ func initMessagePasser() {
 	msg.Handlers[msg.SN_NODEJOIN] = msg.RcvNodeJoin
 	msg.Handlers[msg.SN_JOIN] = msg.RcvSnJoin
 	msg.Handlers[msg.SN_SNLISTUPDATE] = msg.RcvSnListUpdate
+	msg.Handlers[msg.SN_SNLISTMERGE] = msg.RcvSnListMerge
 	msg.Handlers[msg.SN_SNLOCKREQ] = msg.RcvSnLockReq
 	msg.Handlers[msg.SN_SNLOCKREL] = msg.RcvSnLockRel
 	msg.Handlers[msg.SN_SNLOCKACK] = msg.RcvSnLockAck
