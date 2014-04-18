@@ -35,9 +35,12 @@ const (
 	SN_SNLISTUPDATE		// Send change in super node list to other super nodes
 	GROUPINFO
 	SN_JOIN				// Super Node Join from another super Node
+	
+	//Distributed Lock
 	SN_SNLOCKREQ
 	SN_SNLOCKREL
 	SN_SNLOCKACK
+	SN_SNACKRENEG
 
 	NUMTYPES
 )

@@ -126,4 +126,5 @@ func initMessagePasser() {
 	msg.Handlers[msg.SN_SNLOCKREQ] = msg.RcvSnLockReq
 	msg.Handlers[msg.SN_SNLOCKREL] = msg.RcvSnLockRel
 	msg.Handlers[msg.SN_SNLOCKACK] = msg.RcvSnLockAck
+	msg.Handlers[msg.SN_SNACKRENEG] = msg.RcvSnAckReneg
 }

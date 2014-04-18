@@ -6,6 +6,7 @@ import (
 	"time"
 	"sync/atomic"
 	"strings"
+	"strconv"
 )
 
 const (
@@ -69,8 +70,37 @@ func (lock *DsLock) Lock() {
 	fmt.Println("Lock: I have got the lock")
 }
 
+func parseIP(s string, width int) int64 {
+	strList := strings.Split(s, ".")
+	format := fmt.Sprintf("%%s%%0%ds", width)
+	v := ""
+	for _, value := range strList {
+		v = fmt.Sprintf(format, v, value)
+	}
+	var result int64
+	result, _ = strconv.ParseInt(v, 10, 64)
+	return result;
+}
+
 func RcvSnLockReq (msg *Message) (interface{}, error) {
 	DLock.ilock.Lock()
+	if DLock.voted == true && DLock.status != HOLD {
+		/* to prevent deadlock need to reneg a vote if a higher person
+		 * sends a request
+		 */
+		 owner := parseIP(DLock.owner,3)
+		 requestor := parseIP(msg.Origin,3)
+		 if requestor > owner {
+		 	m := new(Message)
+			m.NewMsgwithData(DLock.owner, SN_SNACKRENEG, "Lock Ack Reneged")
+			err := MsgPasser.Send(m)
+			if err == nil {
+				DLock.voted = false
+				DLock.owner = ""
+			}
+		 } 
+	} 
+	
 	if DLock.voted == true || DLock.status == HOLD {
 		/* do nothing, the person will retry after a bit */
 	} else {
@@ -84,6 +114,13 @@ func RcvSnLockReq (msg *Message) (interface{}, error) {
 			DLock.owner = ""
 		}
 	}
+	DLock.ilock.Unlock()
+	return msg, nil
+}
+
+func RcvSnAckReneg (msg *Message) (interface{}, error) {
+	DLock.ilock.Lock()
+	delete(DLock.ackMap, msg.Origin)
 	DLock.ilock.Unlock()
 	return msg, nil
 }

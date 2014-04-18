@@ -189,24 +189,19 @@ func (mp *Messagepasser) SendMCast(msg *MultiCastMessage) {
 	for e := range msg.HostList {
 		host := msg.HostList[e]
 		msg.Dest = host
-		if strings.EqualFold(host, mp.ServerIP) == false {
-			mp.ConnMutex.Lock()
-			connection, err := mp.getConnection(host, fmt.Sprint(mp.ONPort))
-			mp.ConnMutex.Unlock()
-			fmt.Println("MessagePasser : Sending message to ", host)
-			if err != nil {
-				fmt.Println("Error getting connection to host:", host)
-				/* try to send to atleast 1 person in the list */
-				continue
-			}
+		mp.ConnMutex.Lock()
+		connection, err := mp.getConnection(host, fmt.Sprint(mp.ONPort))
+		mp.ConnMutex.Unlock()
+		fmt.Println("MessagePasser : Sending message to ", host)
+		if err != nil {
+			fmt.Println("Error getting connection to host:", host)
 			/* try to send to atleast 1 person in the list */
-			err = mp.actuallySend(connection, host, msg)
-			if err != nil {
-				fmt.Println("Unable to send message to host:", host)
-			}
-		} else {
-			fmt.Println("MessagePasser SendMCast: Sending MCast to self", msg.String())
-			mp.IncomingMCastMsg <- *msg
+			continue
+		}
+		/* try to send to atleast 1 person in the list */
+		err = mp.actuallySend(connection, host, msg)
+		if err != nil {
+			fmt.Println("Unable to send message to host:", host)
 		}
 	}
 }
@@ -245,7 +240,7 @@ func SendtoApp(urlAddress string, data string) {
 func (mp *Messagepasser) RcvMessage() {
 	for {
 		msg := <-mp.IncomingMsg
-		go mp.DoAction(&msg)
+		mp.DoAction(&msg)
 	}
 }
 
@@ -259,8 +254,8 @@ func (mp *Messagepasser) RcvMCastMessage() {
 		rcvdlistMutex.Unlock()
 		if v == false {
 			fmt.Println("Never rcvd")
-			go mp.HandleMCast(&msg)
-			go mp.DoAction(&msg.Message)
+			mp.HandleMCast(&msg)
+			mp.DoAction(&msg.Message)
 		} else {
 			fmt.Println("MessagePasser: The message has been seen before so moving on")
 		}
