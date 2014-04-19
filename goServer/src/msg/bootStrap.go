@@ -37,14 +37,18 @@ func ReadConfig() error {
  			fmt.Println(tcpAddr.String())
  		}
  	}
+ 	
+ 	return nil
+}
 
- 	filename = "questions.txt"
- 	data, err = ioutil.ReadFile(filename)
+func ReadQuestions() error {
+ 	filename := "questions.txt"
+ 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-	m = make(map[interface{}]interface{})
+	m := make(map[interface{}]interface{})
     err = yaml.Unmarshal([]byte(data), &m)
  	if err != nil {
  		fmt.Println(err)
@@ -54,7 +58,7 @@ func ReadConfig() error {
  	return nil
 }
 
-func BootStrapSN() error{
+func BootStrapSN() error {
 	bootStrapMsg := new(Message)
 	err := bootStrapMsg.NewMsgwithData("", SN_JOIN, MsgPasser.ServerIP)
 	if err != nil {
@@ -63,14 +67,141 @@ func BootStrapSN() error{
 	}
 	for i := range configSNList {
 		bootStrapMsg.Dest,_,_ = net.SplitHostPort(configSNList[i].String())
-		err := MsgPasser.Send(bootStrapMsg)
+		err = MsgPasser.Send(bootStrapMsg)
 		if err != nil {
 			continue
 		}
 		break
 	}
+	if err != nil {
+		return err
+	} else {
+		return nil
+	}
+}
+
+func BootStrapON() error {
+	bootStrapMsg := new(Message)
+	err := bootStrapMsg.NewMsgwithData("", ON_SNJOIN, MsgPasser.ServerIP)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	for i := range configSNList {
+		bootStrapMsg.Dest,_,_ = net.SplitHostPort(configSNList[i].String())
+		err = MsgPasser.Send(bootStrapMsg)
+		if err != nil {
+			continue
+		}
+		break
+	}	
+	if err != nil {
+		return err
+	} else {
+		return nil
+	}
+}
+
+func RcvOnJoin(msg *Message) (interface{}, error) {
+	if msg.Kind != ON_SNJOIN {
+		return nil, errors.New("message Kind indicates not a ON_SNJOIN")
+	}
 	
-	return nil
+	min := (1<<31)
+	var snIP string
+	for k,_ := range MsgPasser.SNLoadlist {
+		if MsgPasser.SNLoadlist[k] < min {
+			min = MsgPasser.SNLoadlist[k]
+			snIP = k
+		}
+	}
+	
+	/* Send ON the SN IP it should connect to */
+	m := new(Message)
+	m.NewMsgwithData(msg.Origin, SN_ONJOINACK, snIP)
+	err := MsgPasser.Send(m)
+	
+	return msg, err
+}
+
+func RcvOnJoinAck(msg *Message) (interface{}, error) {
+	if msg.Kind != SN_ONJOINACK {
+		return nil, errors.New("message Kind indicates not a SN_ONJOINACK")
+	}
+	
+	var ip string
+	err := ParseRcvInterfaces(msg, &ip)
+	if err != nil {
+		return nil, err
+	}
+	
+	SuperNodeIP = ip
+	bootStrapMsg := new(Message)
+	err = bootStrapMsg.NewMsgwithData(ip, ON_SNREGISTER, MsgPasser.ServerIP)
+	err = MsgPasser.Send(bootStrapMsg)
+
+	return ip, err
+}
+
+func RcvSnOnRegister(msg *Message) (interface{}, error) {
+	if msg.Kind != ON_SNREGISTER {
+		return nil, errors.New("message Kind indicates not a ON_SNREGISTER")
+	}
+
+	var ip string
+	err := ParseRcvInterfaces(msg, &ip)
+	if err != nil {
+		return nil, err
+	}
+	/* Update ONlist */
+	MsgPasser.ONHostlist[ip] = ip
+	
+	/* TODO: Send MCast to other ONs in the group */
+	
+	/* Send Load Message to Others */
+	newMCastMsg := new(MultiCastMessage)
+	newMCastMsg.NewMCastMsgwithData("", SN_SNLOADUPDATE, len(MsgPasser.ONHostlist))
+	newMCastMsg.HostList = MsgPasser.SNHostlist
+	newMCastMsg.Origin = MsgPasser.ServerIP
+	newMCastMsg.Seqnum = atomic.AddInt32(&MsgPasser.SeqNum, 1)
+	MsgPasser.SendMCast(newMCastMsg)
+	
+	return msg, nil
+}
+
+func RcvSnLoadUpdate(msg *Message) (interface{}, error) {
+
+	var load int
+	err := ParseRcvInterfaces(msg, &load)
+	if err != nil {
+		return nil, err
+	}
+	
+	MsgPasser.SNLoadlist[msg.Origin] = load
+	
+	newMCastMsg := new(MultiCastMessage)
+	newMCastMsg.NewMCastMsgwithData("", SN_SNLOADMERGE, len(MsgPasser.ONHostlist))
+	newMCastMsg.HostList = MsgPasser.SNHostlist
+	newMCastMsg.Origin = MsgPasser.ServerIP
+	newMCastMsg.Seqnum = atomic.AddInt32(&MsgPasser.SeqNum, 1)
+	MsgPasser.SendMCast(newMCastMsg)
+	
+	return msg, nil
+}
+
+func RcvSnLoadMerge(msg *Message) (interface{}, error) {
+	var load int
+	err := ParseRcvInterfaces(msg, &load)
+	if err != nil {
+		return nil, err
+	}
+	
+	MsgPasser.SNLoadlist[msg.Origin] = load
+	for k,_ := range MsgPasser.SNLoadlist {
+		fmt.Println(k, MsgPasser.SNLoadlist[k])
+	}
+	
+	return msg, nil
 }
 
 func RcvSnJoin(msg *Message) (interface{}, error) {

@@ -18,13 +18,12 @@ type Connection struct {
 	encoder *gob.Encoder
 }
 
-// TODO: change it!
-
 var SuperNodeIP = "10.0.1.17"
 var rcvdlistMutex = &sync.Mutex{}
 
 type Messagepasser struct {
 	SNHostlist       map[string]string
+	SNLoadlist       map[string]int
 	ONHostlist       map[string]string
 	Connmap          map[string]Connection
 	ConnMutex		 sync.Mutex
@@ -61,7 +60,7 @@ func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, erro
 	mp.SNPort = SNPort
 	mp.ONHostlist = make(map[string]string)
 	mp.SNHostlist = make(map[string]string)
-	mp.SNHostlist[serverIP] = serverIP
+	mp.SNLoadlist = make(map[string]int)
 	
 	// sign up commit register
 	signUp_requestMap = make(map[string]*SignUpCommitStatus)

@@ -183,13 +183,3 @@ func RcvSnRankfromSN(msg *Message) (interface{}, error) {
 
 	return newRankList, nil
 }
-
-// TODO be implemented
-// rcv Node Join
-func RcvNodeJoin(msg *Message) (interface{}, error) {
-	if msg.Kind != SN_NODEJOIN {
-		fmt.Println("In RcvNodeJoin:")
-		return nil, errors.New("message Kind indicates not a SN_NODEJOIN")
-	}
-	return nil, nil
-}

@@ -91,6 +91,7 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 	if ok {
 		fmt.Println("RcvThread: Removing entry to ", dest, " from SNHostList map")
 		delete(mp.SNHostlist, dest)
+		delete(mp.SNLoadlist, dest)
 		msg.DLock.ResetLock(dest)
 	}
 

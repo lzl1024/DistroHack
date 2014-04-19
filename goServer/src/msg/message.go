@@ -29,13 +29,17 @@ const (
 	ON_SN_PBLSUCCESS	// Receive public success from ordinary node
 	ON_SN_ASKINFO		// Receive information request from ordinary node
 	ON_SN_STARTEND		// Receive START or END from ordinary
+	ON_SNJOIN			// Receive connect msg from ordinary node
+	ON_SNREGISTER       // Register message from ON to SN
 	
-	// TO BE IMPLE
-	SN_NODEJOIN			// Receive connect msg from ordinary node
+	// TO BE IMPLE			
 	SN_SNLISTUPDATE		// Send change in super node list to other super nodes
 	SN_SNLISTMERGE
 	GROUPINFO
 	SN_JOIN				// Super Node Join from another super Node
+	SN_SNLOADUPDATE     // Get the load information from supernodes
+	SN_SNLOADMERGE      // Merge all load inforamtion
+	SN_ONJOINACK
 	
 	//Distributed Lock
 	SN_SNLOCKREQ

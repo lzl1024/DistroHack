@@ -12,23 +12,26 @@ import (
 
 const rcvBufLen = 1024
 
-var isSN = true
+var isSN = false
 
 func main() {
 	gob.Register(msg.Message{})
 	gob.Register(msg.MultiCastMessage{})
-	
-	msg.ReadConfig()
 
 	parseArguments()
-	// open database
-	util.DatabaseInit(isSN)
+	msg.ReadConfig()
 	/* Initialize single distributed lock */
 	msg.DLock = new(msg.DsLock)
 	msg.DLock.Init()
+	
+	util.DatabaseInit(isSN)
+
 	initMessagePasser()
 	if isSN {
+		msg.ReadQuestions()
 		msg.BootStrapSN()
+	} else {
+		msg.BootStrapON()
 	}
 
 	go InitListenerForPeers()
@@ -94,6 +97,12 @@ func initMessagePasser() {
 		fmt.Println(err)
 		os.Exit(-1)
 	}
+	
+	msg.MsgPasser.ONHostlist[msg.MsgPasser.ServerIP] = msg.MsgPasser.ServerIP
+	if isSN {
+		msg.MsgPasser.SNHostlist[msg.MsgPasser.ServerIP] = msg.MsgPasser.ServerIP
+		msg.MsgPasser.SNLoadlist[msg.MsgPasser.ServerIP] = len(msg.MsgPasser.ONHostlist)
+	}
 
 	/* register handlers for all the types of messages */
 	msg.Handlers[msg.STRING] = msg.RcvString
@@ -118,14 +127,19 @@ func initMessagePasser() {
 	msg.Handlers[msg.ON_SN_PBLSUCCESS] = msg.RcvSnPblSuccess
 	msg.Handlers[msg.ON_SN_ASKINFO] = msg.RcvSnAskInfo
 	msg.Handlers[msg.ON_SN_STARTEND] = msg.RcvSnStartEndFromON
+	msg.Handlers[msg.ON_SNJOIN] = msg.RcvOnJoin
+	msg.Handlers[msg.SN_ONJOINACK] = msg.RcvOnJoinAck
 	
 	// TO BE IMPLE
-	msg.Handlers[msg.SN_NODEJOIN] = msg.RcvNodeJoin
 	msg.Handlers[msg.SN_JOIN] = msg.RcvSnJoin
 	msg.Handlers[msg.SN_SNLISTUPDATE] = msg.RcvSnListUpdate
+	msg.Handlers[msg.ON_SNREGISTER] = msg.RcvSnOnRegister
+	msg.Handlers[msg.SN_SNLOADUPDATE] = msg.RcvSnLoadUpdate
+	msg.Handlers[msg.SN_SNLOADMERGE] = msg.RcvSnLoadMerge
 	msg.Handlers[msg.SN_SNLISTMERGE] = msg.RcvSnListMerge
 	msg.Handlers[msg.SN_SNLOCKREQ] = msg.RcvSnLockReq
 	msg.Handlers[msg.SN_SNLOCKREL] = msg.RcvSnLockRel
 	msg.Handlers[msg.SN_SNLOCKACK] = msg.RcvSnLockAck
 	msg.Handlers[msg.SN_SNACKRENEG] = msg.RcvSnAckReneg
+	
 }
