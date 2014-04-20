@@ -10,11 +10,12 @@ from django.views.decorators.csrf import csrf_exempt
 import subprocess
 import shutil
 from distroHack.models import Problem
-from distroHack.views import default_tuple, show_rank_len
+from distroHack.views import default_tuple
 import distroHack.views
 from distroHack.viewsDir.sign.views import connect_server
 from dsProject.settings import OJ_PATH, PRO_PATH
 import sys
+import threading
 
 # id_set to record the used submitted_id
 id_set = set()
@@ -36,11 +37,8 @@ start_file_name = "startCode.java"
 test_file_name = "testCode.java"
 question_set_size = 2
 
-
-#update problems s3
-SETS_NUM = 1
-PRO_PER_SET = 1
-BUCKET_NAME = "https://s3-us-west-2.amazonaws.com/dsproblems/"
+# read question s3
+url_prefix = ""
 
 
 # question page
@@ -100,38 +98,81 @@ def update_question(request):
     return render(request, 'index.html')
 
 
+# read the first question sequentially and rest questions use
+# another thread
 @csrf_exempt
 def update_question_s3(request):
-    for i in range(1, SETS_NUM+1):
-        for j in range(1, PRO_PER_SET+1):
-            p_id = (i - 1) * PRO_PER_SET + j
-            problem = Problem.objects.get_or_create(id=p_id)[0]
+    problem_set_id = 1
+    #bucket_name = "https://s3-us-west-2.amazonaws.com/dsproblems/"
+    bucket_name = request.POST['data']
+
+    global url_prefix
+    url_prefix = bucket_name + str(problem_set_id) + '/'
+
+    problem = Problem.objects.get_or_create(id=1)[0]
             
-            descFilePath = BUCKET_NAME + str(i) + '/' + 'description_' + str(j) + '.txt'
-            f = urllib2.urlopen(descFilePath)
-            problem.title = f.readline()
-            problem.description = f.read()
-            f.close()
+    descFilePath =  url_prefix + 'description_1.txt'
+    f = urllib2.urlopen(descFilePath)
+    problem.title = f.readline()
+    problem.description = f.read()
+    f.close()
 
             
-            answFilePath = BUCKET_NAME + str(i) + '/' + 'answer_' + str(j) + '.txt'
-            f = urllib2.urlopen(answFilePath)
-            problem.result = f.read()
-            f.close()
+    answFilePath = url_prefix + 'answer_1.txt'
+    f = urllib2.urlopen(answFilePath)
+    problem.result = f.read()
+    f.close()
 
 
-            startFilePath = BUCKET_NAME + str(i) + '/' + 'startCode_' + str(j) + '.java'
-            f = urllib2.urlopen(startFilePath)
-            problem.startCode = f.read()
-            f.close()
+    startFilePath = url_prefix + 'startCode_1.java'
+    f = urllib2.urlopen(startFilePath)
+    problem.startCode = f.read()
+    f.close()
 
-            testFilePath = BUCKET_NAME + str(i) + '/' + 'testCode_' + str(j) + '.java'
-            f = urllib2.urlopen(testFilePath)
-            problem.testCode = f.read()
-            problem.save()
+    testFilePath = url_prefix + 'testCode_1.java'
+    f = urllib2.urlopen(testFilePath)
+    problem.testCode = f.read()
+    problem.save()
 
+    # open another thread to read rest of questions
+    t = threading.Thread(target=threading_read_q)
+    t.start()
 
     return render(request, 'index.html')
+
+
+# read the second to 4th request use another thread
+def threading_read_q():
+    num_of_problem = 4
+
+    print 'Read Question Bucket ' + url_prefix
+
+    for j in range(2, num_of_problem+1):
+        problem = Problem.objects.get_or_create(id=j)[0]
+
+        descFilePath = url_prefix + 'description_' + str(j) + '.txt'
+        f = urllib2.urlopen(descFilePath)
+        problem.title = f.readline()
+        problem.description = f.read()
+        f.close()
+
+
+        answFilePath = url_prefix + 'answer_' + str(j) + '.txt'
+        f = urllib2.urlopen(answFilePath)
+        problem.result = f.read()
+        f.close()
+
+
+        startFilePath = url_prefix + 'startCode_' + str(j) + '.java'
+        f = urllib2.urlopen(startFilePath)
+        problem.startCode = f.read()
+        f.close()
+
+        testFilePath = url_prefix + 'testCode_' + str(j) + '.java'
+        f = urllib2.urlopen(testFilePath)
+        problem.testCode = f.read()
+        problem.save()
+
 
 
 @csrf_exempt

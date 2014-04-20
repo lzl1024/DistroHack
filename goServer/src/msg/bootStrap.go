@@ -14,7 +14,7 @@ var ListenPortLocal = 4213
 var ListenPortPeer  = 4214
 var ListenPortSuperNode = 4214
 var configSNList = make([]net.TCPAddr, 0)
-var uri string
+var Question_URI string
 var SNdone = make(chan bool)
 
 func ReadConfig() error {
@@ -34,7 +34,7 @@ func ReadConfig() error {
  		tcpAddr,err := net.ResolveTCPAddr("tcp", fmt.Sprint(m[key].(string), ":", ListenPortSuperNode))
  		if err == nil {
  			configSNList = append(configSNList, *tcpAddr)
- 			fmt.Println(tcpAddr.String())
+ 			fmt.Println("Connect to: " , tcpAddr.String())
  		}
  	}
  	
@@ -54,7 +54,7 @@ func ReadQuestions() error {
  		fmt.Println(err)
  		return err
  	}
- 	uri = m["url"].(string)
+ 	Question_URI = m["url"].(string)
  	return nil
 }
 

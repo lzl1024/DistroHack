@@ -1,2 +1,1 @@
-1: unix1.andrew.cmu.edu
-2: unix2.andrew.cmu.edu
+1: 10.0.1.17

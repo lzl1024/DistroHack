@@ -160,7 +160,7 @@ func RcvSnSignUp(msg *Message) (interface{}, error) {
 	backData := map[string]string{
 		"user":     username,
 		"status":   ONstatus,
-		"question": "url",
+		"question": Question_URI,
 	}
 
 	sendoutMsg := new(Message)
@@ -297,6 +297,7 @@ func RcvSnSignIn(msg *Message) (interface{}, error) {
 	backData := map[string]string{
 		"user":   signInMsg["username"],
 		"status": backMsg,
+		"question": Question_URI,
 	}
 
 	fmt.Printf("SuperNode: ordinary sign in %s,  status %s\n", signInMsg["username"], backMsg)

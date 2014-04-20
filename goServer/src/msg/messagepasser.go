@@ -18,7 +18,8 @@ type Connection struct {
 	encoder *gob.Encoder
 }
 
-var SuperNodeIP = ""
+// TODO: finally should be set SuperNodeIP =""
+var SuperNodeIP = "10.0.1.17"
 var rcvdlistMutex = &sync.Mutex{}
 
 const BusyWaitingSleepInterval = time.Millisecond * time.Duration(50)
