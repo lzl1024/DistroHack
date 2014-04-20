@@ -179,7 +179,7 @@ def threading_read_q():
 def runcode(request):
     if request.is_ajax():
         # record time now
-        submit_time = datetime.datetime.now()
+        submit_time = datetime.datetime.now().isoformat()
 
         # create unique id
         submit_id = create_id()
@@ -234,10 +234,10 @@ def runcode(request):
         if problem.result.strip() == result_msg.strip():
             result_msg = "Accepted"
 
-            user_tuple = default_tuple.copy()
-            user_tuple['name'] = user
-            user_tuple['score'] = problem_id
-            user_tuple['time'] = submit_time
+            #user_tuple = default_tuple.copy()
+            #user_tuple['name'] = user
+            #user_tuple['score'] = problem_id
+            #user_tuple['time'] = submit_time
 
             # check user in global ranking
            # user_index = -1
@@ -257,7 +257,8 @@ def runcode(request):
         #        sort(key=lambda k: (k['name'], k['time']), reverse=True)
 
             #send success to server
-            msg = {"type": "submit_success", "username": user, "pid": str(problem_id)}
+            msg = {"type": "submit_success", "username": user, "pid": str(problem_id),
+            "time": submit_time}
             connect_server(msg)
 
         elif result_msg.strip().endswith(error_flag):

@@ -135,7 +135,7 @@ func testPublishSuccess(mp *Messagepasser, c chan error) {
 
 	msg1 := new(Message)
 	userRecord := new(UserRecord)
-	userRecord.NewUserRecord("kb24", 1, time.Now().Add(mp.drift))
+	userRecord.NewUserRecord("kb24", 1, time.Now().Add(mp.Drift))
 
 	err := msg1.NewMsgwithData(ip, ON_SN_PBLSUCCESS, *userRecord)
 	if err != nil {
@@ -159,7 +159,7 @@ func testGlobalRank(mp *Messagepasser, c chan error) {
 
 	var testRankList [GlobalRankSize]UserRecord
 	userRecord := new(UserRecord)
-	userRecord.NewUserRecord("kb24", 1, time.Now().Add(mp.drift))
+	userRecord.NewUserRecord("kb24", 1, time.Now().Add(mp.Drift))
 	testRankList[0] = *userRecord
 
 	msg3 := new(MultiCastMessage)

@@ -34,7 +34,7 @@ type Messagepasser struct {
 	ServerIP         string
 	ONPort           int
 	SNPort           int
-	drift            time.Duration
+	Drift            time.Duration
 	IncomingMsg      chan Message
 	IncomingMCastMsg chan MultiCastMessage
 	RcvdMCastMsgs    []*MultiCastMessage
@@ -90,11 +90,11 @@ func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, erro
 	fmt.Println("current: " + curTime.String())
 	fmt.Println("reftime: " + refTime.String())
 	if refTime.Before(curTime) {
-		mp.drift = -1 * curTime.Sub(refTime)
+		mp.Drift = -1 * curTime.Sub(refTime)
 	} else {
-		mp.drift = refTime.Sub(curTime)
+		mp.Drift = refTime.Sub(curTime)
 	}
-	fmt.Println("Duration : " + mp.drift.String())
+	fmt.Println("Duration : " + mp.Drift.String())
 
 	go mp.RcvMessage()
 	go mp.RcvMCastMessage()
@@ -170,7 +170,7 @@ func (mp *Messagepasser) Send(msg *Message) error {
 
 	msg.Origin = mp.ServerIP
 	msg.Src = mp.ServerIP
-	msg.TimeStamp = time.Now().Add(mp.drift)
+	msg.TimeStamp = time.Now().Add(mp.Drift)
 
 	port = fmt.Sprint(mp.ONPort)
 	mp.ConnMutex.Lock()
@@ -187,7 +187,7 @@ func (mp *Messagepasser) Send(msg *Message) error {
 
 func (mp *Messagepasser) SendMCast(msg *MultiCastMessage) {
 	msg.Src = mp.ServerIP
-	msg.TimeStamp = time.Now().Add(mp.drift)
+	msg.TimeStamp = time.Now().Add(mp.Drift)
 
 	for e := range msg.HostList {
 		host := msg.HostList[e]

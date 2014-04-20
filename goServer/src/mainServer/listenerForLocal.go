@@ -135,17 +135,18 @@ func handleSignUp(message map[string]string) string {
 }
 
 func handleSuccess(message map[string]string) string {
-	// msg = {"type": "submit_success", "username": user, "pid": problem_id}
+	// msg = {"type": "submit_success", "username": user, "pid": problem_id, "time": time}
 	// merge local_info
 	pid, _ := strconv.Atoi(message["pid"])
 	name := message["username"]
+	submitTime, _ := time.Parse("2006-01-02T15:04:05.999999", message["time"])
 
 	currentScore := msg.Local_map[name].Score
 
 	if currentScore < pid {
 
 		sendOutRecord := msg.UserRecord{
-			UserName: name, Score: pid, Ctime: time.Now()}
+			UserName: name, Score: pid, Ctime: submitTime.Add(msg.MsgPasser.Drift)}
 
 		// TODO: send success message to other servers
 		// send map[string]string messages to SN
