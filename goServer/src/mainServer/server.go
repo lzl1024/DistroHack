@@ -20,6 +20,7 @@ func main() {
 
 	parseArguments()
 	msg.ReadConfig()
+
 	/* Initialize single distributed lock */
 	msg.DLock = new(msg.DsLock)
 	msg.DLock.Init()
@@ -28,7 +29,6 @@ func main() {
 
 	initMessagePasser()
 	if isSN {
-		msg.ReadQuestions()
 		msg.BootStrapSN()
 	} else {
 		msg.BootStrapON()
@@ -80,6 +80,7 @@ func initMessagePasser() {
 
 	var addr net.IP
 	for i := range addrs {
+		fmt.Println(addrs[i])
 		ip, _, _ := net.ParseCIDR(addrs[i].String())
 		if ip.IsLoopback() || ip.IsInterfaceLocalMulticast() ||
 			ip.IsLinkLocalMulticast() || ip.IsLinkLocalUnicast() ||
@@ -98,6 +99,7 @@ func initMessagePasser() {
 		os.Exit(-1)
 	}
 	
+	// add itself to its ON list 
 	msg.MsgPasser.ONHostlist[msg.MsgPasser.ServerIP] = msg.MsgPasser.ServerIP
 	if isSN {
 		msg.MsgPasser.SNHostlist[msg.MsgPasser.ServerIP] = msg.MsgPasser.ServerIP
@@ -113,6 +115,11 @@ func initMessagePasser() {
 	msg.Handlers[msg.SN_SN_RANK] = msg.RcvSnRankfromOrigin
 	msg.Handlers[msg.SN_SN_COMMIT_RD] = msg.RcvSnSignUpCommitReady
 	msg.Handlers[msg.SN_SN_COMMIT_RD_ACK] = msg.RcvSnSignUpCommitReadyACK
+	msg.Handlers[msg.SN_SN_JOIN] = msg.RcvSnJoin
+	msg.Handlers[msg.SN_SN_LOADUPDATE] = msg.RcvSnLoadUpdate
+	msg.Handlers[msg.SN_SN_LOADMERGE] = msg.RcvSnLoadMerge
+	msg.Handlers[msg.SN_SN_LISTMERGE] = msg.RcvSnListMerge
+	msg.Handlers[msg.SN_SN_LISTUPDATE] = msg.RcvSnListUpdate
 	
 	// SN to ON
 	msg.Handlers[msg.SN_ON_SIGNIN_ACK] = msg.RcvSignInAck
@@ -120,6 +127,7 @@ func initMessagePasser() {
 	msg.Handlers[msg.SN_ON_SIGNUP_ACK] = msg.RcvSignUpAck
 	msg.Handlers[msg.SN_ON_STARTEND] = msg.RcvStartEnd
 	msg.Handlers[msg.SN_ON_RANK] = msg.RcvSnRankfromSN
+	msg.Handlers[msg.SN_ON_JOIN_ACK] = msg.RcvOnJoinAck
 	
 	// ON to SN
 	msg.Handlers[msg.ON_SN_SIGNUP] = msg.RcvSnSignUp
@@ -127,16 +135,10 @@ func initMessagePasser() {
 	msg.Handlers[msg.ON_SN_PBLSUCCESS] = msg.RcvSnPblSuccess
 	msg.Handlers[msg.ON_SN_ASKINFO] = msg.RcvSnAskInfo
 	msg.Handlers[msg.ON_SN_STARTEND] = msg.RcvSnStartEndFromON
-	msg.Handlers[msg.ON_SNJOIN] = msg.RcvOnJoin
-	msg.Handlers[msg.SN_ONJOINACK] = msg.RcvOnJoinAck
+	msg.Handlers[msg.ON_SN_JOIN] = msg.RcvOnJoin
+	msg.Handlers[msg.ON_SN_REGISTER] = msg.RcvSnOnRegister
 	
-	// TO BE IMPLE
-	msg.Handlers[msg.SN_JOIN] = msg.RcvSnJoin
-	msg.Handlers[msg.SN_SNLISTUPDATE] = msg.RcvSnListUpdate
-	msg.Handlers[msg.ON_SNREGISTER] = msg.RcvSnOnRegister
-	msg.Handlers[msg.SN_SNLOADUPDATE] = msg.RcvSnLoadUpdate
-	msg.Handlers[msg.SN_SNLOADMERGE] = msg.RcvSnLoadMerge
-	msg.Handlers[msg.SN_SNLISTMERGE] = msg.RcvSnListMerge
+	// DS_LOCK
 	msg.Handlers[msg.SN_SNLOCKREQ] = msg.RcvSnLockReq
 	msg.Handlers[msg.SN_SNLOCKREL] = msg.RcvSnLockRel
 	msg.Handlers[msg.SN_SNLOCKACK] = msg.RcvSnLockAck

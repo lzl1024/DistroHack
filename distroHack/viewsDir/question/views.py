@@ -3,6 +3,7 @@ import datetime
 import random
 import os
 import urllib
+import urllib2
 from django.http import Http404, HttpResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt

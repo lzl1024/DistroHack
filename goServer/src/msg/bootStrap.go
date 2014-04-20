@@ -59,8 +59,12 @@ func ReadQuestions() error {
 }
 
 func BootStrapSN() error {
+	// read the url question from configuration file
+	ReadQuestions()
+	
+	// send msg to one SN in the list
 	bootStrapMsg := new(Message)
-	err := bootStrapMsg.NewMsgwithData("", SN_JOIN, MsgPasser.ServerIP)
+	err := bootStrapMsg.NewMsgwithData("", SN_SN_JOIN, MsgPasser.ServerIP)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -73,16 +77,14 @@ func BootStrapSN() error {
 		}
 		break
 	}
-	if err != nil {
-		return err
-	} else {
-		return nil
-	}
+
+	return err
 }
 
 func BootStrapON() error {
+	// send ON join msg to all bootstrap SNs
 	bootStrapMsg := new(Message)
-	err := bootStrapMsg.NewMsgwithData("", ON_SNJOIN, MsgPasser.ServerIP)
+	err := bootStrapMsg.NewMsgwithData("", ON_SN_JOIN, MsgPasser.ServerIP)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -95,18 +97,16 @@ func BootStrapON() error {
 		}
 		break
 	}	
-	if err != nil {
-		return err
-	} else {
-		return nil
-	}
+		
+	return err
 }
 
 func RcvOnJoin(msg *Message) (interface{}, error) {
-	if msg.Kind != ON_SNJOIN {
-		return nil, errors.New("message Kind indicates not a ON_SNJOIN")
+	if msg.Kind != ON_SN_JOIN {
+		return nil, errors.New("message Kind indicates not a ON_SN_JOIN")
 	}
 	
+	// get the SN with the lightest load
 	min := (1<<31)
 	var snIP string
 	for k,_ := range MsgPasser.SNLoadlist {
@@ -118,15 +118,15 @@ func RcvOnJoin(msg *Message) (interface{}, error) {
 	
 	/* Send ON the SN IP it should connect to */
 	m := new(Message)
-	m.NewMsgwithData(msg.Origin, SN_ONJOINACK, snIP)
+	m.NewMsgwithData(msg.Origin, SN_ON_JOIN_ACK, snIP)
 	err := MsgPasser.Send(m)
 	
 	return msg, err
 }
 
 func RcvOnJoinAck(msg *Message) (interface{}, error) {
-	if msg.Kind != SN_ONJOINACK {
-		return nil, errors.New("message Kind indicates not a SN_ONJOINACK")
+	if msg.Kind != SN_ON_JOIN_ACK {
+		return nil, errors.New("message Kind indicates not a SN_ON_JOIN_ACK")
 	}
 	
 	var ip string
@@ -137,15 +137,15 @@ func RcvOnJoinAck(msg *Message) (interface{}, error) {
 	
 	SuperNodeIP = ip
 	bootStrapMsg := new(Message)
-	err = bootStrapMsg.NewMsgwithData(ip, ON_SNREGISTER, MsgPasser.ServerIP)
+	err = bootStrapMsg.NewMsgwithData(ip, ON_SN_REGISTER, MsgPasser.ServerIP)
 	err = MsgPasser.Send(bootStrapMsg)
 
 	return ip, err
 }
 
 func RcvSnOnRegister(msg *Message) (interface{}, error) {
-	if msg.Kind != ON_SNREGISTER {
-		return nil, errors.New("message Kind indicates not a ON_SNREGISTER")
+	if msg.Kind != ON_SN_REGISTER {
+		return nil, errors.New("message Kind indicates not a ON_SN_REGISTER")
 	}
 
 	var ip string
@@ -160,7 +160,7 @@ func RcvSnOnRegister(msg *Message) (interface{}, error) {
 	
 	/* Send Load Message to Others */
 	newMCastMsg := new(MultiCastMessage)
-	newMCastMsg.NewMCastMsgwithData("", SN_SNLOADUPDATE, len(MsgPasser.ONHostlist))
+	newMCastMsg.NewMCastMsgwithData("", SN_SN_LOADUPDATE, len(MsgPasser.ONHostlist))
 	newMCastMsg.HostList = MsgPasser.SNHostlist
 	newMCastMsg.Origin = MsgPasser.ServerIP
 	newMCastMsg.Seqnum = atomic.AddInt32(&MsgPasser.SeqNum, 1)
@@ -180,7 +180,7 @@ func RcvSnLoadUpdate(msg *Message) (interface{}, error) {
 	MsgPasser.SNLoadlist[msg.Origin] = load
 	
 	newMCastMsg := new(MultiCastMessage)
-	newMCastMsg.NewMCastMsgwithData("", SN_SNLOADMERGE, len(MsgPasser.ONHostlist))
+	newMCastMsg.NewMCastMsgwithData("", SN_SN_LOADMERGE, len(MsgPasser.ONHostlist))
 	newMCastMsg.HostList = MsgPasser.SNHostlist
 	newMCastMsg.Origin = MsgPasser.ServerIP
 	newMCastMsg.Seqnum = atomic.AddInt32(&MsgPasser.SeqNum, 1)
@@ -204,9 +204,11 @@ func RcvSnLoadMerge(msg *Message) (interface{}, error) {
 	return msg, nil
 }
 
+
+// one bootstraping SN get this meesage and send out update_list msgs
 func RcvSnJoin(msg *Message) (interface{}, error) {
-	if msg.Kind != SN_JOIN {
-		return nil, errors.New("message Kind indicates not a SN_JOIN")
+	if msg.Kind != SN_SN_JOIN {
+		return nil, errors.New("message Kind indicates not a SN_SN_JOIN")
 	}
 	
 	var ip string
@@ -229,7 +231,7 @@ func RcvSnJoin(msg *Message) (interface{}, error) {
 	}
 	
 	newMCastMsg := new(MultiCastMessage)
-	newMCastMsg.NewMCastMsgwithData("", SN_SNLISTUPDATE, hostlist)
+	newMCastMsg.NewMCastMsgwithData("", SN_SN_LISTUPDATE, hostlist)
 	newMCastMsg.HostList = hostlist
 	newMCastMsg.Origin = MsgPasser.ServerIP
 	newMCastMsg.Seqnum = atomic.AddInt32(&MsgPasser.SeqNum, 1)
@@ -238,9 +240,11 @@ func RcvSnJoin(msg *Message) (interface{}, error) {
 	return ip, nil
 }
 
+
+// every SN get this meesage, update their SNlist and send out list merge
 func RcvSnListUpdate(msg *Message) (interface{}, error) {
-	if msg.Kind != SN_SNLISTUPDATE {
-		return nil, errors.New("message Kind indicates not a SN_SNLISTUPDATE")
+	if msg.Kind != SN_SN_LISTUPDATE {
+		return nil, errors.New("message Kind indicates not a SN_SN_LISTUPDATE")
 	}
 	
 	var hostlist map[string]string
@@ -255,7 +259,7 @@ func RcvSnListUpdate(msg *Message) (interface{}, error) {
 	}
 	
 	newMCastMsg := new(MultiCastMessage)
-	newMCastMsg.NewMCastMsgwithData("", SN_SNLISTMERGE, MsgPasser.SNHostlist)
+	newMCastMsg.NewMCastMsgwithData("", SN_SN_LISTMERGE, MsgPasser.SNHostlist)
 	newMCastMsg.HostList = MsgPasser.SNHostlist
 	newMCastMsg.Origin = MsgPasser.ServerIP
 	newMCastMsg.Seqnum = atomic.AddInt32(&MsgPasser.SeqNum, 1)
@@ -265,8 +269,8 @@ func RcvSnListUpdate(msg *Message) (interface{}, error) {
 }
 
 func RcvSnListMerge(msg *Message) (interface{}, error) {
-	if msg.Kind != SN_SNLISTMERGE {
-		return nil, errors.New("message Kind indicates not a SN_SNLISTMERGE")
+	if msg.Kind != SN_SN_LISTMERGE {
+		return nil, errors.New("message Kind indicates not a SN_SN_LISTMERGE")
 	}
 	
 	var hostlist map[string]string
