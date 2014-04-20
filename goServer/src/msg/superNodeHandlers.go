@@ -267,7 +267,6 @@ func RcvSnMSignUp(msg *Message) (interface{}, error) {
 			return nil, err
 		}
 		
-		// TODO: should update global rank and SN_RANK to his SNs?
 	}
 	
 	// delete it from request map

@@ -50,7 +50,6 @@ func RcvAskInfoAck(msg *Message) (interface{}, error) {
 	Local_Info_Mutex.Lock()
 	Global_ranking = signInMsg.Ranklist
 	
-	// TODO: merge local map if possible 
 	Local_map = signInMsg.Scoremap
 
 	// update the app's ranking

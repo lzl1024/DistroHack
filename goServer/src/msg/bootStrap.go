@@ -9,6 +9,8 @@ import (
 	"strings"
 	"sync/atomic"
 	"net/http"
+	"math/rand"
+	"time"
 )
 
 var ListenPortLocal = 4213
@@ -25,9 +27,9 @@ const Question_file = "https://s3.amazonaws.com/dsconfig/questions.txt"
 
 func ReadConfig() error {
 	// local read file
-	/*filename := "config.txt"
-	data, err := ioutil.ReadFile(filename)*/
-	data, err :=readWebFile(Config_ALL)
+	filename := "config.txt"
+	data, err := ioutil.ReadFile(filename)
+	//data, err :=readWebFile(Config_ALL)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -97,9 +99,13 @@ func BootStrapSN() error {
 		return err
 	}
 	
-	// TODO: select the first entry randomly
+	// select the first entry randomly
+	rand.Seed(time.Now().UnixNano())
+	listLength := len(configSNList)
+	start := rand.Intn(listLength)
 	for i := range configSNList {
-		bootStrapMsg.Dest,_,_ = net.SplitHostPort(configSNList[i].String())
+		chose := (start + i) % listLength
+		bootStrapMsg.Dest,_,_ = net.SplitHostPort(configSNList[chose].String())
 		err = MsgPasser.Send(bootStrapMsg)
 		if err != nil {
 			continue
@@ -119,9 +125,13 @@ func BootStrapON() error {
 		return err
 	}
 	
-	// TODO: select the first entry randomly
+	// select the first entry randomly
+	rand.Seed(time.Now().UnixNano())
+	listLength := len(configSNList)
+	start := rand.Intn(listLength)
 	for i := range configSNList {
-		bootStrapMsg.Dest,_,_ = net.SplitHostPort(configSNList[i].String())
+		chose := (start + i) % listLength
+		bootStrapMsg.Dest,_,_ = net.SplitHostPort(configSNList[chose].String())
 		err = MsgPasser.Send(bootStrapMsg)
 		if err != nil {
 			continue
