@@ -69,6 +69,8 @@ func BootStrapSN() error {
 		fmt.Println(err)
 		return err
 	}
+	
+	// TODO: select the first entry randomly
 	for i := range configSNList {
 		bootStrapMsg.Dest,_,_ = net.SplitHostPort(configSNList[i].String())
 		err = MsgPasser.Send(bootStrapMsg)
@@ -89,6 +91,8 @@ func BootStrapON() error {
 		fmt.Println(err)
 		return err
 	}
+	
+	// TODO: select the first entry randomly
 	for i := range configSNList {
 		bootStrapMsg.Dest,_,_ = net.SplitHostPort(configSNList[i].String())
 		err = MsgPasser.Send(bootStrapMsg)
@@ -197,6 +201,7 @@ func RcvSnLoadMerge(msg *Message) (interface{}, error) {
 	}
 	
 	MsgPasser.SNLoadlist[msg.Origin] = load
+	fmt.Println("Current Load Info:")
 	for k,_ := range MsgPasser.SNLoadlist {
 		fmt.Println(k, MsgPasser.SNLoadlist[k])
 	}
@@ -220,6 +225,10 @@ func RcvSnJoin(msg *Message) (interface{}, error) {
 	if strings.EqualFold(ip, msg.Src) == false {
 		return nil, errors.New("message Src Doesn't match IP address sent")
 	}
+
+	
+	// TODO: export and send back db data, when response, add it to loadlist and send out
+	// list update
 	
 	/* a new super node has tried to join , add him to our list and multicast that 
 	 * a new node has joined, and everyone should update their lists

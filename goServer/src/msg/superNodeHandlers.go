@@ -114,7 +114,7 @@ func RcvSnSignUp(msg *Message) (interface{}, error) {
 			signUp_commitLock.Unlock()
 			return nil, err
 		}
-		multicastMsgInGroup(commitReadyMsg, true)
+		MulticastMsgInGroup(commitReadyMsg, true)
 	
 		// get result and send back commit result to SNs
 		status := <- commitStatusChan
@@ -135,7 +135,7 @@ func RcvSnSignUp(msg *Message) (interface{}, error) {
 			signUp_commitLock.Unlock()
 			return nil, err
 		}
-		multicastMsgInGroup(commitResultMsg, true)
+		MulticastMsgInGroup(commitResultMsg, true)
 		
 		// if success, update local information
 		ONstatus = "failed"
@@ -362,7 +362,7 @@ func RcvSnPblSuccess(msg *Message) (interface{}, error) {
 	}
 	
 	// send message to ONs
-	multicastMsgInGroup(sendoutMsg, false)
+	MulticastMsgInGroup(sendoutMsg, false)
 
 	return userRecord, nil
 }
@@ -400,7 +400,7 @@ func RcvSnRankfromOrigin(msg *Message) (interface{}, error) {
 	newMessage := new(Message)
 	newMessage.CopyMsg(msg)
 	newMessage.Kind = SN_ON_RANK
-	multicastMsgInGroup(newMessage, false)
+	MulticastMsgInGroup(newMessage, false)
 
 	return newRankList, nil
 }
@@ -429,7 +429,7 @@ func RcvSnAskInfo(msg *Message) (interface{}, error) {
 		return nil, err
 	}
 
-	multicastMsgInGroup(sendoutMsg, false)
+	MulticastMsgInGroup(sendoutMsg, false)
 
 	return nil, nil
 }
@@ -445,7 +445,7 @@ func RcvSnStartEndFromON(msg *Message) (interface{}, error) {
 	newMessage.CopyMsg(msg)
 	newMessage.Kind = SN_SN_STARTEND
 
-	multicastMsgInGroup(newMessage, true)
+	MulticastMsgInGroup(newMessage, true)
 
 	return nil, nil
 }
@@ -462,7 +462,7 @@ func RcvSnStartEndFromSN(msg *Message) (interface{}, error) {
 	newMessage.CopyMsg(msg)
 	newMessage.Kind = SN_ON_STARTEND
 
-	multicastMsgInGroup(newMessage, false)
+	MulticastMsgInGroup(newMessage, false)
 
 	return nil, nil
 }
@@ -604,7 +604,7 @@ func getEmptyPos(rankList [GlobalRankSize]UserRecord) int {
 
 
 // is Super: true: send to other SNs, false: send to ON in group
-func multicastMsgInGroup(m *Message, isSuper bool) {
+func MulticastMsgInGroup(m *Message, isSuper bool) {
 	newMCastMsg := new(MultiCastMessage)
 	tmpMsg := &newMCastMsg.Message
 	tmpMsg.CopyMsg(m)
@@ -614,14 +614,14 @@ func multicastMsgInGroup(m *Message, isSuper bool) {
 	newMCastMsg.HostList = make(map[string]string)
 
 	if isSuper {
-		fmt.Printf("SuperNOdeHandler: multicastMsgInGroup SNHostList %d\n", len(MsgPasser.SNHostlist))
+		fmt.Printf("SuperNodeHandler: multicastMsgInGroup SNHostList %d\n", len(MsgPasser.SNHostlist))
 
 		for k,_ := range MsgPasser.SNHostlist {
 			newMCastMsg.HostList[k] = MsgPasser.SNHostlist[k]
 		}
 
 	} else {
-		fmt.Printf("SuperNOdeHandler: multicastMsgInGroup ONHostList %d\n", len(MsgPasser.ONHostlist))
+		fmt.Printf("SuperNodeHandler: multicastMsgInGroup ONHostList %d\n", len(MsgPasser.ONHostlist))
 
 		for k,_ := range MsgPasser.ONHostlist {
 			newMCastMsg.HostList[k] = MsgPasser.ONHostlist[k]
@@ -645,8 +645,5 @@ func multicastGlobalRankToSNs() {
 	MsgPasser.SendMCast(newMCastMsg)
 }
 
-func parseConfigFile() {
-
-}
 
 

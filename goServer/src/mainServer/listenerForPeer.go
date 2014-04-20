@@ -99,8 +99,22 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 	if ok {
 		fmt.Println("RcvThread: Removing entry to ", dest, " from ONHostlist map")
 		delete(mp.ONHostlist, dest)
+		
+		// for SN, Notify others of my load change
+		if isSN {
+			loadNotify := new(msg.Message)
+			err := loadNotify.NewMsgwithData("", msg.SN_SN_LOADMERGE, len(mp.ONHostlist))
+			if err != nil {
+				fmt.Println("When ON failure: ", err)
+				return
+			}
+	
+			// send message to SNs
+			msg.MulticastMsgInGroup(loadNotify, true)
+		}
+		
 	}
 	
-	mp.RefreshAlreadyRcvdlist(dest)
+	mp.RefreshAlreadyRcvdlist(dest)	
 }
 
