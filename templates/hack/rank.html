@@ -94,7 +94,7 @@ $(function () {
                     <td>{{ forloop.counter}}</td>
                     <td>{{ user.name }}</td>
                     <td>{{ user.score }}</td>
-                    <td>{{ user.time }}</td>
+                    <td>{{ user.time | date:"c" }}</td>
                 </tr>
             {% endif %}
 	    {%  endfor %}
