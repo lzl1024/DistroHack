@@ -38,6 +38,11 @@ const (
 	ON_SN_STARTEND		// Receive START or END from ordinary
 	ON_SN_JOIN			// Receive connect msg from ordinary node
 	ON_SN_REGISTER      // Register message from ON to SN
+	
+	// ON to ON : SN election
+	ON_ON_ELECTION		// One ON want to be the leader
+	ON_ON_LEADER		// One ON notify other to be the leader
+	ON_ON_ELECTION_ACK	// One ON ack the leader
 			
 	
 	//Distributed Lock

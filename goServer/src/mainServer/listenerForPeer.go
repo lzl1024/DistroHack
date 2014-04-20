@@ -87,6 +87,8 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 	}
 	mp.ConnMutex.Unlock()
 	
+	
+	// SN peer fails, only need to delete it from map
 	_,ok = mp.SNHostlist[dest]
 	if ok {
 		fmt.Println("RcvThread: Removing entry to ", dest, " from SNHostList map")
@@ -95,6 +97,8 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 		msg.DLock.ResetLock(dest)
 	}
 
+
+	// ON fails, SN should notify other to change status
 	_,ok = mp.ONHostlist[dest]
 	if ok {
 		fmt.Println("RcvThread: Removing entry to ", dest, " from ONHostlist map")
@@ -126,6 +130,12 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 		
 	}
 	
-	mp.RefreshAlreadyRcvdlist(dest)	
+	// clear receive archive
+	mp.RefreshAlreadyRcvdlist(dest)
+	
+	// ON's SN fails, improved bully algorithm
+	if msg.SuperNodeIP == dest {
+		msg.SNFailure()
+	}
 }
 

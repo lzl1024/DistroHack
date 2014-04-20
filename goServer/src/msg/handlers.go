@@ -10,9 +10,6 @@ var Handlers [NUMTYPES]Rcvhdlr
 
 type Rcvhdlr func(*Message) (interface{}, error)
 
-/*type Handler struct {
-	Action Rcvhdlr
-}*/
 
 var SignInChan chan string
 var SignUpChan chan string

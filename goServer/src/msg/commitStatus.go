@@ -17,9 +17,6 @@ var signUp_requestMap map[string]*SignUpCommitStatus // map of user name who sen
 var signUp_commit_readySet map[string]bool // map of user name that worker has been ready
 var signUp_commitLock sync.Mutex
 
-const sleepInterval = time.Millisecond * time.Duration(50)
-const timeOutRound = 40
-
 func (commitStatus *SignUpCommitStatus) NewSignUpCmitStatus() {
 	commitStatus.HasAbort = false
 	commitStatus.ReadySNIP = make(map[string]bool)
@@ -28,8 +25,8 @@ func (commitStatus *SignUpCommitStatus) NewSignUpCmitStatus() {
 
 // check number of readys get from other SNs
 func checkCommitStatus(commitStatusChan chan string, userName string) {
-	for i := 0; i <= timeOutRound; i++ {
-		time.Sleep(sleepInterval)
+	for i := 0; i <= BusyWaitingTimeOutRound; i++ {
+		time.Sleep(BusyWaitingSleepInterval)
 		
 		// check status fail
 		if signUp_requestMap[userName].HasAbort {

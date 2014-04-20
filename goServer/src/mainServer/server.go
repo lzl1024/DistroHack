@@ -139,6 +139,11 @@ func initMessagePasser() {
 	msg.Handlers[msg.ON_SN_JOIN] = msg.RcvOnJoin
 	msg.Handlers[msg.ON_SN_REGISTER] = msg.RcvSnOnRegister
 	
+	// ON to ON: SN election
+	msg.Handlers[msg.ON_ON_ELECTION] = msg.RcvONElection
+	msg.Handlers[msg.ON_ON_LEADER] = msg.RcvONLeader
+	msg.Handlers[msg.ON_ON_ELECTION_ACK] = msg.RcvElectionACK
+	
 	// DS_LOCK
 	msg.Handlers[msg.SN_SNLOCKREQ] = msg.RcvSnLockReq
 	msg.Handlers[msg.SN_SNLOCKREL] = msg.RcvSnLockRel

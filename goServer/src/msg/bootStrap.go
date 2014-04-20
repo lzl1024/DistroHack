@@ -187,6 +187,10 @@ func RcvSnOnRegister(msg *Message) (interface{}, error) {
 
 // all ON get this msg should change their point to new ONlist directly
 func RcvSNChangeONList(msg *Message) (interface{}, error) {
+	if msg.Kind != SN_ON_CHANGEONLIST{
+		return nil, errors.New("message Kind indicates not a SN_ON_CHANGEONLIST")
+	}
+	
 	// in case of concurrent issue, only its ON should change
 	if msg.Origin != MsgPasser.ServerIP {
 		var newONList map[string]string
@@ -205,6 +209,9 @@ func RcvSNChangeONList(msg *Message) (interface{}, error) {
 
 
 func RcvSnLoadUpdate(msg *Message) (interface{}, error) {
+	if msg.Kind != SN_SN_LOADUPDATE{
+		return nil, errors.New("message Kind indicates not a SN_SN_LOADUPDATE")
+	}
 
 	var load int
 	err := ParseRcvInterfaces(msg, &load)
@@ -225,7 +232,12 @@ func RcvSnLoadUpdate(msg *Message) (interface{}, error) {
 	return msg, nil
 }
 
+
 func RcvSnLoadMerge(msg *Message) (interface{}, error) {
+	if msg.Kind != SN_SN_LOADMERGE {
+		return nil, errors.New("message Kind indicates not a SN_SN_LOADMERGE")
+	}
+	
 	var load int
 	err := ParseRcvInterfaces(msg, &load)
 	if err != nil {
@@ -261,8 +273,8 @@ func RcvSnJoin(msg *Message) (interface{}, error) {
 	}
 
 	
-	// TODO: export and send back db data, when response, add it to loadlist and send out
-	// list update
+	// TODO: export and send back db data, when response, add it to loadlist with its actual ONlist length
+	// (It may not be 1 when bootstrapSN is called in SN failure) and send out Loadlist update
 	
 	/* a new super node has tried to join , add him to our list and multicast that 
 	 * a new node has joined, and everyone should update their lists

@@ -12,6 +12,11 @@ import (
 func HandleConnectionFromLocal(listener net.Listener) {
 	for {
 		conn, err := listener.Accept()
+		
+		// if SN is under repairing, busy waiting until it got repaired
+		for msg.SuperNodeIP == "" {
+			time.Sleep(msg.BusyWaitingSleepInterval)
+		}
 
 		if err != nil {
 			fmt.Println("Accept Error:", err.Error())

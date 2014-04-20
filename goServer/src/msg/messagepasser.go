@@ -18,8 +18,11 @@ type Connection struct {
 	encoder *gob.Encoder
 }
 
-var SuperNodeIP = "10.0.1.17"
+var SuperNodeIP = ""
 var rcvdlistMutex = &sync.Mutex{}
+
+const BusyWaitingSleepInterval = time.Millisecond * time.Duration(50)
+const BusyWaitingTimeOutRound = 40
 
 type Messagepasser struct {
 	SNHostlist       map[string]string
