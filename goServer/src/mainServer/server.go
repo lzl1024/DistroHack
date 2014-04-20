@@ -128,6 +128,7 @@ func initMessagePasser() {
 	msg.Handlers[msg.SN_ON_STARTEND] = msg.RcvStartEnd
 	msg.Handlers[msg.SN_ON_RANK] = msg.RcvSnRankfromSN
 	msg.Handlers[msg.SN_ON_JOIN_ACK] = msg.RcvOnJoinAck
+	msg.Handlers[msg.SN_ON_CHANGEONLIST] = msg.RcvSNChangeONList
 	
 	// ON to SN
 	msg.Handlers[msg.ON_SN_SIGNUP] = msg.RcvSnSignUp

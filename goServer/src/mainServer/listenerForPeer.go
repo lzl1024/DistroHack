@@ -111,6 +111,17 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 	
 			// send message to SNs
 			msg.MulticastMsgInGroup(loadNotify, true)
+			
+			/* Send MCast to other ONs in the group */
+			changeONList := new(msg.Message)
+			err = changeONList.NewMsgwithData("", msg.SN_ON_CHANGEONLIST, mp.ONHostlist)
+			if err != nil {
+				fmt.Println("When ON failure: ", err)
+				return
+			}
+	
+			// send message to ONs
+			msg.MulticastMsgInGroup(changeONList, false)
 		}
 		
 	}

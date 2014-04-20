@@ -15,11 +15,11 @@ const (
 	SN_SN_RANK			// Receive rank update from other super node
 	SN_SN_COMMIT_RD		// SN send Commit_ready to other SNs
 	SN_SN_COMMIT_RD_ACK // SN workers send back commit_ready to master
-	SN_SN_JOIN				// Super Node Join from another super Node
-	SN_SN_LISTUPDATE		// Send change in super node list to other super nodes
-	SN_SN_LISTMERGE
-	SN_SN_LOADUPDATE     // Get the load information from supernodes
-	SN_SN_LOADMERGE      // Merge all load inforamtion
+	SN_SN_JOIN			// Super Node Join from another super Node
+	SN_SN_LISTUPDATE	// Send change in super node list to other super nodes
+	SN_SN_LISTMERGE		// Merge list information
+	SN_SN_LOADUPDATE	// Get the load information from supernodes
+	SN_SN_LOADMERGE		// Merge all load inforamtion
 	
 	// SN to ON	
 	SN_ON_SIGNIN_ACK 	// ON Receivce the sign in status msg from SN
@@ -27,7 +27,8 @@ const (
 	SN_ON_ASKINFO_ACK	// SN ACK the global_ranking and local_info to ON
 	SN_ON_STARTEND		// ON get start/end msg from SN
 	SN_ON_RANK			// SN send new rank to ON
-	SN_ON_JOIN_ACK
+	SN_ON_JOIN_ACK		// Ack Message when SN get ON's first join request: who you to connect
+	SN_ON_CHANGEONLIST	// SN send new ONList to ONs
 		
 	// ON to SN
 	ON_SN_SIGNUP		// Receive sign up from ordinary node
@@ -36,7 +37,7 @@ const (
 	ON_SN_ASKINFO		// Receive information request from ordinary node
 	ON_SN_STARTEND		// Receive START or END from ordinary
 	ON_SN_JOIN			// Receive connect msg from ordinary node
-	ON_SN_REGISTER       // Register message from ON to SN
+	ON_SN_REGISTER      // Register message from ON to SN
 			
 	
 	//Distributed Lock

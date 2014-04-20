@@ -66,7 +66,7 @@ func BootStrapSN() error {
 	bootStrapMsg := new(Message)
 	err := bootStrapMsg.NewMsgwithData("", SN_SN_JOIN, MsgPasser.ServerIP)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("In BootStrapSN: ", err)
 		return err
 	}
 	
@@ -88,7 +88,7 @@ func BootStrapON() error {
 	bootStrapMsg := new(Message)
 	err := bootStrapMsg.NewMsgwithData("", ON_SN_JOIN, MsgPasser.ServerIP)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("In BootStrapON: ", err)
 		return err
 	}
 	
@@ -136,6 +136,7 @@ func RcvOnJoinAck(msg *Message) (interface{}, error) {
 	var ip string
 	err := ParseRcvInterfaces(msg, &ip)
 	if err != nil {
+		fmt.Println("In RcvOnJoinAck: ")
 		return nil, err
 	}
 	
@@ -160,7 +161,17 @@ func RcvSnOnRegister(msg *Message) (interface{}, error) {
 	/* Update ONlist */
 	MsgPasser.ONHostlist[ip] = ip
 	
-	/* TODO: Send MCast to other ONs in the group */
+	/* Send MCast to other ONs in the group */
+	changeONList := new(Message)
+	err = changeONList.NewMsgwithData("", SN_ON_CHANGEONLIST, MsgPasser.ONHostlist)
+	if err != nil {
+		fmt.Println("In RcvSnOnRegister: ")
+		return nil, err
+	}
+	
+	// send message to ONs
+	MulticastMsgInGroup(changeONList, false)
+	
 	
 	/* Send Load Message to Others */
 	newMCastMsg := new(MultiCastMessage)
@@ -173,11 +184,32 @@ func RcvSnOnRegister(msg *Message) (interface{}, error) {
 	return msg, nil
 }
 
+
+// all ON get this msg should change their point to new ONlist directly
+func RcvSNChangeONList(msg *Message) (interface{}, error) {
+	// in case of concurrent issue, only its ON should change
+	if msg.Origin != MsgPasser.ServerIP {
+		var newONList map[string]string
+		err := ParseRcvInterfaces(msg, &newONList)
+		if err != nil {
+			fmt.Println("In RcvSNCHangeONList: ")
+			return nil, err
+		}	
+		MsgPasser.ONHostlist = newONList
+	
+		return newONList, nil
+	} else {
+		return "Haha! I am SN!", nil
+	} 
+}
+
+
 func RcvSnLoadUpdate(msg *Message) (interface{}, error) {
 
 	var load int
 	err := ParseRcvInterfaces(msg, &load)
 	if err != nil {
+		fmt.Println("In RcvSnLoadUpdate: ")
 		return nil, err
 	}
 	
@@ -197,6 +229,7 @@ func RcvSnLoadMerge(msg *Message) (interface{}, error) {
 	var load int
 	err := ParseRcvInterfaces(msg, &load)
 	if err != nil {
+		fmt.Println("In RcvSnLoadMerge: ")
 		return nil, err
 	}
 	
@@ -219,6 +252,7 @@ func RcvSnJoin(msg *Message) (interface{}, error) {
 	var ip string
 	err := ParseRcvInterfaces(msg, &ip)
 	if err != nil {
+		fmt.Println("In RcvSnJoin: ")
 		return nil, err
 	}
 	
@@ -259,6 +293,7 @@ func RcvSnListUpdate(msg *Message) (interface{}, error) {
 	var hostlist map[string]string
 	err := ParseRcvInterfaces(msg, &hostlist)
 	if err != nil {
+		fmt.Println("In RcvSnListUpdate: ")
 		return nil, err
 	}
 	
@@ -285,6 +320,7 @@ func RcvSnListMerge(msg *Message) (interface{}, error) {
 	var hostlist map[string]string
 	err := ParseRcvInterfaces(msg, &hostlist)
 	if err != nil {
+		fmt.Println("In RcvSnListMerge: ")
 		return nil, err
 	}
 	
