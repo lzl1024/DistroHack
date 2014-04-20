@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"strings"
 	"sync/atomic"
+	"net/http"
 )
 
 var ListenPortLocal = 4213
@@ -17,15 +18,23 @@ var configSNList = make([]net.TCPAddr, 0)
 var Question_URI string
 var SNdone = make(chan bool)
 
+const Config_ALL = "https://s3.amazonaws.com/dsconfig/config_local.txt"
+const Config_SN = "https://s3.amazonaws.com/dsconfig/config_cmu.txt"
+const Question_file = "https://s3.amazonaws.com/dsconfig/questions.txt"
+
+
 func ReadConfig() error {
-	filename := "config.txt"
-	data, err := ioutil.ReadFile(filename)
+	// local read file
+	/*filename := "config.txt"
+	data, err := ioutil.ReadFile(filename)*/
+	data, err :=readWebFile(Config_ALL)
 	if err != nil {
 		fmt.Println(err)
 		return err
-	} 
+	}
     m := make(map[interface{}]interface{})
     err = yaml.Unmarshal([]byte(data), &m)
+    
  	if err != nil {
  		fmt.Println(err)
  		return err
@@ -42,8 +51,10 @@ func ReadConfig() error {
 }
 
 func ReadQuestions() error {
- 	filename := "questions.txt"
- 	data, err := ioutil.ReadFile(filename)
+	// local read file
+	/*filename := "questions.txt"
+ 	data, err := ioutil.ReadFile(filename)*/
+ 	data, err :=readWebFile(Question_file)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -56,6 +67,22 @@ func ReadQuestions() error {
  	}
  	Question_URI = m["url"].(string)
  	return nil
+}
+
+
+// small helper function, read file from web
+func readWebFile(url string) ([]byte, error) {
+	res, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	data, err := ioutil.ReadAll(res.Body)
+    if err != nil {
+        return nil, err
+    }
+    defer res.Body.Close()
+    
+    return data, nil
 }
 
 func BootStrapSN() error {
