@@ -340,7 +340,15 @@ func RcvSnPblSuccess(msg *Message) (interface{}, error) {
 	
 	//multicast the new grobal rank to SNs
 	if globalRankChanged {
-		multicastGlobalRankToSNs()
+		globalRankMsg := new(Message)
+		err := globalRankMsg.NewMsgwithData("", SN_SN_RANK, Global_ranking)
+		if err != nil {
+			fmt.Println("In RcvSnAskInfo:")
+			return nil, err
+		}
+
+		MulticastMsgInGroup(globalRankMsg, true)
+		//multicastGlobalRankToSNs()
 	}
 
 	// create and send new local info to other ONs
@@ -606,6 +614,7 @@ func getEmptyPos(rankList [GlobalRankSize]UserRecord) int {
 // is Super: true: send to other SNs, false: send to ON in group
 func MulticastMsgInGroup(m *Message, isSuper bool) {
 	newMCastMsg := new(MultiCastMessage)
+	// TODO: why not newMCastMsg.Message = tmpMsg ?? 
 	tmpMsg := &newMCastMsg.Message
 	tmpMsg.CopyMsg(m)
 	newMCastMsg.Origin = MsgPasser.ServerIP
@@ -616,34 +625,37 @@ func MulticastMsgInGroup(m *Message, isSuper bool) {
 	if isSuper {
 		fmt.Printf("SuperNodeHandler: multicastMsgInGroup SNHostList %d\n", len(MsgPasser.SNHostlist))
 
-		for k,_ := range MsgPasser.SNHostlist {
+		/*for k,_ := range MsgPasser.SNHostlist {
 			newMCastMsg.HostList[k] = MsgPasser.SNHostlist[k]
-		}
+		}*/
+		newMCastMsg.HostList = MsgPasser.SNHostlist
 
 	} else {
 		fmt.Printf("SuperNodeHandler: multicastMsgInGroup ONHostList %d\n", len(MsgPasser.ONHostlist))
 
-		for k,_ := range MsgPasser.ONHostlist {
+		/*for k,_ := range MsgPasser.ONHostlist {
 			newMCastMsg.HostList[k] = MsgPasser.ONHostlist[k]
-		}
+		}*/
+		newMCastMsg.HostList = MsgPasser.ONHostlist
 	}
 	MsgPasser.SendMCast(newMCastMsg)
 }
 
 
-func multicastGlobalRankToSNs() {
+/*func multicastGlobalRankToSNs() {
 	newMCastMsg := new(MultiCastMessage)
 	newMCastMsg.NewMCastMsgwithData("", SN_SN_RANK, Global_ranking)
 	newMCastMsg.Origin = MsgPasser.ServerIP
 	newMCastMsg.Seqnum = atomic.AddInt32(&MsgPasser.SeqNum, 1)
 
 	newMCastMsg.HostList = make(map[string]string)
-	for k,_ := range MsgPasser.SNHostlist {
-		newMCastMsg.HostList[k] = MsgPasser.SNHostlist[k]
-	}
+	//for k,_ := range MsgPasser.SNHostlist {
+	//	newMCastMsg.HostList[k] = MsgPasser.SNHostlist[k]
+	//}
+	newMCastMsg.HostList = MsgPasser.SNHostlist
 	
 	MsgPasser.SendMCast(newMCastMsg)
-}
+}*/
 
 
 
