@@ -98,20 +98,20 @@ func RcvSnSignUp(msg *Message) (interface{}, error) {
 		go checkCommitStatus(commitStatusChan, username)
 		
 		// put user into request map
-		signUp_commitLock.Lock()
+		SignUp_commitLock.Lock()
 		userStatus := new(SignUpCommitStatus)
 		userStatus.NewSignUpCmitStatus()
 		signUp_requestMap[username] = userStatus
-		signUp_commitLock.Unlock()
+		SignUp_commitLock.Unlock()
 		
 		// send commit_ready to other SNs
 		commitReadyMsg := new(Message)
 		err = commitReadyMsg.NewMsgwithData("", SN_SN_COMMIT_RD, username)
 		if err != nil {
 			fmt.Println("In RcvSnSignUp:")
-			signUp_commitLock.Lock()
+			SignUp_commitLock.Lock()
 			delete(signUp_requestMap, username)
-			signUp_commitLock.Unlock()
+			SignUp_commitLock.Unlock()
 			return nil, err
 		}
 		MulticastMsgInGroup(commitReadyMsg, true)
@@ -130,9 +130,9 @@ func RcvSnSignUp(msg *Message) (interface{}, error) {
 		err = commitResultMsg.NewMsgwithData("", SN_SN_SIGNUP, resultData)
 		if err != nil {
 			fmt.Println("In RcvSnSignUp:")
-			signUp_commitLock.Lock()
+			SignUp_commitLock.Lock()
 			delete(signUp_requestMap, username)
-			signUp_commitLock.Unlock()
+			SignUp_commitLock.Unlock()
 			return nil, err
 		}
 		MulticastMsgInGroup(commitResultMsg, true)
@@ -148,9 +148,9 @@ func RcvSnSignUp(msg *Message) (interface{}, error) {
 		}
 		
 		// delete user request from request map			
-		signUp_commitLock.Lock()
+		SignUp_commitLock.Lock()
 		delete(signUp_requestMap, username)
-		signUp_commitLock.Unlock()
+		SignUp_commitLock.Unlock()
 	} else {
 		//DB check failed
 		ONstatus = DBstatus
@@ -189,13 +189,13 @@ func RcvSnSignUpCommitReady(msg *Message) (interface{}, error) {
 	
 	status := "Ready"
 	// check ready set to see whether it has been registered
-	if _, exist := signUp_commit_readySet[username]; exist {
+	if _, exist := SignUp_commit_readySet[username]; exist {
 		status = "Abort"
 	} else {
 		// ready to commit this user
-		signUp_commitLock.Lock()
-		signUp_commit_readySet[username] = true
-		signUp_commitLock.Unlock()
+		SignUp_commitLock.Lock()
+		SignUp_commit_readySet[username] = msg.Origin
+		SignUp_commitLock.Unlock()
 	}
 	
 	// send status to master
@@ -233,13 +233,13 @@ func RcvSnSignUpCommitReadyACK(msg *Message) (interface{}, error) {
 	
 	// check ready set to see whether it has conflict
 	if _, exist := signUp_requestMap[username]; exist {
-		signUp_commitLock.Lock()
+		SignUp_commitLock.Lock()
 		if status == "Abort" {
 			signUp_requestMap[username].HasAbort = true
 		} else {
 			signUp_requestMap[username].ReadySNIP[msg.Src] = true
 		}
-		signUp_commitLock.Unlock()
+		SignUp_commitLock.Unlock()
 	}
 	
 	return readyReply, nil
@@ -270,9 +270,9 @@ func RcvSnMSignUp(msg *Message) (interface{}, error) {
 	}
 	
 	// delete it from request map
-	signUp_commitLock.Lock()
-	delete(signUp_commit_readySet, mSignUpMsg["username"])
-	signUp_commitLock.Unlock()
+	SignUp_commitLock.Lock()
+	delete(SignUp_commit_readySet, mSignUpMsg["username"])
+	SignUp_commitLock.Unlock()
 
 	return mSignUpMsg, err
 }

@@ -14,8 +14,8 @@ type SignUpCommitStatus struct {
 var signUp_requestMap map[string]*SignUpCommitStatus // map of user name who sent signup request
 
 // As worker
-var signUp_commit_readySet map[string]bool // map of user name that worker has been ready
-var signUp_commitLock sync.Mutex
+var SignUp_commit_readySet map[string]string // map of user name that worker has been ready
+var SignUp_commitLock sync.Mutex
 
 func (commitStatus *SignUpCommitStatus) NewSignUpCmitStatus() {
 	commitStatus.HasAbort = false

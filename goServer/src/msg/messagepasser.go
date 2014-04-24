@@ -68,7 +68,7 @@ func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, erro
 	
 	// sign up commit register
 	signUp_requestMap = make(map[string]*SignUpCommitStatus)
-	signUp_commit_readySet = make(map[string]bool) 
+	SignUp_commit_readySet = make(map[string]string) 
 
 	mp.RcvdMCastMsgs = make([]*MultiCastMessage, 0)
 	mp.SeqNum = 0

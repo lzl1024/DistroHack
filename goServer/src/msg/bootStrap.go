@@ -311,7 +311,8 @@ func RcvSnJoin(msg *Message) (interface{}, error) {
 
 	
 	// TODO: export and send back db data, when response, add it to loadlist with its actual ONlist length
-	// (It may not be 1 when bootstrapSN is called in SN failure) and send out Loadlist update
+	// (It may not be 1 when bootstrapSN is called in SN failure) and send out Loadlist update,
+	// if HTTP connection broken while transmitting, kill myself.
 	
 	/* a new super node has tried to join , add him to our list and multicast that 
 	 * a new node has joined, and everyone should update their lists

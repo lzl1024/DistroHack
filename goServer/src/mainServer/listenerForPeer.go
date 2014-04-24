@@ -87,6 +87,16 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 	}
 	mp.ConnMutex.Unlock()
 	
+
+	// go through the SignUp_commit_readySet to clean up the commit coordinator status
+	msg.SignUp_commitLock.Lock()
+	for k, v := range msg.SignUp_commit_readySet {
+		if v == dest {
+			delete(msg.SignUp_commit_readySet, k)
+		}
+	}
+	msg.SignUp_commitLock.Unlock()
+	
 	
 	// SN peer fails, only need to delete it from map
 	_,ok = mp.SNHostlist[dest]
