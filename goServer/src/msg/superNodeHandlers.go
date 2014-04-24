@@ -343,7 +343,7 @@ func RcvSnPblSuccess(msg *Message) (interface{}, error) {
 		globalRankMsg := new(Message)
 		err := globalRankMsg.NewMsgwithData("", SN_SN_RANK, Global_ranking)
 		if err != nil {
-			fmt.Println("In RcvSnAskInfo:")
+			fmt.Println("In RcvSnPblSuccess:")
 			return nil, err
 		}
 
