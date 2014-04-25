@@ -86,8 +86,18 @@ func initMessagePasser() {
 			break
 		}
 	}
+	
+	ipAddr := addr.String()
+	
+	if msg.DnsName != ""{
+		ipaddrTmp, err := net.ResolveIPAddr("ip", msg.DnsName)
+		if err != nil {
+			fmt.Println("Connect to: ", msg.DnsName)
+		}
+		ipAddr = ipaddrTmp.String()
+	}
 
-	msg.MsgPasser, err = msg.NewMsgPasser(addr.String(), msg.ListenPortPeer,
+	msg.MsgPasser, err = msg.NewMsgPasser(ipAddr, msg.ListenPortPeer,
 		msg.ListenPortSuperNode)
 	if err != nil {
 		fmt.Println(err)

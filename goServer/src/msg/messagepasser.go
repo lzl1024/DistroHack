@@ -56,10 +56,6 @@ func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, erro
 		fmt.Println("Invalid IP address")
 		os.Exit(-1)
 	}
-	
-	if DnsName != "" {
-		serverIP = DnsName
-	}
 
 	mp.ServerIP = serverIP
 	mp.Connmap = make(map[string]Connection)
