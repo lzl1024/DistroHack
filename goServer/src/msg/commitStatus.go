@@ -28,6 +28,7 @@ func (commitStatus *SignUpCommitStatus) NewSignUpCmitStatus() {
 func checkCommitStatus(commitStatusChan chan string, userName string) {
 	fmt.Println("BusyWaitingSleepInterval", BusyWaitingSleepInterval)
 	for i := 0; i <= BusyWaitingTimeOutRound; i++ {
+		fmt.Println("ddd:", i)
 		time.Sleep(BusyWaitingSleepInterval)
 		
 		// check status fail
