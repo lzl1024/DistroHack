@@ -19,7 +19,7 @@ type Connection struct {
 }
 
 // TODO: finally should be set SuperNodeIP =""
-var SuperNodeIP = "10.0.1.17"
+var SuperNodeIP = ""
 var rcvdlistMutex = &sync.Mutex{}
 
 var BusyWaitingSleepInterval = time.Millisecond * time.Duration(100)

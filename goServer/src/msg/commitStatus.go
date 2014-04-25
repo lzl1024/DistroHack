@@ -29,10 +29,6 @@ func checkCommitStatus(commitStatusChan chan string, userName string) {
 	for i := 0; i <= BusyWaitingTimeOutRound; i++ {
 		time.Sleep(BusyWaitingSleepInterval)
 		
-		if (i % 10 == 0) {
-		fmt.Println("SINIP:", signUp_requestMap[userName].ReadySNIP)
-		fmt.Println("SNHOstList:",MsgPasser.SNHostlist)
-		}
 		// check status fail
 		if signUp_requestMap[userName].HasAbort {
 			commitStatusChan <- "Abort"

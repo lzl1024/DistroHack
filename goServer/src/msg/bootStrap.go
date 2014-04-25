@@ -155,7 +155,10 @@ func BootStrapSN() error {
 	if listLength == 0 {
 		return err
 	}
-
+	
+	// I am myself's supernode
+	SuperNodeIP = MsgPasser.ServerIP
+		
 	start := rand.Intn(listLength)
 	for i := range configSNList {
 		chose := (start + i) % listLength
