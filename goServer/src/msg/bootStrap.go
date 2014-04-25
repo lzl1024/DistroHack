@@ -32,7 +32,7 @@ const Question_file = "https://s3.amazonaws.com/dsconfig/questions.txt"
 
 func ReadConfig() error {
 	// local read file
-	//filename := "config.txt"
+	/*filename := "config.txt"
 	//data, err := ioutil.ReadFile(filename)
 	data, err := readWebFile(Config_ALL)
 	if err != nil {
@@ -45,9 +45,14 @@ func ReadConfig() error {
 	if err != nil {
 		fmt.Println(err)
 		return err
+	}*/
+	
+	m := map[string]string {
+		"bootstrapper.no-ip.biz":"bootstrapper.no-ip.biz",
 	}
+	
 	for key, _ := range m {
-		tcpAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprint(m[key].(string), ":", ListenPortSuperNode))
+		tcpAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprint(m[key], ":", ListenPortSuperNode))
 		if err == nil {
 			configSNList = append(configSNList, *tcpAddr)
 			fmt.Println("Connect to: ", tcpAddr.String())
