@@ -172,6 +172,8 @@ func (mp *Messagepasser) Send(msg *Message) error {
 	msg.Origin = mp.ServerIP
 	msg.Src = mp.ServerIP
 	msg.TimeStamp = time.Now().Add(mp.Drift)
+	
+	fmt.Println("Send Message: ", msg.String())
 
 	port = fmt.Sprint(mp.ONPort)
 	mp.ConnMutex.Lock()
@@ -189,6 +191,8 @@ func (mp *Messagepasser) Send(msg *Message) error {
 func (mp *Messagepasser) SendMCast(msg *MultiCastMessage) {
 	msg.Src = mp.ServerIP
 	msg.TimeStamp = time.Now().Add(mp.Drift)
+	
+	fmt.Println("Send Multicast Message: ", msg.String())
 
 	for e := range msg.HostList {
 		host := msg.HostList[e]
@@ -196,7 +200,7 @@ func (mp *Messagepasser) SendMCast(msg *MultiCastMessage) {
 		mp.ConnMutex.Lock()
 		connection, err := mp.getConnection(host, fmt.Sprint(mp.ONPort))
 		mp.ConnMutex.Unlock()
-		fmt.Println("MessagePasser : Sending message to ", host)
+		//fmt.Println("MessagePasser : Sending message to ", host)
 		if err != nil {
 			fmt.Println("Error getting connection to host:", host)
 			/* try to send to atleast 1 person in the list */
