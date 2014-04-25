@@ -23,7 +23,7 @@ var SuperNodeIP = "10.0.1.17"
 var rcvdlistMutex = &sync.Mutex{}
 
 var BusyWaitingSleepInterval = time.Millisecond * time.Duration(100)
-const BusyWaitingTimeOutRound = 40
+var BusyWaitingTimeOutRound = 40
 
 type Messagepasser struct {
 	SNHostlist       map[string]string
