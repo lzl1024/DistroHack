@@ -22,7 +22,7 @@ type Connection struct {
 var SuperNodeIP = "10.0.1.17"
 var rcvdlistMutex = &sync.Mutex{}
 
-const BusyWaitingSleepInterval = time.Millisecond * time.Duration(50)
+var BusyWaitingSleepInterval = time.Millisecond * time.Duration(50)
 const BusyWaitingTimeOutRound = 40
 
 type Messagepasser struct {
