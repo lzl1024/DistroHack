@@ -47,12 +47,8 @@ func ReadConfig() error {
 		return err
 	}*/
 	
-	m := map[string]string {
-		"bootstrapper.no-ip.biz":"bootstrapper.no-ip.biz",
-	}
-	
-	for key, _ := range m {
-		tcpAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprint(m[key], ":", ListenPortSuperNode))
+	for key, _ := range util.SNConfigNames {
+		tcpAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprint(key, ":", ListenPortSuperNode))
 		if err == nil {
 			configSNList = append(configSNList, *tcpAddr)
 			fmt.Println("Connect to: ", tcpAddr.String())
