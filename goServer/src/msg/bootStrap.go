@@ -155,7 +155,12 @@ func BootStrapSN() error {
 
 	// select the first entry randomly
 	rand.Seed(time.Now().UnixNano())
+	
 	listLength := len(configSNList)
+	if listLength == 0 {
+		return err
+	}
+	
 	start := rand.Intn(listLength)
 	for i := range configSNList {
 		chose := (start + i) % listLength
@@ -182,6 +187,10 @@ func BootStrapON() error {
 	// select the first entry randomly
 	rand.Seed(time.Now().UnixNano())
 	listLength := len(configSNList)
+	if listLength == 0 {
+		return err
+	}
+	
 	start := rand.Intn(listLength)
 	for i := range configSNList {
 		chose := (start + i) % listLength
