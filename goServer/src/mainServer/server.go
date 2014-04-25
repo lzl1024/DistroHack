@@ -12,7 +12,7 @@ import (
 
 const rcvBufLen = 1024
 
-var isSN = true
+var isSN = false
 
 func main() {
 	gob.Register(msg.Message{})

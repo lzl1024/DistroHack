@@ -102,11 +102,11 @@ func constructHttpServer() {
 	})
 
 	fmt.Println("BootStrap: createServer")
+	httpServerReady = true
 	err := http.ListenAndServe(fmt.Sprint(":", ListenPortHttpDB), nil)
 	if err != nil {
 		fmt.Println("BootStrap createServer ListenAndServe: ", err)
 	}
-	httpServerReady = true
 }
 
 func loadFileFromHttpServer(ip string) bool {

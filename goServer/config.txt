@@ -1,2 +1,2 @@
-1: unix1.andrew.cmu.edu
-2: unix2.andrew.cmu.edu
+1: 128.237.223.177
+2: 128.237.219.88
