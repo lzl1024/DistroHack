@@ -56,9 +56,10 @@ func parseArguments() {
 	if argLen > 1 {
 		if os.Args[1] == "True" {
 			isSN = true
-			if argLen > 2 {
+		}
+		
+		if argLen > 2 {
 				ipArg = os.Args[2]
-			}
 		}
 	}
 }
