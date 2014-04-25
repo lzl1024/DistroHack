@@ -5,10 +5,9 @@
 go build mainServer
 
 
-
 python manage.py syncdb
 
-if [ "$#" -e 3  ];
+if [ "$#" -eq 3  ]
 then
   $1/mainServer $2 $3 &
   python manage.py runserver $3:8000
