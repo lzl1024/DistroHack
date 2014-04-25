@@ -93,16 +93,16 @@ func RcvSnSignUp(msg *Message) (interface{}, error) {
 	// check local database to see whether is has been registered
 	DBstatus := util.DatabaseCheckUser(username, email)
 	if  DBstatus == "success" {
-		// open a thread to check first commit status for fixed time 
-		commitStatusChan := make(chan string)
-		go checkCommitStatus(commitStatusChan, username)
-		
 		// put user into request map
 		SignUp_commitLock.Lock()
 		userStatus := new(SignUpCommitStatus)
 		userStatus.NewSignUpCmitStatus()
 		signUp_requestMap[username] = userStatus
 		SignUp_commitLock.Unlock()
+		
+		// open a thread to check first commit status for fixed time 
+		commitStatusChan := make(chan string)
+		go checkCommitStatus(commitStatusChan, username)
 		
 		// send commit_ready to other SNs
 		commitReadyMsg := new(Message)
