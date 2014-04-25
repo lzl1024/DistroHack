@@ -12,6 +12,7 @@ import (
 const rcvBufLen = 1024
 
 var isSN = false
+var ipArg = ""
 
 func main() {
 	gob.Register(msg.Message{})
@@ -56,7 +57,7 @@ func parseArguments() {
 		if os.Args[1] == "True" {
 			isSN = true
 			if argLen > 2 {
-				msg.DnsName = os.Args[2]
+				ipArg = os.Args[2]
 			}
 		}
 	}
@@ -87,17 +88,12 @@ func initMessagePasser() {
 		}
 	}
 	
-	ipAddr := addr.String()
 	
-	if msg.DnsName != ""{
-		ipaddrTmp, err := net.ResolveIPAddr("ip", msg.DnsName)
-		if err != nil {
-			fmt.Println("Connect to: ", msg.DnsName)
-		}
-		ipAddr = ipaddrTmp.String()
+	if ipArg == "" {
+		ipArg = addr.String()
 	}
 
-	msg.MsgPasser, err = msg.NewMsgPasser(ipAddr, msg.ListenPortPeer,
+	msg.MsgPasser, err = msg.NewMsgPasser(ipArg, msg.ListenPortPeer,
 		msg.ListenPortSuperNode)
 	if err != nil {
 		fmt.Println(err)

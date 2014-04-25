@@ -43,7 +43,6 @@ type Messagepasser struct {
 
 var MsgPasser *Messagepasser
 var DLock *DsLock
-var DnsName = ""
 
 /* name is the IP address in string format */
 func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, error) {
