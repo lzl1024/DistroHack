@@ -209,7 +209,7 @@ func RcvOnJoin(msg *Message) (interface{}, error) {
 	}
 
 	// get the SN with the lightest load
-	min := (1 << 31)
+	min := (1 << 30)
 	var snIP string
 	for k, _ := range MsgPasser.SNLoadlist {
 		if MsgPasser.SNLoadlist[k] < min {

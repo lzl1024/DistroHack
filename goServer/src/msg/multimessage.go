@@ -32,6 +32,6 @@ func (msg *MultiCastMessage) CopyMCastMsg(m *MultiCastMessage) {
 }
 
 func (msg MultiCastMessage) String() string {
-	s := msg.Message.String() + fmt.Sprintf("%s", msg.HostList)
+	s := msg.Message.String() + "HostList: " + fmt.Sprintf("%s", msg.HostList)
 	return s
 }
