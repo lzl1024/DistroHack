@@ -160,12 +160,15 @@ func BootStrapSN() error {
 	start := rand.Intn(listLength)
 	for i := range configSNList {
 		chose := (start + i) % listLength
-		bootStrapMsg.Dest, _, _ = net.SplitHostPort(configSNList[chose].String())
-		err = MsgPasser.Send(bootStrapMsg)
-		if err != nil {
-			continue
+		// not connect with myself
+		if configSNList[chose].String() != MsgPasser.ServerIP {
+			bootStrapMsg.Dest, _, _ = net.SplitHostPort(configSNList[chose].String())
+			err = MsgPasser.Send(bootStrapMsg)
+			if err != nil {
+				continue
+			}
+			break
 		}
-		break
 	}
 
 	return err
