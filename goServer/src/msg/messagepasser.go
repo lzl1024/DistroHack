@@ -82,19 +82,20 @@ func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, erro
 	}
 
 	if ts == nil {
-		return nil, err
-	}
-
-	refTime := *ts
-	curTime := time.Now()
-	fmt.Println("current: " + curTime.String())
-	fmt.Println("reftime: " + refTime.String())
-	if refTime.Before(curTime) {
-		mp.Drift = -1 * curTime.Sub(refTime)
+		fmt.Println("NTP server busy, use local time!")
+		mp.Drift = 0;
 	} else {
-		mp.Drift = refTime.Sub(curTime)
+		refTime := *ts
+		curTime := time.Now()
+		fmt.Println("current: " + curTime.String())
+		fmt.Println("reftime: " + refTime.String())
+		if refTime.Before(curTime) {
+			mp.Drift = -1 * curTime.Sub(refTime)
+		} else {
+			mp.Drift = refTime.Sub(curTime)
+		}
+		fmt.Println("Duration : " + mp.Drift.String())
 	}
-	fmt.Println("Duration : " + mp.Drift.String())
 
 	go mp.RcvMessage()
 	go mp.RcvMCastMessage()

@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-const ntpServer string = "0.pool.ntp.org"
+const ntpServer string = "10.pool.ntp.org"
 
 func Time() (*time.Time, error) {
 	raddr, err := net.ResolveUDPAddr("udp", ntpServer+":123")
