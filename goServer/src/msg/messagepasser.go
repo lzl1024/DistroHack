@@ -248,7 +248,7 @@ func SendtoApp(urlAddress string, data string) {
 func (mp *Messagepasser) RcvMessage() {
 	for {
 		msg := <-mp.IncomingMsg
-		mp.DoAction(&msg)
+		go mp.DoAction(&msg)
 	}
 }
 
@@ -263,7 +263,7 @@ func (mp *Messagepasser) RcvMCastMessage() {
 		if v == false {
 			//fmt.Println("Never rcvd")
 			mp.HandleMCast(&msg)
-			mp.DoAction(&msg.Message)
+			go mp.DoAction(&msg.Message)
 		} else {
 			//fmt.Println("MessagePasser: The message has been seen before so moving on")
 		}
