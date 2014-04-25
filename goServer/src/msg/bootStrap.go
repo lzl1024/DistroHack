@@ -46,7 +46,7 @@ func ReadConfig() error {
 		fmt.Println(err)
 		return err
 	}*/
-	
+
 	for key, _ := range util.SNConfigNames {
 		tcpAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprint(key, ":", ListenPortSuperNode))
 		if err == nil {
@@ -102,7 +102,6 @@ func constructHttpServer() {
 		http.ServeFile(w, r, "/tmp/users.csv")
 	})
 
-	fmt.Println("BootStrap: createServer")
 	httpServerReady = true
 	err := http.ListenAndServe(fmt.Sprint(":", ListenPortHttpDB), nil)
 	if err != nil {
@@ -151,12 +150,12 @@ func BootStrapSN() error {
 
 	// select the first entry randomly
 	rand.Seed(time.Now().UnixNano())
-	
+
 	listLength := len(configSNList)
 	if listLength == 0 {
 		return err
 	}
-	
+
 	start := rand.Intn(listLength)
 	for i := range configSNList {
 		chose := (start + i) % listLength
@@ -189,7 +188,7 @@ func BootStrapON() error {
 	if listLength == 0 {
 		return err
 	}
-	
+
 	start := rand.Intn(listLength)
 	for i := range configSNList {
 		chose := (start + i) % listLength
