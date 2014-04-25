@@ -146,7 +146,7 @@ func (mp *Messagepasser) getConnection(msgDest string, port string) (*Connection
 }
 
 func (mp *Messagepasser) actuallySend(connection *Connection, dest string, msg interface{}) error {
-	fmt.Println("MessagePasser: actuallySend")
+	//fmt.Println("MessagePasser: actuallySend")
 
 	encoder := connection.encoder
 	err := encoder.Encode(&msg)
@@ -252,7 +252,7 @@ func (mp *Messagepasser) RcvMCastMessage() {
 	var v bool
 	for {
 		msg := <-mp.IncomingMCastMsg
-		fmt.Println("MessagePasser: A Multicast Message received", msg.Origin, msg.Seqnum)
+		//fmt.Println("MessagePasser: A Multicast Message received", msg.Origin, msg.Seqnum)
 		rcvdlistMutex.Lock()
 		v = mp.isAlreadyRcvd(&msg)
 		rcvdlistMutex.Unlock()
@@ -261,7 +261,7 @@ func (mp *Messagepasser) RcvMCastMessage() {
 			mp.HandleMCast(&msg)
 			mp.DoAction(&msg.Message)
 		} else {
-			fmt.Println("MessagePasser: The message has been seen before so moving on")
+			//fmt.Println("MessagePasser: The message has been seen before so moving on")
 		}
 	}
 }
