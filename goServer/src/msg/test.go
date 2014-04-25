@@ -23,7 +23,7 @@ func clientTestThread(mp *Messagepasser, c chan error) {
 	//testMulticast(mp, c)
 	//mp.SNHostlist["10.0.1.17"] = "10.0.1.17"
 	//mp.ONHostlist["10.0.1.17"] = "10.0.1.17"
-	testDLock(mp, c)
+	//testDLock(mp, c)
 }
 
 func testConstructSNList(mp *Messagepasser, c chan error) {

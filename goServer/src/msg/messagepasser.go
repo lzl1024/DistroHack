@@ -43,6 +43,7 @@ type Messagepasser struct {
 
 var MsgPasser *Messagepasser
 var DLock *DsLock
+var DnsName = ""
 
 /* name is the IP address in string format */
 func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, error) {
@@ -54,6 +55,10 @@ func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, erro
 	if net.ParseIP(serverIP) == nil {
 		fmt.Println("Invalid IP address")
 		os.Exit(-1)
+	}
+	
+	if DnsName != "" {
+		serverIP = DnsName
 	}
 
 	mp.ServerIP = serverIP
