@@ -139,7 +139,7 @@ func (mp *Messagepasser) getConnection(msgDest string, port string) (*Connection
 		mp.Connmap[msgDest] = connection
 		return &connection, nil
 	} else {
-		fmt.Println("Re-using connection to: ", dest)
+		//fmt.Println("Re-using connection to: ", dest)
 	}
 
 	return &connection, nil
@@ -261,7 +261,7 @@ func (mp *Messagepasser) RcvMCastMessage() {
 		v = mp.isAlreadyRcvd(&msg)
 		rcvdlistMutex.Unlock()
 		if v == false {
-			fmt.Println("Never rcvd")
+			//fmt.Println("Never rcvd")
 			mp.HandleMCast(&msg)
 			mp.DoAction(&msg.Message)
 		} else {
