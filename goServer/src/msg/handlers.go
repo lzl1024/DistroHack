@@ -175,7 +175,13 @@ func RcvSnRankfromSN(msg *Message) (interface{}, error) {
 	//update the global rank list in local
 	Local_Info_Mutex.Lock()
 	Global_ranking = newRankList
+	
+	// update the app's ranking
+	data, _ := json.Marshal(Global_ranking)
 	Local_Info_Mutex.Unlock()
+
+	// send data out
+	SendtoApp(App_url+"hacks/update_rank/", string(data))
 
 	return newRankList, nil
 }
