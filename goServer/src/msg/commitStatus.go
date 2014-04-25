@@ -26,9 +26,7 @@ func (commitStatus *SignUpCommitStatus) NewSignUpCmitStatus() {
 
 // check number of readys get from other SNs
 func checkCommitStatus(commitStatusChan chan string, userName string) {
-	fmt.Println("BusyWaitingSleepInterval", BusyWaitingSleepInterval)
 	for i := 0; i <= BusyWaitingTimeOutRound; i++ {
-		fmt.Println("ddd:", i)
 		time.Sleep(BusyWaitingSleepInterval)
 		
 		// check status fail
@@ -40,7 +38,7 @@ func checkCommitStatus(commitStatusChan chan string, userName string) {
 			return
 		}
 	}
-	fmt.Println("TIMEOUT")
+	fmt.Println("Register TIMEOUT")
 	// timeout: abort
 	commitStatusChan <- "Abort"
 }
