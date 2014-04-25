@@ -32,8 +32,8 @@ const Question_file = "https://s3.amazonaws.com/dsconfig/questions.txt"
 
 func ReadConfig() error {
 	// local read file
-	/*filename := "config.txt"
-	data, err := ioutil.ReadFile(filename)*/
+	//filename := "config.txt"
+	//data, err := ioutil.ReadFile(filename)
 	data, err := readWebFile(Config_ALL)
 	if err != nil {
 		fmt.Println(err)

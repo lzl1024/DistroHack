@@ -6,13 +6,14 @@ import (
 	"msg"
 	"net"
 	"os"
-	"strconv"
 	"util"
 )
 
 const rcvBufLen = 1024
 
 var isSN = false
+
+var dnsName = ""
 
 func main() {
 	gob.Register(msg.Message{})
@@ -57,10 +58,7 @@ func parseArguments() {
 		if os.Args[1] == "True" {
 			isSN = true
 			if argLen > 2 {
-				msg.ListenPortLocal, _ = strconv.Atoi(os.Args[2])
-				if argLen > 3 {
-					msg.ListenPortPeer, _ = strconv.Atoi(os.Args[3])
-				}
+				dnsName = os.Args[2]
 			}
 		}
 	}
@@ -90,8 +88,13 @@ func initMessagePasser() {
 			break
 		}
 	}
+	
+	
+	if dnsName == "" {
+		dnsName = addr.String()
+	}
 
-	msg.MsgPasser, err = msg.NewMsgPasser(addr.String(), msg.ListenPortPeer,
+	msg.MsgPasser, err = msg.NewMsgPasser(dnsName, msg.ListenPortPeer,
 		msg.ListenPortSuperNode)
 	if err != nil {
 		fmt.Println(err)
