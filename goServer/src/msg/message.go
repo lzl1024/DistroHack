@@ -2,49 +2,49 @@ package msg
 
 import (
 	"bytes"
-	"time"
 	"strconv"
+	"time"
 )
 
 /* Represents message types */
 const (
 	STRING = iota
 	// SN to SN
-	SN_SN_SIGNUP		// Tell other sn the sign up of an ordinary node
-	SN_SN_STARTEND		// Receive START or END from another SN 
-	SN_SN_RANK			// Receive rank update from other super node
-	SN_SN_COMMIT_RD		// SN send Commit_ready to other SNs
+	SN_SN_SIGNUP        // Tell other sn the sign up of an ordinary node
+	SN_SN_STARTEND      // Receive START or END from another SN
+	SN_SN_RANK          // Receive rank update from other super node
+	SN_SN_COMMIT_RD     // SN send Commit_ready to other SNs
 	SN_SN_COMMIT_RD_ACK // SN workers send back commit_ready to master
-	SN_SN_JOIN			// Super Node Join from another super Node
-	SN_SN_LISTUPDATE	// Send change in super node list to other super nodes
-	SN_SN_LISTMERGE		// Merge list information
-	SN_SN_LOADUPDATE	// Get the load information from supernodes
-	SN_SN_LOADMERGE		// Merge all load inforamtion
-	
-	// SN to ON	
-	SN_ON_SIGNIN_ACK 	// ON Receivce the sign in status msg from SN
-	SN_ON_SIGNUP_ACK	// ON Receivce the sign up status msg from SN
-	SN_ON_ASKINFO_ACK	// SN ACK the global_ranking and local_info to ON
-	SN_ON_STARTEND		// ON get start/end msg from SN
-	SN_ON_RANK			// SN send new rank to ON
-	SN_ON_JOIN_ACK		// Ack Message when SN get ON's first join request: who you to connect
-	SN_ON_CHANGEONLIST	// SN send new ONList to ONs
-		
+	SN_SN_JOIN          // Super Node Join from another super Node
+	SN_SN_JOIN_ACK      // Super Node join ack msg tell the new super node data is ready on server
+	SN_SN_LISTUPDATE    // Send change in super node list to other super nodes
+	SN_SN_LISTMERGE     // Merge list information
+	SN_SN_LOADUPDATE    // Get the load information from supernodes
+	SN_SN_LOADMERGE     // Merge all load inforamtion
+
+	// SN to ON
+	SN_ON_SIGNIN_ACK   // ON Receivce the sign in status msg from SN
+	SN_ON_SIGNUP_ACK   // ON Receivce the sign up status msg from SN
+	SN_ON_ASKINFO_ACK  // SN ACK the global_ranking and local_info to ON
+	SN_ON_STARTEND     // ON get start/end msg from SN
+	SN_ON_RANK         // SN send new rank to ON
+	SN_ON_JOIN_ACK     // Ack Message when SN get ON's first join request: who you to connect
+	SN_ON_CHANGEONLIST // SN send new ONList to ONs
+
 	// ON to SN
-	ON_SN_SIGNUP		// Receive sign up from ordinary node
-	ON_SN_SIGNIN		// Receive sign in from ordinary node
-	ON_SN_PBLSUCCESS	// Receive public success from ordinary node
-	ON_SN_ASKINFO		// Receive information request from ordinary node
-	ON_SN_STARTEND		// Receive START or END from ordinary
-	ON_SN_JOIN			// Receive connect msg from ordinary node
-	ON_SN_REGISTER      // Register message from ON to SN
-	
+	ON_SN_SIGNUP     // Receive sign up from ordinary node
+	ON_SN_SIGNIN     // Receive sign in from ordinary node
+	ON_SN_PBLSUCCESS // Receive public success from ordinary node
+	ON_SN_ASKINFO    // Receive information request from ordinary node
+	ON_SN_STARTEND   // Receive START or END from ordinary
+	ON_SN_JOIN       // Receive connect msg from ordinary node
+	ON_SN_REGISTER   // Register message from ON to SN
+
 	// ON to ON : SN election
-	ON_ON_ELECTION		// One ON want to be the leader
-	ON_ON_LEADER		// One ON notify other to be the leader
-	ON_ON_ELECTION_ACK	// One ON ack the leader
-			
-	
+	ON_ON_ELECTION     // One ON want to be the leader
+	ON_ON_LEADER       // One ON notify other to be the leader
+	ON_ON_ELECTION_ACK // One ON ack the leader
+
 	//Distributed Lock
 	SN_SNLOCKREQ
 	SN_SNLOCKREL
@@ -55,7 +55,7 @@ const (
 )
 
 type Message struct {
-	Origin string
+	Origin    string
 	Src, Dest string
 	Seqnum    int32
 	Kind      int

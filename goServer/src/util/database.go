@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"os"
 )
 
 var db *sql.DB
@@ -17,7 +18,7 @@ func DatabaseInit(isSN bool) {
 		db.Close()
 		return
 	}
-	
+
 	// create user_record if not exists
 	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS user_record (id int(11) NOT NULL AUTO_INCREMENT,
 	username VARCHAR(50) NOT NULL, password VARCHAR(50) NOT NULL, email VARCHAR(50) NOT NULL, 
@@ -25,7 +26,7 @@ func DatabaseInit(isSN bool) {
 	if err != nil {
 		fmt.Println("Failed to create build-in user_record table")
 	}
-	
+
 	// if is SN add admin into database
 	if isSN {
 		_, err := db.Exec(`insert ignore into user_record (username, password, email) 
@@ -34,7 +35,7 @@ func DatabaseInit(isSN bool) {
 			fmt.Println("Failed to insert build-in admin")
 		}
 	}
-	
+
 }
 
 func DatabaseClose() {
@@ -65,7 +66,6 @@ func DatabaseSignIn(username string, password string) string {
 	}
 }
 
-
 func DatabaseSignUp(username string, password string, email string) string {
 	/*rows, e := db.Query("select count(*) from user_record where username = ? or email = ?", username, email)
 
@@ -95,7 +95,6 @@ func DatabaseSignUp(username string, password string, email string) string {
 	return "success"
 }
 
-
 func DatabaseCheckUser(username string, email string) string {
 	rows, e := db.Query("select count(*) from user_record where username = ? or email = ?", username, email)
 
@@ -118,4 +117,44 @@ func DatabaseCheckUser(username string, email string) string {
 	} else {
 		return "success"
 	}
+}
+
+func DatabaseCreateDBFile() error {
+	fmt.Println("Database: createDBFile")
+
+	var e error
+
+	if checkFileExist("/tmp/users.csv") {
+		e = os.Remove("/tmp/users.csv")
+	}
+
+	if e != nil {
+		fmt.Println("Database: Error.", e.Error())
+		return e
+	}
+
+	_, e = db.Exec("select username, password, email from user_record into outfile '/tmp/users.csv' fields terminated by ',' enclosed by '\"' lines terminated by '\n'")
+	if e != nil {
+		fmt.Println("Database: Execute Error.", e.Error())
+	}
+	return e
+}
+
+func DatabaseLoadDBFile() error {
+	fmt.Println("loadDBFile")
+
+	_, e := db.Exec("load data infile '/tmp/output.csv' ignore into table user_record fields terminated by ',' enclosed by '\"' lines terminated by '\n' (username, password, email)")
+	if e != nil {
+		fmt.Println("Database: Execute Error.", e.Error())
+	}
+	return e
+}
+
+func checkFileExist(filename string) bool {
+
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		return false
+	}
+
+	return true
 }
