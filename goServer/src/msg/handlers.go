@@ -17,7 +17,7 @@ var SignUpChan chan string
 
 var App_url = "http://localhost:8000/"
 
-var StartTime = ""
+var StartTime = "FAKE"
 var StartEnd_Lock sync.Mutex
 
 
@@ -88,8 +88,8 @@ func RcvSignInAck(msg *Message) (interface{}, error) {
 		StartTime = signInAckMsg["startTime"]
 		// update app start end time
 		jsondata := StartTime
-		StartEnd_Lock.Lock()
-		if (jsondata != "") {
+		StartEnd_Lock.Unlock()
+		if (jsondata != "FAKE") {
 			SendtoApp(App_url+"hacks/start_hack/", jsondata)
 		}
 
@@ -132,8 +132,8 @@ func RcvSignUpAck(msg *Message) (interface{}, error) {
 		StartTime = signUpAckMsg["startTime"]
 		// update app start end time
 		jsondata := StartTime
-		StartEnd_Lock.Lock()
-		if (jsondata != "") {
+		StartEnd_Lock.Unlock()
+		if (jsondata != "FAKE") {
 			SendtoApp(App_url+"hacks/start_hack/", jsondata)
 		}
 
@@ -170,7 +170,7 @@ func RcvStartEnd(msg *Message) (interface{}, error) {
 	if startEndMsg["type"] == "end_hack" {
 		// send data out
 		StartEnd_Lock.Lock()
-		StartTime = ""
+		StartTime = "FAKE"
 		StartEnd_Lock.Unlock()
 		SendtoApp(App_url+"hacks/end_hack/", "")
 	} else if startEndMsg["type"] == "start_hack" {
