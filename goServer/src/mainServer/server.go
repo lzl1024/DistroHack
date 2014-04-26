@@ -41,15 +41,17 @@ func doBootStrap() {
 		go msg.ConstructHttpServer()
 		for retries != 3 {
 			go msg.BootStrapSN()
-			err = <- msg.SNbootstrap
-			if err != nil {
+			err = <-msg.SNbootstrap
+
+			fmt.Println("do bootstrap")
+			if err.Error() != "" {
 				retries++
 				fmt.Println("Trying BootStrap Again", retries)
 				continue
 			}
 			break
 		}
-		if retries == 3 && err != nil {
+		if retries == 3 && err.Error() != "" {
 			fmt.Println("Max tries on bootstrap done...Failing")
 			os.Exit(-1)
 		}
@@ -66,9 +68,9 @@ func parseArguments() {
 		if os.Args[1] == "True" {
 			isSN = true
 		}
-		
+
 		if argLen > 2 {
-				ipArg = os.Args[2]
+			ipArg = os.Args[2]
 		}
 	}
 }
@@ -97,8 +99,7 @@ func initMessagePasser() {
 			break
 		}
 	}
-	
-	
+
 	if ipArg == "" {
 		ipArg = addr.String()
 	}

@@ -8,7 +8,6 @@ import (
 	"util"
 )
 
-
 type LocalInfo struct {
 	Ranklist [GlobalRankSize]UserRecord
 	Scoremap map[string]UserRecord
@@ -29,26 +28,26 @@ func RcvSnSignUp(msg *Message) (interface{}, error) {
 		fmt.Println("In RcvSnSignUp:")
 		return nil, err
 	}
-	
+
 	username := signUpMsg["username"]
 	email := signUpMsg["email"]
 	password := signUpMsg["password"]
 	ONstatus := "failed"
-	
+
 	// check local database to see whether is has been registered
 	DBstatus := util.DatabaseCheckUser(username, email)
-	if  DBstatus == "success" {
+	if DBstatus == "success" {
 		// put user into request map
 		SignUp_commitLock.Lock()
 		userStatus := new(SignUpCommitStatus)
 		userStatus.NewSignUpCmitStatus()
 		signUp_requestMap[username] = userStatus
 		SignUp_commitLock.Unlock()
-		
-		// open a thread to check first commit status for fixed time 
+
+		// open a thread to check first commit status for fixed time
 		commitStatusChan := make(chan string)
 		go checkCommitStatus(commitStatusChan, username)
-		
+
 		// send commit_ready to other SNs
 		commitReadyMsg := new(Message)
 		err = commitReadyMsg.NewMsgwithData("", SN_SN_COMMIT_RD, username)
@@ -60,16 +59,16 @@ func RcvSnSignUp(msg *Message) (interface{}, error) {
 			return nil, err
 		}
 		MulticastMsgInGroup(commitReadyMsg, true)
-	
+
 		// get result and send back commit result to SNs
-		status := <- commitStatusChan
-		
+		status := <-commitStatusChan
+
 		// send commit_ready to other SNs
 		commitResultMsg := new(Message)
 		resultData := map[string]string{
-			"username":     username,
-			"email": 	email,
-			"password":	password,
+			"username": username,
+			"email":    email,
+			"password": password,
 			"status":   status,
 		}
 		err = commitResultMsg.NewMsgwithData("", SN_SN_SIGNUP, resultData)
@@ -81,7 +80,7 @@ func RcvSnSignUp(msg *Message) (interface{}, error) {
 			return nil, err
 		}
 		MulticastMsgInGroup(commitResultMsg, true)
-		
+
 		// if success, update local information
 		ONstatus = "failed"
 		if status == "Commit" {
@@ -91,8 +90,8 @@ func RcvSnSignUp(msg *Message) (interface{}, error) {
 			fmt.Printf("SuperNode: ordinary sign up %s,  status %s\n", username, status)
 			ONstatus = "success"
 		}
-		
-		// delete user request from request map			
+
+		// delete user request from request map
 		SignUp_commitLock.Lock()
 		delete(signUp_requestMap, username)
 		SignUp_commitLock.Unlock()
@@ -100,13 +99,13 @@ func RcvSnSignUp(msg *Message) (interface{}, error) {
 		//DB check failed
 		ONstatus = DBstatus
 	}
-	
+
 	StartEnd_Lock.Lock()
 	// send status back to ON
 	backData := map[string]string{
-		"user":     username,
-		"status":   ONstatus,
-		"question": Question_URI,
+		"user":      username,
+		"status":    ONstatus,
+		"question":  Question_URI,
 		"startTime": StartTime,
 	}
 	StartEnd_Lock.Unlock()
@@ -122,19 +121,18 @@ func RcvSnSignUp(msg *Message) (interface{}, error) {
 	return signUpMsg, err
 }
 
-
-// rcv the multicast commit_ready from SN 
+// rcv the multicast commit_ready from SN
 func RcvSnSignUpCommitReady(msg *Message) (interface{}, error) {
 	if msg.Kind != SN_SN_COMMIT_RD {
 		return nil, errors.New("message Kind indicates not a SN_SN_COMMIT_RD")
 	}
-	
+
 	var username string
 	if err := ParseRcvInterfaces(msg, &username); err != nil {
 		fmt.Println("In RcvSnSignUpCommitReady:")
 		return nil, err
 	}
-	
+
 	status := "Ready"
 	// check ready set to see whether it has been registered
 	if _, exist := SignUp_commit_readySet[username]; exist {
@@ -145,40 +143,39 @@ func RcvSnSignUpCommitReady(msg *Message) (interface{}, error) {
 		SignUp_commit_readySet[username] = msg.Origin
 		SignUp_commitLock.Unlock()
 	}
-	
+
 	// send status to master
 	commitACKMsg := new(Message)
-	readyMsg := map[string]string {
-		"status" 	: 	status,
-		"username"	:	username,
+	readyMsg := map[string]string{
+		"status":   status,
+		"username": username,
 	}
-	
+
 	err := commitACKMsg.NewMsgwithData(msg.Origin, SN_SN_COMMIT_RD_ACK, readyMsg)
 	if err != nil {
 		fmt.Println("In RcvSnSignUpCommitReady:")
 		return nil, err
 	}
 	MsgPasser.Send(commitACKMsg)
-	
+
 	return username, nil
 }
-
 
 // rcv commit_ready ack from workers
 func RcvSnSignUpCommitReadyACK(msg *Message) (interface{}, error) {
 	if msg.Kind != SN_SN_COMMIT_RD_ACK {
 		return nil, errors.New("message Kind indicates not a SN_SN_COMMIT_RD_ACK")
 	}
-	
+
 	var readyReply map[string]string
 	if err := ParseRcvInterfaces(msg, &readyReply); err != nil {
 		fmt.Println("In RcvSnSignUpCommitReadyACK:")
 		return nil, err
 	}
-	
+
 	username := readyReply["username"]
 	status := readyReply["status"]
-	
+
 	// check ready set to see whether it has conflict
 	if _, exist := signUp_requestMap[username]; exist {
 		SignUp_commitLock.Lock()
@@ -189,10 +186,9 @@ func RcvSnSignUpCommitReadyACK(msg *Message) (interface{}, error) {
 		}
 		SignUp_commitLock.Unlock()
 	}
-	
+
 	return readyReply, nil
 }
-
 
 // rcv the multicast sign up message from other SN
 func RcvSnMSignUp(msg *Message) (interface{}, error) {
@@ -208,15 +204,15 @@ func RcvSnMSignUp(msg *Message) (interface{}, error) {
 		return nil, err
 	}
 
-	fmt.Println("SIGNUP GET MSG:" , mSignUpMsg)
+	fmt.Println("SIGNUP GET MSG:", mSignUpMsg)
 	if mSignUpMsg["status"] == "Commit" {
 		status := util.DatabaseSignUp(mSignUpMsg["username"], mSignUpMsg["password"], mSignUpMsg["email"])
 		if status != "success" {
 			return nil, err
 		}
-		
+
 	}
-	
+
 	// delete it from request map
 	SignUp_commitLock.Lock()
 	delete(SignUp_commit_readySet, mSignUpMsg["username"])
@@ -225,9 +221,9 @@ func RcvSnMSignUp(msg *Message) (interface{}, error) {
 	return mSignUpMsg, err
 }
 
-
 // rcv sign In msg from ON
 func RcvSnSignIn(msg *Message) (interface{}, error) {
+
 	if msg.Kind != ON_SN_SIGNIN {
 		return nil, errors.New("message Kind indicates not a ON_SN_SIGNIN")
 	}
@@ -243,9 +239,9 @@ func RcvSnSignIn(msg *Message) (interface{}, error) {
 
 	StartEnd_Lock.Lock()
 	backData := map[string]string{
-		"user":   signInMsg["username"],
-		"status": backMsg,
-		"question": Question_URI,
+		"user":      signInMsg["username"],
+		"status":    backMsg,
+		"question":  Question_URI,
 		"startTime": StartTime,
 	}
 	StartEnd_Lock.Unlock()
@@ -273,7 +269,6 @@ func RcvSnSignIn(msg *Message) (interface{}, error) {
 	return signInMsg, err
 }
 
-
 // rcv pbl Success msg from ON
 func RcvSnPblSuccess(msg *Message) (interface{}, error) {
 	if msg.Kind != ON_SN_PBLSUCCESS {
@@ -288,7 +283,6 @@ func RcvSnPblSuccess(msg *Message) (interface{}, error) {
 
 	globalRankChanged := updateLocalInfoWithOneRecord(userRecord)
 
-	
 	//multicast the new grobal rank to SNs
 	if globalRankChanged {
 		globalRankMsg := new(Message)
@@ -319,13 +313,12 @@ func RcvSnPblSuccess(msg *Message) (interface{}, error) {
 		fmt.Println("In RcvSnPblSuccess:")
 		return nil, err
 	}
-	
+
 	// send message to ONs
 	MulticastMsgInGroup(sendoutMsg, false)
 
 	return userRecord, nil
 }
-
 
 // SN or ON rcv ranking update
 func RcvSnRankfromOrigin(msg *Message) (interface{}, error) {
@@ -338,7 +331,7 @@ func RcvSnRankfromOrigin(msg *Message) (interface{}, error) {
 		fmt.Println("In RcvSnRankfromOrigin:")
 		return nil, err
 	}
-	
+
 	Local_Info_Mutex.Lock()
 
 	//update the global rank list in local
@@ -363,7 +356,6 @@ func RcvSnRankfromOrigin(msg *Message) (interface{}, error) {
 
 	return newRankList, nil
 }
-
 
 // Request from ordinary node to ask info from supernode
 func RcvSnAskInfo(msg *Message) (interface{}, error) {
@@ -393,7 +385,6 @@ func RcvSnAskInfo(msg *Message) (interface{}, error) {
 	return nil, nil
 }
 
-
 // rcv start/end msg from ON
 func RcvSnStartEndFromON(msg *Message) (interface{}, error) {
 	if msg.Kind != ON_SN_STARTEND {
@@ -408,7 +399,6 @@ func RcvSnStartEndFromON(msg *Message) (interface{}, error) {
 
 	return nil, nil
 }
-
 
 // rcv start/end msg from other sn
 func RcvSnStartEndFromSN(msg *Message) (interface{}, error) {
@@ -426,7 +416,6 @@ func RcvSnStartEndFromSN(msg *Message) (interface{}, error) {
 	return nil, nil
 }
 
-
 func updateLocalInfoWithOneRecord(userRecord UserRecord) bool {
 	Local_Info_Mutex.Lock()
 	rankChanged := false
@@ -439,7 +428,7 @@ func updateLocalInfoWithOneRecord(userRecord UserRecord) bool {
 			return rankChanged
 		}
 	}
-	
+
 	// new or better record
 	Local_map[userRecord.UserName] = userRecord
 
@@ -489,10 +478,8 @@ func updateLocalInfoWithOneRecord(userRecord UserRecord) bool {
 	return rankChanged
 }
 
-
-
 // merge global ranking with a new list
-func mergeGlobalRankingWithList(newRankList [GlobalRankSize]UserRecord){
+func mergeGlobalRankingWithList(newRankList [GlobalRankSize]UserRecord) {
 	newList := [GlobalRankSize]UserRecord{}
 	indexGlobalR := 0
 	indexNewR := 0
@@ -500,7 +487,7 @@ func mergeGlobalRankingWithList(newRankList [GlobalRankSize]UserRecord){
 	userNameSet := map[string]bool{}
 	endGlobalR := getEmptyPos(Global_ranking)
 	endNewR := getEmptyPos(newRankList)
-	
+
 	// main merge
 	for index < GlobalRankSize && indexGlobalR < endGlobalR && indexNewR < endNewR {
 		if Global_ranking[indexGlobalR].CompareTo(newRankList[indexNewR]) {
@@ -522,7 +509,7 @@ func mergeGlobalRankingWithList(newRankList [GlobalRankSize]UserRecord){
 			indexNewR++
 		}
 	}
-	
+
 	for index < GlobalRankSize && indexGlobalR < endGlobalR {
 		if _, exist := userNameSet[Global_ranking[indexGlobalR].UserName]; !exist {
 			newList[index] = Global_ranking[indexGlobalR]
@@ -531,7 +518,7 @@ func mergeGlobalRankingWithList(newRankList [GlobalRankSize]UserRecord){
 		}
 		indexGlobalR++
 	}
-	
+
 	for index < GlobalRankSize && indexNewR < endNewR {
 		if _, exist := userNameSet[newRankList[indexNewR].UserName]; !exist {
 			newList[index] = newRankList[indexNewR]
@@ -540,15 +527,14 @@ func mergeGlobalRankingWithList(newRankList [GlobalRankSize]UserRecord){
 		}
 		indexNewR++
 	}
-	
+
 	Global_ranking = newList
 }
-
 
 // find the first empty slot of a ranklist
 func getEmptyPos(rankList [GlobalRankSize]UserRecord) int {
 	index := 0
-	for  ; index < GlobalRankSize; index++ {
+	for ; index < GlobalRankSize; index++ {
 		if len(rankList[index].UserName) == 0 {
 			return index
 		}
@@ -556,10 +542,9 @@ func getEmptyPos(rankList [GlobalRankSize]UserRecord) int {
 	return index
 }
 
-
 // is Super: true: send to other SNs, false: send to ON in group
 func MulticastMsgInGroup(m *Message, isSuper bool) {
-	newMCastMsg := new(MultiCastMessage) 
+	newMCastMsg := new(MultiCastMessage)
 	tmpMsg := &newMCastMsg.Message
 	tmpMsg.CopyMsg(m)
 	newMCastMsg.Origin = MsgPasser.ServerIP
@@ -580,6 +565,3 @@ func MulticastMsgInGroup(m *Message, isSuper bool) {
 		ONHostlistMutex.Unlock()
 	}
 }
-
-
-

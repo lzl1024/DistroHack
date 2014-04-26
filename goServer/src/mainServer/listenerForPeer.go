@@ -1,16 +1,16 @@
 package main
 
 import (
-	"fmt"
-	"net"
-	"msg"
 	"encoding/gob"
+	"fmt"
+	"msg"
+	"net"
 )
 
 func InitListenerForPeers() {
 	channel := make(chan error)
 	go serverthread(msg.MsgPasser, channel)
-	value := <- channel
+	value := <-channel
 	fmt.Println(value)
 }
 
@@ -24,14 +24,14 @@ func serverthread(mp *msg.Messagepasser, c chan error) {
 		c <- err
 		return
 	}
-	
+
 	listener, err := net.ListenTCP("tcp", tcpAddr)
 	if err != nil {
 		fmt.Println("ServerThread: Unrecoverable error trying to start listening on server ", err)
 		c <- err
 		return
 	}
-	
+
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
@@ -48,7 +48,7 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 	var ok bool
 	var err error
 	var data interface{}
-	
+
 	tcpconn, ok = conn.(*net.TCPConn)
 	if ok {
 		err = tcpconn.SetLinger(0)
@@ -56,7 +56,7 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 			fmt.Println("RcvThread: cannot set linger options")
 		}
 	}
-	
+
 	decoder := gob.NewDecoder(conn)
 	for {
 		err := decoder.Decode(&data)
@@ -65,20 +65,20 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 			conn.Close()
 			break
 		}
-		
+
 		switch t := data.(type) {
-			case msg.Message :
-				mp.IncomingMsg <- t
-			case msg.MultiCastMessage :
-				mp.IncomingMCastMsg <- t
-			default :
-				fmt.Println("RcvThread: Issues are there, msg is not message or multicasemsg")
+		case msg.Message:
+			mp.IncomingMsg <- t
+		case msg.MultiCastMessage:
+			mp.IncomingMCastMsg <- t
+		default:
+			fmt.Println("RcvThread: Issues are there, msg is not message or multicasemsg")
 		}
 	}
-	
+
 	/* remove the connection from all maps (SN/ON or Conn)*/
 	mp.ConnMutex.Lock()
-	dest,_,_ := net.SplitHostPort(conn.RemoteAddr().String()) 
+	dest, _, _ := net.SplitHostPort(conn.RemoteAddr().String())
 	connection, ok := mp.Connmap[dest]
 	if ok {
 		fmt.Println("RcvThread: Removing connection to ", dest, " from connection map")
@@ -86,7 +86,6 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 		delete(mp.Connmap, dest)
 	}
 	mp.ConnMutex.Unlock()
-	
 
 	// go through the SignUp_commit_readySet to clean up the commit coordinator status
 	msg.SignUp_commitLock.Lock()
@@ -96,10 +95,10 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 		}
 	}
 	msg.SignUp_commitLock.Unlock()
-	
+
 	msg.SNHostlistMutex.Lock()
 	// SN peer fails, only need to delete it from map
-	_,ok = mp.SNHostlist[dest]
+	_, ok = mp.SNHostlist[dest]
 	if ok {
 		fmt.Println("RcvThread: Removing entry to ", dest, " from SNHostList map")
 		delete(mp.SNHostlist, dest)
@@ -108,30 +107,29 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 	}
 	msg.SNHostlistMutex.Unlock()
 
-
 	// ON fails, SN should notify other to change status
-	_,ok = mp.ONHostlist[dest]
+	_, ok = mp.ONHostlist[dest]
 	if ok {
 		msg.ONHostlistMutex.Lock()
 		fmt.Println("RcvThread: Removing entry to ", dest, " from ONHostlist map")
 		delete(mp.ONHostlist, dest)
 		msg.ONHostlistMutex.Unlock()
-		
+
 		// for SN, Notify others of my load change
 		if isSN {
 			msg.ONHostlistMutex.Lock()
 			loadNotify := new(msg.Message)
 			err := loadNotify.NewMsgwithData("", msg.SN_SN_LOADMERGE, len(mp.ONHostlist))
 			msg.ONHostlistMutex.Unlock()
-			
+
 			if err != nil {
 				fmt.Println("When ON failure: ", err)
 				return
 			}
-	
+
 			// send message to SNs
 			msg.MulticastMsgInGroup(loadNotify, true)
-			
+
 			msg.ONHostlistMutex.Lock()
 			/* Send MCast to other ONs in the group */
 			changeONList := new(msg.Message)
@@ -141,19 +139,18 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 				fmt.Println("When ON failure: ", err)
 				return
 			}
-	
+
 			// send message to ONs
 			msg.MulticastMsgInGroup(changeONList, false)
 		}
-		
+
 	}
-	
+
 	// clear receive archive
 	mp.RefreshAlreadyRcvdlist(dest)
-	
+
 	// ON's SN fails, improved bully algorithm
 	if msg.SuperNodeIP == dest {
 		msg.SNFailure()
 	}
 }
-

@@ -32,8 +32,8 @@ const Question_file = "https://s3.amazonaws.com/dsconfig/questions.txt"
 
 func ReadConfig() error {
 	for key, _ := range util.SNConfigNames {
-		conn, err := net.DialTimeout("tcp", fmt.Sprint(key, ":", ListenPortSuperNode), 
-						(time.Duration(100) * time.Millisecond))
+		conn, err := net.DialTimeout("tcp", fmt.Sprint(key, ":", ListenPortSuperNode),
+			(time.Duration(100) * time.Millisecond))
 		if err == nil {
 			conn.Close()
 			tcpAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprint(key, ":", ListenPortSuperNode))
@@ -82,7 +82,7 @@ func ConstructHttpServer() {
 	http.HandleFunc("/hello", func(w http.ResponseWriter, req *http.Request) {
 		io.WriteString(w, "hello, world!\n")
 	})
-	
+
 	http.HandleFunc("/database", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "/tmp/users.csv")
 	})
@@ -137,18 +137,19 @@ func BootStrapSN() {
 		return
 	}
 
+	// I am myself's supernode
+	SuperNodeIP = MsgPasser.ServerIP
+
 	// select the first entry randomly
 	rand.Seed(time.Now().UnixNano())
 
 	listLength := len(configSNList)
 	if listLength == 0 {
-		SNbootstrap <- nil
+		//SNbootstrap <- errors.New("Nothing in List, I am the very first")
+		SNbootstrap <- errors.New("")
 		return
 	}
-	
-	// I am myself's supernode
-	SuperNodeIP = MsgPasser.ServerIP
-		
+
 	start := rand.Intn(listLength)
 	for i := range configSNList {
 		chose := (start + i) % listLength
@@ -159,10 +160,12 @@ func BootStrapSN() {
 			if err != nil {
 				continue
 			}
+
+			fmt.Println("bootstrap send bootstrapMsg to ", configSNList[chose].String())
 			break
 		}
 	}
-	
+
 	if err != nil {
 		SNbootstrap <- err
 		return
@@ -318,8 +321,8 @@ func RcvSnLoadUpdate(msg *Message) (interface{}, error) {
 		fmt.Println("In RcvSnLoadUpdate: ")
 		return nil, err
 	}
-	
-    SNHostlistMutex.Lock()
+
+	SNHostlistMutex.Lock()
 	MsgPasser.SNLoadlist[msg.Origin] = load
 	SNHostlistMutex.Unlock()
 	newMsg := new(Message)
@@ -346,7 +349,7 @@ func RcvSnLoadMerge(msg *Message) (interface{}, error) {
 		fmt.Println("In RcvSnLoadMerge: ")
 		return nil, err
 	}
-	
+
 	SNHostlistMutex.Lock()
 	MsgPasser.SNLoadlist[msg.Origin] = load
 	SNHostlistMutex.Unlock()
@@ -379,20 +382,20 @@ func RcvSnJoin(msg *Message) (interface{}, error) {
 	for !httpServerReady {
 		fmt.Println("BootStrap: wait for http server...")
 	}
-	
+
 	// export data in db into file on server
 	err = util.DatabaseCreateDBFile()
 	if err != nil {
 		fmt.Println("In RcvSnJoin: ", err)
 		return nil, err
 	}
-	
+
 	// send out ack msg tell the new sn data is ready on server
 	bootStrapMsg := new(Message)
-	
+
 	StartEnd_Lock.Lock()
 	backData := map[string]string{
-		"serverIP": MsgPasser.ServerIP,
+		"serverIP":  MsgPasser.ServerIP,
 		"startTime": StartTime,
 	}
 	StartEnd_Lock.Unlock()
@@ -440,9 +443,9 @@ func RcvSnJoinAck(msg *Message) (interface{}, error) {
 		SNbootstrap <- err
 		return nil, err
 	}
-	
+
 	ip := ipWithStartTime["serverIP"]
-	
+
 	// update hack start time
 	StartEnd_Lock.Lock()
 	StartTime = ipWithStartTime["startTime"]
@@ -460,7 +463,7 @@ func RcvSnJoinAck(msg *Message) (interface{}, error) {
 		SNbootstrap <- err
 		return nil, err
 	}
-	
+
 	// import the file into database
 	err = util.DatabaseLoadDBFile()
 	if err != nil {
@@ -479,9 +482,9 @@ func RcvSnJoinAck(msg *Message) (interface{}, error) {
 		return nil, err
 	}
 	MulticastMsgInGroup(newMsg, true)
-	
-	SNbootstrap <- nil
-	
+
+	SNbootstrap <- errors.New("")
+
 	return nil, nil
 }
 
@@ -503,7 +506,7 @@ func RcvSnListUpdate(msg *Message) (interface{}, error) {
 	for k, _ := range hostlist {
 		MsgPasser.SNHostlist[k] = hostlist[k]
 	}
-	
+
 	newMsg := new(Message)
 	newMsg.NewMsgwithData("", SN_SN_LISTMERGE, MsgPasser.SNHostlist)
 	SNHostlistMutex.Unlock()
@@ -527,7 +530,7 @@ func RcvSnListMerge(msg *Message) (interface{}, error) {
 		fmt.Println("In RcvSnListMerge: ")
 		return nil, err
 	}
-	
+
 	SNHostlistMutex.Lock()
 	/* merge the hostlist with current SNlist */
 	for k, _ := range hostlist {
