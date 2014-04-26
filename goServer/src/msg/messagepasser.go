@@ -22,6 +22,7 @@ type Connection struct {
 var SuperNodeIP = ""
 var rcvdlistMutex = &sync.Mutex{}
 var SNHostlistMutex = &sync.Mutex{}
+var ONHostlistMutex = &sync.Mutex{}
 
 var BusyWaitingSleepInterval = time.Millisecond * time.Duration(100)
 var BusyWaitingTimeOutRound = 100

@@ -542,11 +542,6 @@ func mergeGlobalRankingWithList(newRankList [GlobalRankSize]UserRecord){
 	}
 	
 	Global_ranking = newList
-	
-	//fmt.Println("NEW GLOBAL RANKING!!!!")
-	//for i := range Global_ranking {
-	//	fmt.Println(Global_ranking[i].String())
-	//}
 }
 
 
@@ -579,7 +574,10 @@ func MulticastMsgInGroup(m *Message, isSuper bool) {
 		SNHostlistMutex.Unlock()
 	} else {
 		fmt.Printf("SuperNodeHandler: multicastMsgInGroup ONHostList %d\n", len(MsgPasser.ONHostlist))
+		ONHostlistMutex.Lock()
 		newMCastMsg.HostList = MsgPasser.ONHostlist
+		MsgPasser.SendMCast(newMCastMsg)
+		ONHostlistMutex.Unlock()
 	}
 }
 

@@ -54,13 +54,14 @@ func findNewSN() {
 				// check accept using one by one compare, instead of using the size
 				// of the set, in case of other ON fails
 				win := true
+				ONHostlistMutex.Lock()
 				for ONname := range MsgPasser.ONHostlist {
 					if _, exist := ON_ACK_Set[ONname]; !exist {
 						win = false
 						break
 					}
 				}
-				
+				ONHostlistMutex.Unlock()
 				// I am the Leader! Send msg to my ONs
 				if win {
 					fmt.Println("I am the Leader!!!")

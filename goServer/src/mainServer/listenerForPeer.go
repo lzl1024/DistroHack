@@ -112,13 +112,18 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 	// ON fails, SN should notify other to change status
 	_,ok = mp.ONHostlist[dest]
 	if ok {
+		msg.ONHostlistMutex.Lock()
 		fmt.Println("RcvThread: Removing entry to ", dest, " from ONHostlist map")
 		delete(mp.ONHostlist, dest)
+		msg.ONHostlistMutex.Unlock()
 		
 		// for SN, Notify others of my load change
 		if isSN {
+			msg.ONHostlistMutex.Lock()
 			loadNotify := new(msg.Message)
 			err := loadNotify.NewMsgwithData("", msg.SN_SN_LOADMERGE, len(mp.ONHostlist))
+			msg.ONHostlistMutex.Unlock()
+			
 			if err != nil {
 				fmt.Println("When ON failure: ", err)
 				return
@@ -127,9 +132,11 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 			// send message to SNs
 			msg.MulticastMsgInGroup(loadNotify, true)
 			
+			msg.ONHostlistMutex.Lock()
 			/* Send MCast to other ONs in the group */
 			changeONList := new(msg.Message)
 			err = changeONList.NewMsgwithData("", msg.SN_ON_CHANGEONLIST, mp.ONHostlist)
+			msg.ONHostlistMutex.Unlock()
 			if err != nil {
 				fmt.Println("When ON failure: ", err)
 				return

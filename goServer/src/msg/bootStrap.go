@@ -253,12 +253,14 @@ func RcvSnOnRegister(msg *Message) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+	ONHostlistMutex.Lock()
 	/* Update ONlist */
 	MsgPasser.ONHostlist[ip] = ip
 
 	/* Send MCast to other ONs in the group */
 	changeONList := new(Message)
 	err = changeONList.NewMsgwithData("", SN_ON_CHANGEONLIST, MsgPasser.ONHostlist)
+	ONHostlistMutex.Unlock()
 	if err != nil {
 		fmt.Println("In RcvSnOnRegister: ")
 		return nil, err
@@ -269,7 +271,9 @@ func RcvSnOnRegister(msg *Message) (interface{}, error) {
 
 	/* Send Load Message to Others */
 	newMsg := new(Message)
+	ONHostlistMutex.Lock()
 	newMsg.NewMsgwithData("", SN_SN_LOADUPDATE, len(MsgPasser.ONHostlist))
+	ONHostlistMutex.Unlock()
 	if err != nil {
 		fmt.Println("In RcvSnOnRegister: ")
 		return nil, err
@@ -293,7 +297,9 @@ func RcvSNChangeONList(msg *Message) (interface{}, error) {
 			fmt.Println("In RcvSNCHangeONList: ")
 			return nil, err
 		}
+		ONHostlistMutex.Lock()
 		MsgPasser.ONHostlist = newONList
+		ONHostlistMutex.Unlock()
 
 		return newONList, nil
 	} else {
@@ -317,7 +323,9 @@ func RcvSnLoadUpdate(msg *Message) (interface{}, error) {
 	MsgPasser.SNLoadlist[msg.Origin] = load
 	SNHostlistMutex.Unlock()
 	newMsg := new(Message)
+	ONHostlistMutex.Lock()
 	newMsg.NewMsgwithData("", SN_SN_LOADMERGE, len(MsgPasser.ONHostlist))
+	ONHostlistMutex.Unlock()
 	if err != nil {
 		fmt.Println("In RcvSnOnRegister: ")
 		return nil, err
@@ -463,7 +471,9 @@ func RcvSnJoinAck(msg *Message) (interface{}, error) {
 
 	/* Send Load Message to Others */
 	newMsg := new(Message)
+	ONHostlistMutex.Lock()
 	newMsg.NewMsgwithData("", SN_SN_LOADUPDATE, len(MsgPasser.ONHostlist))
+	ONHostlistMutex.Unlock()
 	if err != nil {
 		fmt.Println("In RcvSnOnRegister: ")
 		return nil, err
