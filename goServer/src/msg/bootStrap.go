@@ -380,7 +380,15 @@ func RcvSnJoin(msg *Message) (interface{}, error) {
 	}
 	// send out ack msg tell the new sn data is ready on server
 	bootStrapMsg := new(Message)
-	err = bootStrapMsg.NewMsgwithData(ip, SN_SN_JOIN_ACK, MsgPasser.ServerIP)
+	
+	StartEnd_Lock.Lock()
+	backData := map[string]string{
+		"serverIP": MsgPasser.ServerIP,
+		"startTime": StartTime,
+	}
+	StartEnd_Lock.Unlock()
+
+	err = bootStrapMsg.NewMsgwithData(ip, SN_SN_JOIN_ACK, backData)
 	err = MsgPasser.Send(bootStrapMsg)
 	if err != nil {
 		fmt.Println("In RcvSnJoin: ")
@@ -411,12 +419,19 @@ func RcvSnJoinAck(msg *Message) (interface{}, error) {
 		return nil, errors.New("message Kind indicates not a SN_SN_JOIN_ACK")
 	}
 
-	var ip string
-	err := ParseRcvInterfaces(msg, &ip)
+	var ipWithStartTime map[string]string
+	err := ParseRcvInterfaces(msg, &ipWithStartTime)
 	if err != nil {
 		fmt.Println("In RcvSnJoinAck: ")
 		return nil, err
 	}
+	
+	ip := ipWithStartTime["serverIP"]
+	
+	// update hack start time
+	StartEnd_Lock.Lock()
+	StartTime = ipWithStartTime["startTime"]
+	StartEnd_Lock.Unlock()
 
 	if strings.EqualFold(ip, msg.Src) == false {
 		return nil, errors.New("message Src Doesn't match IP address sent")
