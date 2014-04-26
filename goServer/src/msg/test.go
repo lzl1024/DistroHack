@@ -21,8 +21,6 @@ func clientTestThread(mp *Messagepasser, c chan error) {
 	//testGlobalRank(mp, c)
 
 	//testMulticast(mp, c)
-	//mp.SNHostlist["10.0.1.17"] = "10.0.1.17"
-	//mp.ONHostlist["10.0.1.17"] = "10.0.1.17"
 	//testDLock(mp, c)
 }
 

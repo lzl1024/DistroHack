@@ -16,61 +16,6 @@ type LocalInfo struct {
 
 var Local_Info_Mutex sync.Mutex
 
-
-func SuperNodeThreadTest() {
-	/*scoreMap = make(map[string]UserRecord)
-
-	tmpLocalInfo := new(localInfo)
-
-	fmt.Printf("%p\n", &tmpLocalInfo.scoremap)
-
-	tmpLocalInfo.ranklist = rankList
-	record := new(UserRecord)
-	record.NewUserRecord("aaa", 1, rankList[0].Ctime)
-	scoreMap["aaa"] = *record
-	tmpLocalInfo.scoremap = scoreMap
-
-	fmt.Printf("%p\n", &scoreMap)
-	fmt.Printf("%p\n", &tmpLocalInfo.scoremap)
-	fmt.Println(tmpLocalInfo.scoremap["aaa"].String())
-
-	a := list.New()
-	fmt.Printf("%p\n", a)
-
-	b := a
-	fmt.Printf("%p\n", b)
-
-	newMCastMsg := new(MultiCastMessage)
-	//newMCastMsg.NewMCastMsgwithData("", msg.SN_SNON_RANK, rankList)
-	//newMCastMsg.Origin = mp.ServerIP
-	fmt.Printf("%p  %p\n ", &newMCastMsg.HostList, newMCastMsg.HostList)
-	fmt.Println(newMCastMsg.HostList[0])
-	newMCastMsg.HostList = make([]string, 0)
-	fmt.Printf("%p %p\n", &newMCastMsg.HostList, newMCastMsg.HostList)
-
-	/*record := new(msg.UserRecord)
-	fmt.Println(reflect.TypeOf(record))
-	record.NewUserRecord("aaa", 1, rankList[0].Ctime)
-	fmt.Printf("%p\n", record)
-
-	record1 := *record
-	fmt.Printf("%p\n", &record1)
-	record1.Score = 2
-
-	rankList[0] = record1
-	fmt.Printf("%p\n", &rankList[0])
-	rankList[1] = *record
-	fmt.Printf("%p\n", &rankList[1])
-
-	var tmprankList [msg.GlobalRankSize]msg.UserRecord
-
-	record1.Score = 3
-	tmprankList[0] = record1
-	tmprankList[1] = *record
-
-	updateGlobalRankList(tmprankList)*/
-}
-
 // rcv sign up msg from ON
 func RcvSnSignUp(msg *Message) (interface{}, error) {
 	// register user and send back SignUpAck
@@ -619,49 +564,24 @@ func getEmptyPos(rankList [GlobalRankSize]UserRecord) int {
 
 // is Super: true: send to other SNs, false: send to ON in group
 func MulticastMsgInGroup(m *Message, isSuper bool) {
-	newMCastMsg := new(MultiCastMessage)
-	// TODO: why not newMCastMsg.Message = tmpMsg ?? 
+	newMCastMsg := new(MultiCastMessage) 
 	tmpMsg := &newMCastMsg.Message
 	tmpMsg.CopyMsg(m)
 	newMCastMsg.Origin = MsgPasser.ServerIP
 	newMCastMsg.Seqnum = atomic.AddInt32(&MsgPasser.SeqNum, 1)
-
 	newMCastMsg.HostList = make(map[string]string)
 
 	if isSuper {
 		fmt.Printf("SuperNodeHandler: multicastMsgInGroup SNHostList %d\n", len(MsgPasser.SNHostlist))
-
-		/*for k,_ := range MsgPasser.SNHostlist {
-			newMCastMsg.HostList[k] = MsgPasser.SNHostlist[k]
-		}*/
+		SNHostlistMutex.Lock()
 		newMCastMsg.HostList = MsgPasser.SNHostlist
-
+		MsgPasser.SendMCast(newMCastMsg)
+		SNHostlistMutex.Unlock()
 	} else {
 		fmt.Printf("SuperNodeHandler: multicastMsgInGroup ONHostList %d\n", len(MsgPasser.ONHostlist))
-
-		/*for k,_ := range MsgPasser.ONHostlist {
-			newMCastMsg.HostList[k] = MsgPasser.ONHostlist[k]
-		}*/
 		newMCastMsg.HostList = MsgPasser.ONHostlist
 	}
-	MsgPasser.SendMCast(newMCastMsg)
 }
-
-
-/*func multicastGlobalRankToSNs() {
-	newMCastMsg := new(MultiCastMessage)
-	newMCastMsg.NewMCastMsgwithData("", SN_SN_RANK, Global_ranking)
-	newMCastMsg.Origin = MsgPasser.ServerIP
-	newMCastMsg.Seqnum = atomic.AddInt32(&MsgPasser.SeqNum, 1)
-
-	newMCastMsg.HostList = make(map[string]string)
-	//for k,_ := range MsgPasser.SNHostlist {
-	//	newMCastMsg.HostList[k] = MsgPasser.SNHostlist[k]
-	//}
-	newMCastMsg.HostList = MsgPasser.SNHostlist
-	
-	MsgPasser.SendMCast(newMCastMsg)
-}*/
 
 
 

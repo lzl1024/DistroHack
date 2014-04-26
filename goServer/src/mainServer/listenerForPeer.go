@@ -97,7 +97,7 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 	}
 	msg.SignUp_commitLock.Unlock()
 	
-	
+	msg.SNHostlistMutex.Lock()
 	// SN peer fails, only need to delete it from map
 	_,ok = mp.SNHostlist[dest]
 	if ok {
@@ -106,6 +106,7 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 		delete(mp.SNLoadlist, dest)
 		msg.DLock.ResetLock(dest)
 	}
+	msg.SNHostlistMutex.Unlock()
 
 
 	// ON fails, SN should notify other to change status

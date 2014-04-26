@@ -267,12 +267,13 @@ func RcvSnOnRegister(msg *Message) (interface{}, error) {
 	MulticastMsgInGroup(changeONList, false)
 
 	/* Send Load Message to Others */
-	newMCastMsg := new(MultiCastMessage)
-	newMCastMsg.NewMCastMsgwithData("", SN_SN_LOADUPDATE, len(MsgPasser.ONHostlist))
-	newMCastMsg.HostList = MsgPasser.SNHostlist
-	newMCastMsg.Origin = MsgPasser.ServerIP
-	newMCastMsg.Seqnum = atomic.AddInt32(&MsgPasser.SeqNum, 1)
-	MsgPasser.SendMCast(newMCastMsg)
+	newMsg := new(Message)
+	newMsg.NewMsgwithData("", SN_SN_LOADUPDATE, len(MsgPasser.ONHostlist))
+	if err != nil {
+		fmt.Println("In RcvSnOnRegister: ")
+		return nil, err
+	}
+	MulticastMsgInGroup(newMsg, true)
 
 	return msg, nil
 }
@@ -313,12 +314,13 @@ func RcvSnLoadUpdate(msg *Message) (interface{}, error) {
 
 	MsgPasser.SNLoadlist[msg.Origin] = load
 
-	newMCastMsg := new(MultiCastMessage)
-	newMCastMsg.NewMCastMsgwithData("", SN_SN_LOADMERGE, len(MsgPasser.ONHostlist))
-	newMCastMsg.HostList = MsgPasser.SNHostlist
-	newMCastMsg.Origin = MsgPasser.ServerIP
-	newMCastMsg.Seqnum = atomic.AddInt32(&MsgPasser.SeqNum, 1)
-	MsgPasser.SendMCast(newMCastMsg)
+	newMsg := new(Message)
+	newMsg.NewMsgwithData("", SN_SN_LOADMERGE, len(MsgPasser.ONHostlist))
+	if err != nil {
+		fmt.Println("In RcvSnOnRegister: ")
+		return nil, err
+	}
+	MulticastMsgInGroup(newMsg, true)
 
 	return msg, nil
 }
@@ -395,10 +397,11 @@ func RcvSnJoin(msg *Message) (interface{}, error) {
 	 */
 	hostlist := make(map[string]string)
 	hostlist[ip] = ip
+	SNHostlistMutex.Lock()
 	for k, _ := range MsgPasser.SNHostlist {
 		hostlist[k] = MsgPasser.SNHostlist[k]
 	}
-
+	SNHostlistMutex.Unlock()
 	newMCastMsg := new(MultiCastMessage)
 	newMCastMsg.NewMCastMsgwithData("", SN_SN_LISTUPDATE, hostlist)
 	newMCastMsg.HostList = hostlist
@@ -445,8 +448,6 @@ func RcvSnJoinAck(msg *Message) (interface{}, error) {
 		SNbootstrap <- err
 		return nil, err
 	}
-
-	time.Sleep(time.Second * time.Duration(2))
 	
 	// import the file into database
 	err = util.DatabaseLoadDBFile()
@@ -457,12 +458,14 @@ func RcvSnJoinAck(msg *Message) (interface{}, error) {
 	}
 
 	/* Send Load Message to Others */
-	newMCastMsg := new(MultiCastMessage)
-	newMCastMsg.NewMCastMsgwithData("", SN_SN_LOADUPDATE, len(MsgPasser.ONHostlist))
-	newMCastMsg.HostList = MsgPasser.SNHostlist
-	newMCastMsg.Origin = MsgPasser.ServerIP
-	newMCastMsg.Seqnum = atomic.AddInt32(&MsgPasser.SeqNum, 1)
-	MsgPasser.SendMCast(newMCastMsg)
+	newMsg := new(Message)
+	newMsg.NewMsgwithData("", SN_SN_LOADUPDATE, len(MsgPasser.ONHostlist))
+	if err != nil {
+		fmt.Println("In RcvSnOnRegister: ")
+		return nil, err
+	}
+	MulticastMsgInGroup(newMsg, true)
+	
 	SNbootstrap <- nil
 	
 	return nil, nil
@@ -482,16 +485,19 @@ func RcvSnListUpdate(msg *Message) (interface{}, error) {
 	}
 
 	/* merge the hostlist with current SNlist */
+	SNHostlistMutex.Lock()
 	for k, _ := range hostlist {
 		MsgPasser.SNHostlist[k] = hostlist[k]
 	}
-
-	newMCastMsg := new(MultiCastMessage)
-	newMCastMsg.NewMCastMsgwithData("", SN_SN_LISTMERGE, MsgPasser.SNHostlist)
-	newMCastMsg.HostList = MsgPasser.SNHostlist
-	newMCastMsg.Origin = MsgPasser.ServerIP
-	newMCastMsg.Seqnum = atomic.AddInt32(&MsgPasser.SeqNum, 1)
-	MsgPasser.SendMCast(newMCastMsg)
+	
+	newMsg := new(Message)
+	newMsg.NewMsgwithData("", SN_SN_LISTMERGE, MsgPasser.SNHostlist)
+	SNHostlistMutex.Unlock()
+	if err != nil {
+		fmt.Println("In RcvSnOnRegister: ")
+		return nil, err
+	}
+	MulticastMsgInGroup(newMsg, true)
 
 	return MsgPasser.SNHostlist, nil
 }
@@ -507,11 +513,12 @@ func RcvSnListMerge(msg *Message) (interface{}, error) {
 		fmt.Println("In RcvSnListMerge: ")
 		return nil, err
 	}
-
+	
+	SNHostlistMutex.Lock()
 	/* merge the hostlist with current SNlist */
 	for k, _ := range hostlist {
 		MsgPasser.SNHostlist[k] = hostlist[k]
 	}
-
+	SNHostlistMutex.Unlock()
 	return MsgPasser.SNHostlist, nil
 }
