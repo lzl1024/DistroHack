@@ -207,6 +207,7 @@ func RcvOnJoin(msg *Message) (interface{}, error) {
 	// get the SN with the lightest load
 	min := (1 << 30)
 	var snIP string
+	SNHostlistMutex.Lock()
 	for k, _ := range MsgPasser.SNLoadlist {
 		if MsgPasser.SNLoadlist[k] < min {
 			min = MsgPasser.SNLoadlist[k]
@@ -218,7 +219,7 @@ func RcvOnJoin(msg *Message) (interface{}, error) {
 	m := new(Message)
 	m.NewMsgwithData(msg.Origin, SN_ON_JOIN_ACK, snIP)
 	err := MsgPasser.Send(m)
-
+	SNHostlistMutex.Unlock()
 	return msg, err
 }
 
@@ -311,9 +312,10 @@ func RcvSnLoadUpdate(msg *Message) (interface{}, error) {
 		fmt.Println("In RcvSnLoadUpdate: ")
 		return nil, err
 	}
-
+	
+    SNHostlistMutex.Lock()
 	MsgPasser.SNLoadlist[msg.Origin] = load
-
+	SNHostlistMutex.Unlock()
 	newMsg := new(Message)
 	newMsg.NewMsgwithData("", SN_SN_LOADMERGE, len(MsgPasser.ONHostlist))
 	if err != nil {
@@ -336,8 +338,10 @@ func RcvSnLoadMerge(msg *Message) (interface{}, error) {
 		fmt.Println("In RcvSnLoadMerge: ")
 		return nil, err
 	}
-
+	
+	SNHostlistMutex.Lock()
 	MsgPasser.SNLoadlist[msg.Origin] = load
+	SNHostlistMutex.Unlock()
 	fmt.Println("Current Load Info:")
 	for k, _ := range MsgPasser.SNLoadlist {
 		fmt.Println(k, MsgPasser.SNLoadlist[k])
