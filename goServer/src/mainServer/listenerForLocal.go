@@ -7,12 +7,13 @@ import (
 	"net"
 	"strconv"
 	"time"
+	"util"
 )
 
 func HandleConnectionFromLocal(listener net.Listener) {
 	for {
 		conn, err := listener.Accept()
-		
+
 		// if SN is under repairing, busy waiting until it got repaired
 		for msg.SuperNodeIP == "" {
 			time.Sleep(msg.BusyWaitingSleepInterval)
@@ -69,15 +70,27 @@ func handleConnectionFromLocalThread(conn net.Conn) {
 		conn.Write([]byte(handleEndandStart(message)))
 	case "problem_id":
 		name := message["username"]
+
+		//TO DO read from DB
+		score, e := util.DatabaseReadScore(name)
 		tuple, exist := msg.Local_map[name]
-		var score int
+
+		if score == -1 {
+			if exist {
+				score = tuple.Score
+			}
+			else {
+				score = 0
+			}
+			util.DatabaseUpdateStage(name, score)			
+		}
 
 		// add user if he use session cache to login
-		if !exist {
+		/*if !exist {
 			score = 0
 		} else {
 			score = tuple.Score
-		}
+		}*/
 
 		conn.Write([]byte(strconv.Itoa(score + 1)))
 	default:
@@ -142,8 +155,15 @@ func handleSuccess(message map[string]string) string {
 	submitTime, _ := time.Parse("2006-01-02T15:04:05.999999", message["time"])
 
 	currentScore := msg.Local_map[name].Score
+	score, e := util.DatabaseReadScore(name)
+	if score < currentScore {
+		score = currentScore
+	}
 
-	if currentScore < pid {
+
+	if score < pid {
+
+		util.DatabaseUpdateScore(name, pid)
 
 		sendOutRecord := msg.UserRecord{
 			UserName: name, Score: pid, Ctime: submitTime.Add(msg.MsgPasser.Drift)}
@@ -160,7 +180,7 @@ func handleSuccess(message map[string]string) string {
 		// send message to SN
 		msg.MsgPasser.Send(sendoutMsg)
 	}
-	
+
 	return "success"
 }
 
