@@ -71,8 +71,11 @@ func handleConnectionFromLocalThread(conn net.Conn) {
 	case "problem_id":
 		name := message["username"]
 
-		//TO DO read from DB
+
 		score, e := util.DatabaseReadScore(name)
+		if e != nil {
+			fmt.Println("Database read score fail")
+		}
 		tuple, exist := msg.Local_map[name]
 
 		if exist && score < tuple.Score {
@@ -81,7 +84,7 @@ func handleConnectionFromLocalThread(conn net.Conn) {
 		if score == -1 {
 			score = 0
 		}
-		util.DatabaseUpdateStage(name, score)
+		util.DatabaseUpdateScore(name, score)
 
 		// add user if he use session cache to login
 		/*if !exist {
@@ -152,8 +155,13 @@ func handleSuccess(message map[string]string) string {
 	name := message["username"]
 	submitTime, _ := time.Parse("2006-01-02T15:04:05.999999", message["time"])
 
-	tuple, exist := msg.Local_map[name].Score
+	tuple, exist := msg.Local_map[name]
+	
 	score, e := util.DatabaseReadScore(name)
+	if e != nil {
+		fmt.Println("Database read score fail!")
+	}
+	
 	if exist && score < tuple.Score {
 		score = tuple.Score
 	}
