@@ -85,7 +85,7 @@ func findNewSN() {
 				
 		// sleep 2.5s in total
 		if SuperNodeIP == "" {
-			time.Sleep(BusyWaitingSleepInterval * (BusyWaitingTimeOutRound + 10 - time.Duration(i)))
+			time.Sleep(BusyWaitingSleepInterval * (time.Duration(BusyWaitingTimeOutRound) + 10 - time.Duration(i)))
 		}
 	}
 	

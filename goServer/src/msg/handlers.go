@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sync"
 )
 
 var Handlers [NUMTYPES]Rcvhdlr
@@ -15,6 +16,9 @@ var SignInChan chan string
 var SignUpChan chan string
 
 var App_url = "http://localhost:8000/"
+
+var StartTime = "FAKE"
+var StartEnd_Lock sync.Mutex
 
 
 // for test and debug
@@ -79,6 +83,15 @@ func RcvSignInAck(msg *Message) (interface{}, error) {
 	if signInAckMsg["status"] == "success" {
 		// update app question set
 		SendtoApp(App_url+"hacks/updateq/", string(signInAckMsg["question"]))
+		
+		StartEnd_Lock.Lock()
+		StartTime = signInAckMsg["startTime"]
+		// update app start end time
+		jsondata := StartTime
+		StartEnd_Lock.Unlock()
+		if (jsondata != "FAKE") {
+			SendtoApp(App_url+"hacks/start_hack/", jsondata)
+		}
 
 		// send map[string]string messages to SN
 		sendoutMsg := new(Message)
@@ -114,6 +127,15 @@ func RcvSignUpAck(msg *Message) (interface{}, error) {
 	if signUpAckMsg["status"] == "success" {
 		// update app question set
 		SendtoApp(App_url+"hacks/updateq/", string(signUpAckMsg["question"]))
+		
+		StartEnd_Lock.Lock()
+		StartTime = signUpAckMsg["startTime"]
+		// update app start end time
+		jsondata := StartTime
+		StartEnd_Lock.Unlock()
+		if (jsondata != "FAKE") {
+			SendtoApp(App_url+"hacks/start_hack/", jsondata)
+		}
 
 		// send map[string]string messages to SN
 		sendoutMsg := new(Message)
@@ -147,10 +169,18 @@ func RcvStartEnd(msg *Message) (interface{}, error) {
 	// end message
 	if startEndMsg["type"] == "end_hack" {
 		// send data out
+		StartEnd_Lock.Lock()
+		StartTime = "FAKE"
+		StartEnd_Lock.Unlock()
 		SendtoApp(App_url+"hacks/end_hack/", "")
 	} else if startEndMsg["type"] == "start_hack" {
 		data, _ := json.Marshal(startEndMsg)
-		SendtoApp(App_url+"hacks/start_hack/", string(data))
+		// update my start_end status
+		jsondata := string(data)
+		StartEnd_Lock.Lock()
+		StartTime = jsondata
+		StartEnd_Lock.Unlock()
+		SendtoApp(App_url+"hacks/start_hack/", jsondata)
 	} else {
 		fmt.Println("In RcvStartEnd:")
 		return nil, errors.New("SN_ON_STARTEND message's inner type wrong")
@@ -175,7 +205,13 @@ func RcvSnRankfromSN(msg *Message) (interface{}, error) {
 	//update the global rank list in local
 	Local_Info_Mutex.Lock()
 	Global_ranking = newRankList
+	
+	// update the app's ranking
+	data, _ := json.Marshal(Global_ranking)
 	Local_Info_Mutex.Unlock()
+
+	// send data out
+	SendtoApp(App_url+"hacks/update_rank/", string(data))
 
 	return newRankList, nil
 }

@@ -87,7 +87,6 @@ func ConstructHttpServer() {
 		http.ServeFile(w, r, "/tmp/users.csv")
 	})
 
-	fmt.Println("BootStrap: createServer")
 	httpServerReady = true
 	err := http.ListenAndServe(fmt.Sprint(":", ListenPortHttpDB), nil)
 	if err != nil {
@@ -102,7 +101,6 @@ func loadFileFromHttpServer(ip string) bool {
 		fmt.Println("bootStrap loadfileFromhttpServer: ", err)
 		return false
 	}
-	err = os.Chmod("/tmp/output.csv", os.ModePerm)
 	defer out.Close()
 
 	resp, err := http.Get(fmt.Sprint("http://", ip, ":", ListenPortHttpDB, "/database"))
@@ -141,22 +139,28 @@ func BootStrapSN() {
 
 	// select the first entry randomly
 	rand.Seed(time.Now().UnixNano())
-	
+
 	listLength := len(configSNList)
 	if listLength == 0 {
 		SNbootstrap <- nil
 		return
 	}
 	
+	// I am myself's supernode
+	SuperNodeIP = MsgPasser.ServerIP
+		
 	start := rand.Intn(listLength)
 	for i := range configSNList {
 		chose := (start + i) % listLength
-		bootStrapMsg.Dest, _, _ = net.SplitHostPort(configSNList[chose].String())
-		err = MsgPasser.Send(bootStrapMsg)
-		if err != nil {
-			continue
+		// not connect with myself
+		if configSNList[chose].String() != MsgPasser.ServerIP {
+			bootStrapMsg.Dest, _, _ = net.SplitHostPort(configSNList[chose].String())
+			err = MsgPasser.Send(bootStrapMsg)
+			if err != nil {
+				continue
+			}
+			break
 		}
-		break
 	}
 	
 	if err != nil {
@@ -180,7 +184,7 @@ func BootStrapON() error {
 	if listLength == 0 {
 		return err
 	}
-	
+
 	start := rand.Intn(listLength)
 	for i := range configSNList {
 		chose := (start + i) % listLength
@@ -201,7 +205,7 @@ func RcvOnJoin(msg *Message) (interface{}, error) {
 	}
 
 	// get the SN with the lightest load
-	min := (1 << 31)
+	min := (1 << 30)
 	var snIP string
 	for k, _ := range MsgPasser.SNLoadlist {
 		if MsgPasser.SNLoadlist[k] < min {
@@ -371,7 +375,15 @@ func RcvSnJoin(msg *Message) (interface{}, error) {
 	
 	// send out ack msg tell the new sn data is ready on server
 	bootStrapMsg := new(Message)
-	err = bootStrapMsg.NewMsgwithData(ip, SN_SN_JOIN_ACK, MsgPasser.ServerIP)
+	
+	StartEnd_Lock.Lock()
+	backData := map[string]string{
+		"serverIP": MsgPasser.ServerIP,
+		"startTime": StartTime,
+	}
+	StartEnd_Lock.Unlock()
+
+	err = bootStrapMsg.NewMsgwithData(ip, SN_SN_JOIN_ACK, backData)
 	err = MsgPasser.Send(bootStrapMsg)
 	if err != nil {
 		fmt.Println("In RcvSnJoin: ")
@@ -405,13 +417,21 @@ func RcvSnJoinAck(msg *Message) (interface{}, error) {
 		return nil, err
 	}
 
-	var ip string
-	err = ParseRcvInterfaces(msg, &ip)
+	var ipWithStartTime map[string]string
+	err = ParseRcvInterfaces(msg, &ipWithStartTime)
+
 	if err != nil {
 		fmt.Println("In RcvSnJoinAck: ")
 		SNbootstrap <- err
 		return nil, err
 	}
+	
+	ip := ipWithStartTime["serverIP"]
+	
+	// update hack start time
+	StartEnd_Lock.Lock()
+	StartTime = ipWithStartTime["startTime"]
+	StartEnd_Lock.Unlock()
 
 	if strings.EqualFold(ip, msg.Src) == false {
 		err = errors.New("message Src Doesn't match IP address sent")
@@ -426,6 +446,8 @@ func RcvSnJoinAck(msg *Message) (interface{}, error) {
 		return nil, err
 	}
 
+	time.Sleep(time.Second * time.Duration(2))
+	
 	// import the file into database
 	err = util.DatabaseLoadDBFile()
 	if err != nil {

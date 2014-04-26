@@ -27,6 +27,13 @@ func DatabaseInit(isSN bool) {
 		fmt.Println("Failed to create build-in user_record table")
 	}
 
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS user_score (id int(11) NOT NULL AUTO_INCREMENT,
+	username VARCHAR(50) NOT NULL, score INT NOT NULL, 
+	PRIMARY KEY (id), UNIQUE KEY username (username))`)
+	if err != nil {
+		fmt.Println("Failed to create build-in user_score table")
+	}
+
 	// if is SN add admin into database
 	if isSN {
 		_, err := db.Exec(`insert ignore into user_record (username, password, email) 
@@ -157,4 +164,58 @@ func checkFileExist(filename string) bool {
 	}
 
 	return true
+}
+
+func DatabaseReadScore(username string) (int, error) {
+	rows, e := db.Query("select score from user_score where username = ?", username)
+
+	if e != nil {
+		fmt.Println("Database: Query Error.", e.Error())
+		return -1, e
+	}
+
+	score := -1
+	if rows.Next() {
+		e = rows.Scan(&score)
+	}
+	if e != nil {
+		fmt.Println("Database: Scan Error.", e.Error())
+		return -1, e
+	}
+
+	return score, nil
+}
+
+func DatabaseUpdateScore(username string, score int) error {
+	rows, e := db.Query("select count(*) from user_score where username = ?", username)
+	if e != nil {
+		fmt.Println("Database: Query Error.", e.Error())
+		return e
+	}
+
+	count := 0
+	if rows.Next() {
+		e = rows.Scan(&count)
+	}
+	if e != nil {
+		fmt.Println("Database: Scan Error.", e.Error())
+		return e
+	}
+
+	if count > 0 {
+		_, e = db.Exec("update user_score set score = ? where username = ?", score, username)
+		if e != nil {
+			fmt.Println("Database: Execute Error.", e.Error())
+			return e
+		}
+
+	} else {
+		_, e = db.Exec("insert into user_score set username = ?, score = ?", username, score)
+		if e != nil {
+			fmt.Println("Database: Execute Error.", e.Error())
+			return e
+		}
+	}
+
+	return nil
 }

@@ -18,12 +18,13 @@ type Connection struct {
 	encoder *gob.Encoder
 }
 
+
 var SuperNodeIP = ""
 var rcvdlistMutex = &sync.Mutex{}
 var SNHostlistMutex = &sync.Mutex{}
 
-const BusyWaitingSleepInterval = time.Millisecond * time.Duration(50)
-const BusyWaitingTimeOutRound = 40
+var BusyWaitingSleepInterval = time.Millisecond * time.Duration(100)
+var BusyWaitingTimeOutRound = 100
 
 type Messagepasser struct {
 	SNHostlist       map[string]string
@@ -139,14 +140,14 @@ func (mp *Messagepasser) getConnection(msgDest string, port string) (*Connection
 		mp.Connmap[msgDest] = connection
 		return &connection, nil
 	} else {
-		fmt.Println("Re-using connection to: ", dest)
+		//fmt.Println("Re-using connection to: ", dest)
 	}
 
 	return &connection, nil
 }
 
 func (mp *Messagepasser) actuallySend(connection *Connection, dest string, msg interface{}) error {
-	fmt.Println("MessagePasser: actuallySend")
+	//fmt.Println("MessagePasser: actuallySend")
 
 	encoder := connection.encoder
 	err := encoder.Encode(&msg)
@@ -172,6 +173,8 @@ func (mp *Messagepasser) Send(msg *Message) error {
 	msg.Origin = mp.ServerIP
 	msg.Src = mp.ServerIP
 	msg.TimeStamp = time.Now().Add(mp.Drift)
+	
+	fmt.Println("Send Message: ", msg.String())
 
 	port = fmt.Sprint(mp.ONPort)
 	mp.ConnMutex.Lock()
@@ -189,6 +192,8 @@ func (mp *Messagepasser) Send(msg *Message) error {
 func (mp *Messagepasser) SendMCast(msg *MultiCastMessage) {
 	msg.Src = mp.ServerIP
 	msg.TimeStamp = time.Now().Add(mp.Drift)
+	
+	fmt.Println("Send Multicast Message: ", msg.String())
 
 	for e := range msg.HostList {
 		host := msg.HostList[e]
@@ -196,7 +201,7 @@ func (mp *Messagepasser) SendMCast(msg *MultiCastMessage) {
 		mp.ConnMutex.Lock()
 		connection, err := mp.getConnection(host, fmt.Sprint(mp.ONPort))
 		mp.ConnMutex.Unlock()
-		fmt.Println("MessagePasser : Sending message to ", host)
+		//fmt.Println("MessagePasser : Sending message to ", host)
 		if err != nil {
 			fmt.Println("Error getting connection to host:", host)
 			/* try to send to atleast 1 person in the list */
@@ -252,16 +257,16 @@ func (mp *Messagepasser) RcvMCastMessage() {
 	var v bool
 	for {
 		msg := <-mp.IncomingMCastMsg
-		fmt.Println("MessagePasser: A Multicast Message received", msg.Origin, msg.Seqnum)
+		//fmt.Println("MessagePasser: A Multicast Message received", msg.Origin, msg.Seqnum)
 		rcvdlistMutex.Lock()
 		v = mp.isAlreadyRcvd(&msg)
 		rcvdlistMutex.Unlock()
 		if v == false {
-			fmt.Println("Never rcvd")
+			//fmt.Println("Never rcvd")
 			mp.HandleMCast(&msg)
 			go mp.DoAction(&msg.Message)
 		} else {
-			fmt.Println("MessagePasser: The message has been seen before so moving on")
+			//fmt.Println("MessagePasser: The message has been seen before so moving on")
 		}
 	}
 }

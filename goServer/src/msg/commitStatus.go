@@ -3,6 +3,7 @@ package msg
 import (
 	"time"
 	"sync"
+	"fmt"
 )
 
 // sign up 2 phase commit
@@ -37,7 +38,7 @@ func checkCommitStatus(commitStatusChan chan string, userName string) {
 			return
 		}
 	}
-	
+	fmt.Println("Register TIMEOUT")
 	// timeout: abort
 	commitStatusChan <- "Abort"
 }
