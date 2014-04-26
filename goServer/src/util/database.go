@@ -27,6 +27,13 @@ func DatabaseInit(isSN bool) {
 		fmt.Println("Failed to create build-in user_record table")
 	}
 
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS user_score (id int(11) NOT NULL AUTO_INCREMENT,
+	username VARCHAR(50) NOT NULL, score INT NOT NULL, 
+	PRIMARY KEY (id), UNIQUE KEY username (username))`)
+	if err != nil {
+		fmt.Println("Failed to create build-in user_score table")
+	}
+
 	// if is SN add admin into database
 	if isSN {
 		_, err := db.Exec(`insert ignore into user_record (username, password, email) 

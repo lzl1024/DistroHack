@@ -75,15 +75,13 @@ func handleConnectionFromLocalThread(conn net.Conn) {
 		score, e := util.DatabaseReadScore(name)
 		tuple, exist := msg.Local_map[name]
 
-		if score == -1 {
-			if exist {
-				score = tuple.Score
-			}
-			else {
-				score = 0
-			}
-			util.DatabaseUpdateStage(name, score)			
+		if exist && score < tuple.Score {
+			score = tuple.Score
 		}
+		if score == -1 {
+			score = 0
+		}
+		util.DatabaseUpdateStage(name, score)
 
 		// add user if he use session cache to login
 		/*if !exist {
@@ -154,12 +152,11 @@ func handleSuccess(message map[string]string) string {
 	name := message["username"]
 	submitTime, _ := time.Parse("2006-01-02T15:04:05.999999", message["time"])
 
-	currentScore := msg.Local_map[name].Score
+	tuple, exist := msg.Local_map[name].Score
 	score, e := util.DatabaseReadScore(name)
-	if score < currentScore {
-		score = currentScore
+	if exist && score < tuple.Score {
+		score = tuple.Score
 	}
-
 
 	if score < pid {
 
