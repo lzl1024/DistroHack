@@ -156,12 +156,15 @@ func RcvSnSignUp(msg *Message) (interface{}, error) {
 		ONstatus = DBstatus
 	}
 	
+	StartEnd_Lock.Lock()
 	// send status back to ON
 	backData := map[string]string{
 		"user":     username,
 		"status":   ONstatus,
 		"question": Question_URI,
+		"startTime": StartTime,
 	}
+	StartEnd_Lock.Unlock()
 
 	sendoutMsg := new(Message)
 	err = sendoutMsg.NewMsgwithData(msg.Src, SN_ON_SIGNUP_ACK, backData)
@@ -293,11 +296,14 @@ func RcvSnSignIn(msg *Message) (interface{}, error) {
 
 	backMsg := util.DatabaseSignIn(signInMsg["username"], signInMsg["password"])
 
+	StartEnd_Lock.Lock()
 	backData := map[string]string{
 		"user":   signInMsg["username"],
 		"status": backMsg,
 		"question": Question_URI,
+		"startTime": StartTime,
 	}
+	StartEnd_Lock.Unlock()
 
 	fmt.Printf("SuperNode: ordinary sign in %s,  status %s\n", signInMsg["username"], backMsg)
 
