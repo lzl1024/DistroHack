@@ -28,28 +28,37 @@ func main() {
 	util.DatabaseInit(isSN)
 
 	initMessagePasser()
+	go InitListenerForPeers()
+	go doBootStrap()
+	InitListenerLocal()
+}
+
+func doBootStrap() {
+	retries := 0
+	var err error
 	if isSN {
-		msg.BootStrapSN()
+		// open the http server to provide database file
+		go msg.ConstructHttpServer()
+		for retries != 3 {
+			go msg.BootStrapSN()
+			err = <- msg.SNbootstrap
+			if err != nil {
+				retries++
+				fmt.Println("Trying BootStrap Again", retries)
+				continue
+			}
+			break
+		}
+		if retries == 3 && err != nil {
+			fmt.Println("Max tries on bootstrap done...Failing")
+			os.Exit(-1)
+		}
 	} else {
 		msg.BootStrapON()
 	}
-
-	go InitListenerForPeers()
-
-	tests()
-	// open the listen port for local app
-	listenerLocal, errLocal := net.Listen("tcp", fmt.Sprint(":", msg.ListenPortLocal))
-
-	if errLocal != nil {
-		fmt.Println("Server: Listener port has been used:", errLocal.Error())
-		return
-	}
-
-	// main routine: commmunication between server and app
-	HandleConnectionFromLocal(listenerLocal)
 }
 
-// parse the go argument [locaPort, peerPort] isSN
+// parse the go argument isSN ipAddress
 func parseArguments() {
 	argLen := len(os.Args)
 

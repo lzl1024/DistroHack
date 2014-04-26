@@ -18,9 +18,9 @@ type Connection struct {
 	encoder *gob.Encoder
 }
 
-// TODO: finally should be set SuperNodeIP =""
-var SuperNodeIP = "10.0.1.17"
+var SuperNodeIP = ""
 var rcvdlistMutex = &sync.Mutex{}
+var SNHostlistMutex = &sync.Mutex{}
 
 const BusyWaitingSleepInterval = time.Millisecond * time.Duration(50)
 const BusyWaitingTimeOutRound = 40
@@ -82,7 +82,7 @@ func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, erro
 	}
 
 	if ts == nil {
-		fmt.Println("NTP server busy, use local time!")
+		fmt.Println("NTP server busy, using local time!")
 		mp.Drift = 0;
 	} else {
 		refTime := *ts
@@ -244,7 +244,7 @@ func SendtoApp(urlAddress string, data string) {
 func (mp *Messagepasser) RcvMessage() {
 	for {
 		msg := <-mp.IncomingMsg
-		mp.DoAction(&msg)
+		go mp.DoAction(&msg)
 	}
 }
 
@@ -259,7 +259,7 @@ func (mp *Messagepasser) RcvMCastMessage() {
 		if v == false {
 			fmt.Println("Never rcvd")
 			mp.HandleMCast(&msg)
-			mp.DoAction(&msg.Message)
+			go mp.DoAction(&msg.Message)
 		} else {
 			fmt.Println("MessagePasser: The message has been seen before so moving on")
 		}

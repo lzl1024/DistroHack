@@ -23,45 +23,30 @@ var ListenPortHttpDB = 1234
 var configSNList = make([]net.TCPAddr, 0)
 var Question_URI string
 var SNdone = make(chan bool)
+var SNbootstrap = make(chan error)
+var ONbootstrap = make(chan error)
 
 var httpServerReady = false
 
-const Config_ALL = "https://s3.amazonaws.com/dsconfig/config_local.txt"
-const Config_SN = "https://s3.amazonaws.com/dsconfig/config_cmu.txt"
 const Question_file = "https://s3.amazonaws.com/dsconfig/questions.txt"
 
 func ReadConfig() error {
-	// local read file
-	/*filename := "config.txt"
-	//data, err := ioutil.ReadFile(filename)
-	data, err := readWebFile(Config_ALL)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	m := make(map[interface{}]interface{})
-	err = yaml.Unmarshal([]byte(data), &m)
-
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}*/
-	
 	for key, _ := range util.SNConfigNames {
-		tcpAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprint(key, ":", ListenPortSuperNode))
+		conn, err := net.DialTimeout("tcp", fmt.Sprint(key, ":", ListenPortSuperNode), 
+						(time.Duration(100) * time.Millisecond))
 		if err == nil {
-			configSNList = append(configSNList, *tcpAddr)
-			fmt.Println("Connect to: ", tcpAddr.String())
+			conn.Close()
+			tcpAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprint(key, ":", ListenPortSuperNode))
+			if err == nil {
+				configSNList = append(configSNList, *tcpAddr)
+				fmt.Println("Connect to: ", tcpAddr.String())
+			}
 		}
 	}
-
 	return nil
 }
 
 func ReadQuestions() error {
-	// local read file
-	/*filename := "questions.txt"
-	data, err := ioutil.ReadFile(filename)*/
 	data, err := readWebFile(Question_file)
 	if err != nil {
 		fmt.Println(err)
@@ -92,12 +77,12 @@ func readWebFile(url string) ([]byte, error) {
 	return data, nil
 }
 
-func constructHttpServer() {
+func ConstructHttpServer() {
 	fmt.Println("bootstrap: constructHttpServer")
 	http.HandleFunc("/hello", func(w http.ResponseWriter, req *http.Request) {
 		io.WriteString(w, "hello, world!\n")
 	})
-
+	
 	http.HandleFunc("/database", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "/tmp/users.csv")
 	})
@@ -107,6 +92,7 @@ func constructHttpServer() {
 	err := http.ListenAndServe(fmt.Sprint(":", ListenPortHttpDB), nil)
 	if err != nil {
 		fmt.Println("BootStrap createServer ListenAndServe: ", err)
+		os.Exit(-1)
 	}
 }
 
@@ -116,6 +102,7 @@ func loadFileFromHttpServer(ip string) bool {
 		fmt.Println("bootStrap loadfileFromhttpServer: ", err)
 		return false
 	}
+	err = os.Chmod("/tmp/output.csv", os.ModePerm)
 	defer out.Close()
 
 	resp, err := http.Get(fmt.Sprint("http://", ip, ":", ListenPortHttpDB, "/database"))
@@ -134,19 +121,22 @@ func loadFileFromHttpServer(ip string) bool {
 	return true
 }
 
-func BootStrapSN() error {
-	// open the http server to provide database file
-	go constructHttpServer()
-
+func BootStrapSN() {
 	// read the url question from configuration file
-	ReadQuestions()
+	err := ReadQuestions()
+	if err != nil {
+		err = errors.New(fmt.Sprint("BootStrap BootStrapSN ReadQuestions: ", err))
+		SNbootstrap <- err
+		return
+	}
 
 	// send msg to one SN in the list
 	bootStrapMsg := new(Message)
-	err := bootStrapMsg.NewMsgwithData("", SN_SN_JOIN, MsgPasser.ServerIP)
+	err = bootStrapMsg.NewMsgwithData("", SN_SN_JOIN, MsgPasser.ServerIP)
 	if err != nil {
 		fmt.Println("In BootStrapSN: ", err)
-		return err
+		SNbootstrap <- err
+		return
 	}
 
 	// select the first entry randomly
@@ -154,7 +144,8 @@ func BootStrapSN() error {
 	
 	listLength := len(configSNList)
 	if listLength == 0 {
-		return err
+		SNbootstrap <- nil
+		return
 	}
 	
 	start := rand.Intn(listLength)
@@ -167,8 +158,11 @@ func BootStrapSN() error {
 		}
 		break
 	}
-
-	return err
+	
+	if err != nil {
+		SNbootstrap <- err
+		return
+	}
 }
 
 func BootStrapON() error {
@@ -346,7 +340,7 @@ func RcvSnLoadMerge(msg *Message) (interface{}, error) {
 	return msg, nil
 }
 
-// one bootstraping SN get this meesage and send out update_list msgs
+// one bootstraping SN get this message and send out update_list msgs
 func RcvSnJoin(msg *Message) (interface{}, error) {
 	if msg.Kind != SN_SN_JOIN {
 		return nil, errors.New("message Kind indicates not a SN_SN_JOIN")
@@ -355,7 +349,7 @@ func RcvSnJoin(msg *Message) (interface{}, error) {
 	var ip string
 	err := ParseRcvInterfaces(msg, &ip)
 	if err != nil {
-		fmt.Println("In RcvSnJoin: ")
+		fmt.Println("In RcvSnJoin: ", err)
 		return nil, err
 	}
 
@@ -367,12 +361,14 @@ func RcvSnJoin(msg *Message) (interface{}, error) {
 	for !httpServerReady {
 		fmt.Println("BootStrap: wait for http server...")
 	}
+	
 	// export data in db into file on server
 	err = util.DatabaseCreateDBFile()
 	if err != nil {
-		fmt.Println("In RcvSnJoin: ")
+		fmt.Println("In RcvSnJoin: ", err)
 		return nil, err
 	}
+	
 	// send out ack msg tell the new sn data is ready on server
 	bootStrapMsg := new(Message)
 	err = bootStrapMsg.NewMsgwithData(ip, SN_SN_JOIN_ACK, MsgPasser.ServerIP)
@@ -402,31 +398,39 @@ func RcvSnJoin(msg *Message) (interface{}, error) {
 }
 
 func RcvSnJoinAck(msg *Message) (interface{}, error) {
+	var err error
 	if msg.Kind != SN_SN_JOIN_ACK {
-		return nil, errors.New("message Kind indicates not a SN_SN_JOIN_ACK")
+		err = errors.New("message Kind indicates not a SN_SN_JOIN_ACK")
+		SNbootstrap <- err
+		return nil, err
 	}
 
 	var ip string
-	err := ParseRcvInterfaces(msg, &ip)
+	err = ParseRcvInterfaces(msg, &ip)
 	if err != nil {
 		fmt.Println("In RcvSnJoinAck: ")
+		SNbootstrap <- err
 		return nil, err
 	}
 
 	if strings.EqualFold(ip, msg.Src) == false {
-		return nil, errors.New("message Src Doesn't match IP address sent")
+		err = errors.New("message Src Doesn't match IP address sent")
+		SNbootstrap <- err
+		return nil, err
 	}
 
 	// get the file from http Server
 	if !loadFileFromHttpServer(ip) {
-		fmt.Println("bootStrap: load db file failed")
-		os.Exit(-1)
+		err = errors.New("bootStrap: load db file failed")
+		SNbootstrap <- err
+		return nil, err
 	}
 
 	// import the file into database
 	err = util.DatabaseLoadDBFile()
 	if err != nil {
-		fmt.Println("In RcvSnJoinAck: ")
+		fmt.Println("In RcvSnJoinAck: Importing file to DB failed ")
+		SNbootstrap <- err
 		return nil, err
 	}
 
@@ -437,7 +441,8 @@ func RcvSnJoinAck(msg *Message) (interface{}, error) {
 	newMCastMsg.Origin = MsgPasser.ServerIP
 	newMCastMsg.Seqnum = atomic.AddInt32(&MsgPasser.SeqNum, 1)
 	MsgPasser.SendMCast(newMCastMsg)
-
+	SNbootstrap <- nil
+	
 	return nil, nil
 }
 
@@ -466,7 +471,7 @@ func RcvSnListUpdate(msg *Message) (interface{}, error) {
 	newMCastMsg.Seqnum = atomic.AddInt32(&MsgPasser.SeqNum, 1)
 	MsgPasser.SendMCast(newMCastMsg)
 
-	return hostlist, nil
+	return MsgPasser.SNHostlist, nil
 }
 
 func RcvSnListMerge(msg *Message) (interface{}, error) {
@@ -486,5 +491,5 @@ func RcvSnListMerge(msg *Message) (interface{}, error) {
 		MsgPasser.SNHostlist[k] = hostlist[k]
 	}
 
-	return hostlist, nil
+	return MsgPasser.SNHostlist, nil
 }

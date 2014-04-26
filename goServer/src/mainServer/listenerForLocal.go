@@ -7,7 +7,21 @@ import (
 	"net"
 	"strconv"
 	"time"
+	"os"
 )
+
+func InitListenerLocal() {
+	// open the listen port for local app
+	listenerLocal, errLocal := net.Listen("tcp", fmt.Sprint(":", msg.ListenPortLocal))
+
+	if errLocal != nil {
+		fmt.Println("Server: Listener port has been used:", errLocal.Error())
+		os.Exit(-1)
+	}
+
+	// main routine: commmunication between server and app
+	HandleConnectionFromLocal(listenerLocal)
+}
 
 func HandleConnectionFromLocal(listener net.Listener) {
 	for {
@@ -20,7 +34,7 @@ func HandleConnectionFromLocal(listener net.Listener) {
 
 		if err != nil {
 			fmt.Println("Accept Error:", err.Error())
-			return
+			continue
 		}
 
 		// new thread to handle request
