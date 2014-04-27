@@ -61,7 +61,7 @@ func DoBootStrap() {
 func ReadConfig() error {
 	for key, _ := range util.SNConfigNames {
 		conn, err := net.DialTimeout("tcp", fmt.Sprint(key, ":", ListenPortSuperNode),
-			(time.Duration(1000) * time.Millisecond))
+			(time.Duration(5000) * time.Millisecond))
 		if err == nil {
 			conn.Close()
 			tcpAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprint(key, ":", ListenPortSuperNode))
@@ -211,6 +211,10 @@ func BootStrapSN() {
 					fmt.Println("Cannot can response from bootstrapping SN: ", configSNList[chose].String())
 					configSNList = append(configSNList[:chose], configSNList[chose+1:]...)
 					listLength = listLength - 1
+					if listLength == 0 {
+						fmt.Println("Fail to connect with any bootstapping node, try again later...")
+						os.Exit(-1)
+					}
 					continue
 				}
 			}
@@ -268,6 +272,10 @@ func BootStrapON() error {
 				fmt.Println("Cannot can response from bootstrapping SN: ", configSNList[chose].String())
 				configSNList = append(configSNList[:chose], configSNList[chose+1:]...)
 				listLength = listLength - 1
+				if listLength == 0 {
+						fmt.Println("Fail to connect with any bootstapping node, try again later...")
+						os.Exit(-1)
+				}
 				continue
 			}
 		}
