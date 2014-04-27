@@ -16,6 +16,8 @@ import (
 	"yaml"
 )
 
+var IsSN = false
+
 var ListenPortLocal = 4213
 var ListenPortPeer = 4214
 var ListenPortSuperNode = 4214
@@ -27,6 +29,7 @@ var SNbootstrap = make(chan error)
 var ONbootstrap = make(chan error)
 
 var httpServerReady = false
+var JoinAck bool
 
 const Question_file = "https://s3.amazonaws.com/dsconfig/questions.txt"
 
@@ -120,6 +123,9 @@ func loadFileFromHttpServer(ip string) bool {
 }
 
 func BootStrapSN() {
+	// set isSN to be true in case of ON upgrade
+	IsSN = true
+	
 	// read the url question from configuration file
 	err := ReadQuestions()
 	if err != nil {
@@ -145,7 +151,6 @@ func BootStrapSN() {
 
 	listLength := len(configSNList)
 	if listLength == 0 {
-		//SNbootstrap <- errors.New("Nothing in List, I am the very first")
 		SNbootstrap <- errors.New("")
 		return
 	}
@@ -158,7 +163,16 @@ func BootStrapSN() {
 			bootStrapMsg.Dest, _, _ = net.SplitHostPort(configSNList[chose].String())
 			err = MsgPasser.Send(bootStrapMsg)
 			if err != nil {
-				continue
+				waitForJoinAck()
+				if JoinAck == true {
+					continue
+				} else {
+					// delete the fail one from configSNList
+					configSNList = append(configSNList[:chose], configSNList[chose+1:]...)
+					listLength = listLength - 1				
+					SNbootstrap <- errors.New("Cannot can response from bootstrapping SN")
+					return
+				}				
 			}
 
 			fmt.Println("bootstrap send bootstrapMsg to ", configSNList[chose].String())
@@ -169,6 +183,19 @@ func BootStrapSN() {
 	if err != nil {
 		SNbootstrap <- err
 		return
+	}
+}
+
+func waitForJoinAck() {
+	JoinAck = false;
+	// time out wait for join ack
+	for i := 0; i <= BusyWaitingTimeOutRound; i++ {
+		time.Sleep(BusyWaitingSleepInterval)
+
+		// check ack status
+		if JoinAck == true {
+			break
+		}
 	}
 }
 
@@ -194,7 +221,15 @@ func BootStrapON() error {
 		bootStrapMsg.Dest, _, _ = net.SplitHostPort(configSNList[chose].String())
 		err = MsgPasser.Send(bootStrapMsg)
 		if err != nil {
-			continue
+			waitForJoinAck()
+			if JoinAck == true {
+				continue
+			} else {
+				// delete the fail one from configSNList
+				configSNList = append(configSNList[:chose], configSNList[chose+1:]...)
+				listLength = listLength - 1				
+				return errors.New("Cannot can response from bootstrapping SN")
+			}	
 		}
 		break
 	}
@@ -206,15 +241,20 @@ func RcvOnJoin(msg *Message) (interface{}, error) {
 	if msg.Kind != ON_SN_JOIN {
 		return nil, errors.New("message Kind indicates not a ON_SN_JOIN")
 	}
-
-	// get the SN with the lightest load
-	min := (1 << 30)
-	var snIP string
+	
 	SNHostlistMutex.Lock()
-	for k, _ := range MsgPasser.SNLoadlist {
-		if MsgPasser.SNLoadlist[k] < min {
-			min = MsgPasser.SNLoadlist[k]
-			snIP = k
+	var snIP string
+	if IsSN == false {
+		snIP = "0"
+	} else {
+		// get the SN with the lightest load
+		min := (1 << 30)
+
+		for k, _ := range MsgPasser.SNLoadlist {
+			if MsgPasser.SNLoadlist[k] < min {
+				min = MsgPasser.SNLoadlist[k]
+				snIP = k
+			}
 		}
 	}
 
@@ -238,6 +278,12 @@ func RcvOnJoinAck(msg *Message) (interface{}, error) {
 		return nil, err
 	}
 
+	if ip == "0" {
+		JoinAck = false
+		return ip, err
+	}
+	
+	JoinAck = true
 	SuperNodeIP = ip
 	bootStrapMsg := new(Message)
 	err = bootStrapMsg.NewMsgwithData(ip, ON_SN_REGISTER, MsgPasser.ServerIP)
@@ -394,8 +440,15 @@ func RcvSnJoin(msg *Message) (interface{}, error) {
 	bootStrapMsg := new(Message)
 
 	StartEnd_Lock.Lock()
+	returnIP := MsgPasser.ServerIP
+	
+	// if I am not SN set error mark
+	if IsSN == false {
+		returnIP = "0"
+	}
+	
 	backData := map[string]string{
-		"serverIP":  MsgPasser.ServerIP,
+		"serverIP":  returnIP,
 		"startTime": StartTime,
 	}
 	StartEnd_Lock.Unlock()
@@ -445,7 +498,13 @@ func RcvSnJoinAck(msg *Message) (interface{}, error) {
 	}
 
 	ip := ipWithStartTime["serverIP"]
+	
+	if (ip == "0") {
+		JoinAck = false
+		return nil, err
+	}
 
+	JoinAck = true
 	// update hack start time
 	StartEnd_Lock.Lock()
 	StartTime = ipWithStartTime["startTime"]

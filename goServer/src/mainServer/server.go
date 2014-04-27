@@ -11,7 +11,6 @@ import (
 
 const rcvBufLen = 1024
 
-var isSN = false
 var ipArg = ""
 
 func main() {
@@ -25,7 +24,7 @@ func main() {
 	msg.DLock = new(msg.DsLock)
 	msg.DLock.Init()
 
-	util.DatabaseInit(isSN)
+	util.DatabaseInit(msg.IsSN)
 
 	initMessagePasser()
 	go InitListenerForPeers()
@@ -36,7 +35,7 @@ func main() {
 func doBootStrap() {
 	retries := 0
 	var err error
-	if isSN {
+	if msg.IsSN {
 		// open the http server to provide database file
 		go msg.ConstructHttpServer()
 		for retries != 3 {
@@ -66,7 +65,7 @@ func parseArguments() {
 
 	if argLen > 1 {
 		if os.Args[1] == "True" {
-			isSN = true
+			msg.IsSN = true
 		}
 
 		if argLen > 2 {
@@ -113,7 +112,7 @@ func initMessagePasser() {
 
 	// add itself to its ON list
 	msg.MsgPasser.ONHostlist[msg.MsgPasser.ServerIP] = msg.MsgPasser.ServerIP
-	if isSN {
+	if msg.IsSN {
 		msg.MsgPasser.SNHostlist[msg.MsgPasser.ServerIP] = msg.MsgPasser.ServerIP
 		msg.MsgPasser.SNLoadlist[msg.MsgPasser.ServerIP] = len(msg.MsgPasser.ONHostlist)
 	}

@@ -116,7 +116,7 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 		msg.ONHostlistMutex.Unlock()
 
 		// for SN, Notify others of my load change
-		if isSN {
+		if msg.IsSN {
 			msg.ONHostlistMutex.Lock()
 			loadNotify := new(msg.Message)
 			err := loadNotify.NewMsgwithData("", msg.SN_SN_LOADMERGE, len(mp.ONHostlist))
