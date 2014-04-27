@@ -19,14 +19,17 @@ func main() {
 
 	parseArguments()
 	msg.ReadConfig()
+	fmt.Println("Dial Configuration list done")
 
 	/* Initialize single distributed lock */
 	msg.DLock = new(msg.DsLock)
 	msg.DLock.Init()
 
 	util.DatabaseInit(msg.IsSN)
+	fmt.Println("Datavase Initiate")
 
 	initMessagePasser()
+	fmt.Println("Message Passer initiated")
 	go InitListenerForPeers()
 	go doBootStrap()
 	InitListenerLocal()
@@ -39,10 +42,9 @@ func doBootStrap() {
 		// open the http server to provide database file
 		go msg.ConstructHttpServer()
 		for retries != 3 {
+			fmt.Println("do bootstrap")
 			go msg.BootStrapSN()
 			err = <-msg.SNbootstrap
-
-			fmt.Println("do bootstrap")
 			if err.Error() != "" {
 				retries++
 				fmt.Println("Trying BootStrap Again", retries)

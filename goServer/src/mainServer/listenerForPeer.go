@@ -31,6 +31,8 @@ func serverthread(mp *msg.Messagepasser, c chan error) {
 		c <- err
 		return
 	}
+	
+	fmt.Println("Server Listen Port open")
 
 	for {
 		conn, err := listener.Accept()

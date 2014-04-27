@@ -46,6 +46,7 @@ func ReadConfig() error {
 			}
 		}
 	}
+	
 	return nil
 }
 
@@ -163,25 +164,28 @@ func BootStrapSN() {
 			bootStrapMsg.Dest, _, _ = net.SplitHostPort(configSNList[chose].String())
 			err = MsgPasser.Send(bootStrapMsg)
 			if err != nil {
+				continue			
+			} else {
 				waitForJoinAck()
 				if JoinAck == true {
-					continue
+					fmt.Println("bootstrap send bootstrapMsg to ", configSNList[chose].String())
+					break
 				} else {
 					// delete the fail one from configSNList
+					fmt.Println("Cannot can response from bootstrapping SN: ", configSNList[chose].String())
 					configSNList = append(configSNList[:chose], configSNList[chose+1:]...)
-					listLength = listLength - 1				
-					SNbootstrap <- errors.New("Cannot can response from bootstrapping SN")
-					return
-				}				
+					listLength = listLength - 1						
+					continue
+				}	
 			}
-
-			fmt.Println("bootstrap send bootstrapMsg to ", configSNList[chose].String())
-			break
 		}
 	}
 
 	if err != nil {
 		SNbootstrap <- err
+		return
+	} else {
+		SNbootstrap <- errors.New("")
 		return
 	}
 }
@@ -221,17 +225,19 @@ func BootStrapON() error {
 		bootStrapMsg.Dest, _, _ = net.SplitHostPort(configSNList[chose].String())
 		err = MsgPasser.Send(bootStrapMsg)
 		if err != nil {
+			continue
+		} else {
 			waitForJoinAck()
 			if JoinAck == true {
-				continue
+				break
 			} else {
 				// delete the fail one from configSNList
+				fmt.Println("Cannot can response from bootstrapping SN: ", configSNList[chose].String())
 				configSNList = append(configSNList[:chose], configSNList[chose+1:]...)
-				listLength = listLength - 1				
-				return errors.New("Cannot can response from bootstrapping SN")
-			}	
-		}
-		break
+				listLength = listLength - 1	
+				continue
+			}
+		}	
 	}
 
 	return err
