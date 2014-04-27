@@ -68,7 +68,7 @@ def register(request):
 
         # remote error
         if rcv_msg != "success":
-            result_msg.append(rcv_msg)
+            result_msg.append("Name-Password pair has been registered!")
         else:
             validate = "success"
             # login
@@ -86,15 +86,18 @@ def logout(request):
 # connect with server for simple message exchange
 def connect_server(msg):
     # connect with the go server
-    s = socket.socket()
-    host = socket.gethostname()
-    port = GO_PORT
+    try:
+        s = socket.socket()
+        host = socket.gethostname()
+        port = GO_PORT
 
-    s.connect((host, port))
+        s.connect((host, port))
 
-    s.send(json.dumps(msg))
+        s.send(json.dumps(msg))
 
-    # receive message
-    rcv_msg = s.recv(read_buf_len)
-    s.close()
+        # receive message
+        rcv_msg = s.recv(read_buf_len)
+        s.close()
+    except:
+        rcv_msg = "Fail to connect with server, please stop and run again"
     return rcv_msg
