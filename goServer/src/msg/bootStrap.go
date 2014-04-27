@@ -26,12 +26,38 @@ var configSNList = make([]net.TCPAddr, 0)
 var Question_URI string
 var SNdone = make(chan bool)
 var SNbootstrap = make(chan error)
-var ONbootstrap = make(chan error)
 
 var httpServerReady = false
 var JoinAck bool
 
 const Question_file = "https://s3.amazonaws.com/dsconfig/questions.txt"
+
+
+func DoBootStrap() {
+	retries := 0
+	var err error
+	if IsSN {
+		// open the http server to provide database file
+		go ConstructHttpServer()
+		for retries != 3 {
+			fmt.Println("do bootstrap")
+			go BootStrapSN()
+			err = <-SNbootstrap
+			if err.Error() != "" {
+				retries++
+				fmt.Println("Trying BootStrap Again", retries)
+				continue
+			}
+			break
+		}
+		if retries == 3 && err.Error() != "" {
+			fmt.Println("Max tries on bootstrap done...Failing")
+			os.Exit(-1)
+		}
+	} else {
+		BootStrapON()
+	}
+}
 
 func ReadConfig() error {
 	for key, _ := range util.SNConfigNames {
@@ -151,6 +177,7 @@ func BootStrapSN() {
 	rand.Seed(time.Now().UnixNano())
 
 	listLength := len(configSNList)
+	fmt.Println("My configSNList length ", listLength)
 	if listLength == 0 {
 		SNbootstrap <- errors.New("")
 		return
@@ -183,9 +210,6 @@ func BootStrapSN() {
 
 	if err != nil {
 		SNbootstrap <- err
-		return
-	} else {
-		SNbootstrap <- errors.New("")
 		return
 	}
 }

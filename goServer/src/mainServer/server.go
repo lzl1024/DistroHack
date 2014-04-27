@@ -31,34 +31,8 @@ func main() {
 	initMessagePasser()
 	fmt.Println("Message Passer initiated")
 	go InitListenerForPeers()
-	go doBootStrap()
+	go msg.DoBootStrap()
 	InitListenerLocal()
-}
-
-func doBootStrap() {
-	retries := 0
-	var err error
-	if msg.IsSN {
-		// open the http server to provide database file
-		go msg.ConstructHttpServer()
-		for retries != 3 {
-			fmt.Println("do bootstrap")
-			go msg.BootStrapSN()
-			err = <-msg.SNbootstrap
-			if err.Error() != "" {
-				retries++
-				fmt.Println("Trying BootStrap Again", retries)
-				continue
-			}
-			break
-		}
-		if retries == 3 && err.Error() != "" {
-			fmt.Println("Max tries on bootstrap done...Failing")
-			os.Exit(-1)
-		}
-	} else {
-		msg.BootStrapON()
-	}
 }
 
 // parse the go argument isSN ipAddress

@@ -78,7 +78,9 @@ func findNewSN() {
 					// overwrite SuperNodeIP of myself at this time to bootstrap
 					SuperNodeIP = MsgPasser.ServerIP
 					
-					BootStrapSN()
+					// bootstrap again
+					IsSN = true
+					DoBootStrap()
 					break;
 				}
 			}	
