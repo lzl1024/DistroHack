@@ -204,7 +204,6 @@ func RcvSnMSignUp(msg *Message) (interface{}, error) {
 		return nil, err
 	}
 
-	fmt.Println("SIGNUP GET MSG:", mSignUpMsg)
 	if mSignUpMsg["status"] == "Commit" {
 		status := util.DatabaseSignUp(mSignUpMsg["username"], mSignUpMsg["password"], mSignUpMsg["email"])
 		if status != "success" {
@@ -470,9 +469,9 @@ func updateLocalInfoWithOneRecord(userRecord UserRecord) bool {
 	}
 
 	// print out new global ranking
-	for i := range Global_ranking {
-		fmt.Println(Global_ranking[i].String())
-	}
+	//for i := range Global_ranking {
+	//	fmt.Println(Global_ranking[i].String())
+	//}
 
 	Local_Info_Mutex.Unlock()
 	return rankChanged

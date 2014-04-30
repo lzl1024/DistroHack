@@ -99,10 +99,12 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 	msg.SignUp_commitLock.Unlock()
 
 	msg.SNHostlistMutex.Lock()
+	
+	
 	// SN peer fails, only need to delete it from map
 	_, ok = mp.SNHostlist[dest]
 	if ok {
-		fmt.Println("RcvThread: Removing entry to ", dest, " from SNHostList map")
+		fmt.Println("RcvThread: Removing entry to ", dest, " from SNHostList map\n\n")
 		delete(mp.SNHostlist, dest)
 		delete(mp.SNLoadlist, dest)
 		msg.DLock.ResetLock(dest)
@@ -113,7 +115,7 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 	_, ok = mp.ONHostlist[dest]
 	if ok {
 		msg.ONHostlistMutex.Lock()
-		fmt.Println("RcvThread: Removing entry to ", dest, " from ONHostlist map")
+		fmt.Println("RcvThread: Removing entry to ", dest, " from ONHostlist map\n\n")
 		delete(mp.ONHostlist, dest)
 		msg.ONHostlistMutex.Unlock()
 

@@ -175,7 +175,7 @@ func (mp *Messagepasser) Send(msg *Message) error {
 	msg.Src = mp.ServerIP
 	msg.TimeStamp = time.Now().Add(mp.Drift)
 	
-	fmt.Println("Send Message: ", msg.String())
+	fmt.Println("Send Message: ", msg.String(), "\n")
 
 	port = fmt.Sprint(mp.ONPort)
 	mp.ConnMutex.Lock()
@@ -194,7 +194,7 @@ func (mp *Messagepasser) SendMCast(msg *MultiCastMessage) {
 	msg.Src = mp.ServerIP
 	msg.TimeStamp = time.Now().Add(mp.Drift)
 	
-	fmt.Println("Send Multicast Message: ", msg.String())
+	fmt.Println("Send Multicast Message: ", msg.String(), "\n")
 
 	for e := range msg.HostList {
 		host := msg.HostList[e]
@@ -218,14 +218,14 @@ func (mp *Messagepasser) SendMCast(msg *MultiCastMessage) {
 
 /* based on message types take action */
 func (mp *Messagepasser) DoAction(msg *Message) {
-	fmt.Println("MessagePasser DoAction :", (*msg).String())
+	fmt.Println("MessagePasser DoAction :", (*msg).String() , "\n")
 	str, err := Handlers[msg.Kind](msg)
 	if err != nil {
 		fmt.Println("DO ACTION ERROR: ", err)
 		return
 	}
 
-	fmt.Println("Receive data: ", str)
+	fmt.Println("Receive data: ", str , "\n")
 }
 
 func (mp *Messagepasser) HandleMCast(msg *MultiCastMessage) {

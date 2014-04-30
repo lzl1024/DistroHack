@@ -13,7 +13,7 @@ var electionOnGoing bool // whether I am trying to find SN
 
 // main routine handling SN fails
 func SNFailure() {
-	fmt.Println("Haha! My SN fails")
+	fmt.Println("\n\n\nHaha! My SN fails\n\n\n")
 	
 	// use a go routine to find new SN
 	go findNewSN()
