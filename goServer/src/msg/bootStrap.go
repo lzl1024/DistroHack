@@ -76,7 +76,7 @@ func ReadConfig() error {
 		}
 	}
 
-	fmt.Printf("ReadConfig configSNList len %d\n", len(configSNList))
+	fmt.Printf("ReadConfig configSNList: ", configSNList)
 	return nil
 }
 
@@ -186,7 +186,7 @@ func BootStrapSN() {
 	rand.Seed(time.Now().UnixNano())
 
 	listLength := len(configSNList)
-	fmt.Println("My configSNList length ", listLength)
+	fmt.Println("Bootstrapping configSNList ", configSNList)
 	if listLength == 0 {
 		SNbootstrap <- errors.New("")
 		return

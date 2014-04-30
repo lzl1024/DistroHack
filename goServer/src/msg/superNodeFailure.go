@@ -64,7 +64,7 @@ func findNewSN() {
 				ONHostlistMutex.Unlock()
 				// I am the Leader! Send msg to my ONs
 				if win {
-					fmt.Println("I am the Leader!!!")
+					fmt.Println("\n\n\n\nI am the Leader!!!\n\n\n\n")
 					leaderMsg := new(Message)
 					err := leaderMsg.NewMsgwithData("", ON_ON_LEADER, MsgPasser.ServerIP)
 					if err != nil {
