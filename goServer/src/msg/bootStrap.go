@@ -446,11 +446,11 @@ func RcvSnLoadMerge(msg *Message) (interface{}, error) {
 	SNHostlistMutex.Lock()
 	MsgPasser.SNLoadlist[msg.Origin] = load
 	SNHostlistMutex.Unlock()
-	fmt.Println("\n\nCurrent Load Info:")
+	fmt.Println("\nCurrent Load Info:")
 	for k, _ := range MsgPasser.SNLoadlist {
 		fmt.Println(k, MsgPasser.SNLoadlist[k])
 	}
-	fmt.Println("\n\n")
+	fmt.Println("")
 
 	return msg, nil
 }

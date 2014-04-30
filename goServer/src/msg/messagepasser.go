@@ -108,7 +108,7 @@ func NewMsgPasser(serverIP string, ONPort int, SNPort int) (*Messagepasser, erro
 func (mp *Messagepasser) getConnection(msgDest string, port string) (*Connection, error) {
 	/* check if already existent connection is there */
 	dest := net.JoinHostPort(msgDest, port)
-	fmt.Println(dest)
+	//fmt.Println(dest)
 	connection, ok := mp.Connmap[msgDest]
 	if !ok {
 		conn, err := net.DialTimeout("tcp", dest, (time.Duration(3) * time.Second))

@@ -11,7 +11,7 @@ func InitListenerForPeers() {
 	channel := make(chan error)
 	go serverthread(msg.MsgPasser, channel)
 	value := <-channel
-	fmt.Println(value)
+	fmt.Println("\nServer channel val: ", value, "\n")
 }
 
 func serverthread(mp *msg.Messagepasser, c chan error) {

@@ -63,13 +63,13 @@ func initMessagePasser() {
 
 	var addr net.IP
 	for i := range addrs {
-		fmt.Println(addrs[i])
 		ip, _, _ := net.ParseCIDR(addrs[i].String())
 		if ip.IsLoopback() || ip.IsInterfaceLocalMulticast() ||
 			ip.IsLinkLocalMulticast() || ip.IsLinkLocalUnicast() ||
 			ip.IsMulticast() {
 			continue
 		} else {
+			fmt.Println("Local IP address: ", addrs[i])
 			addr = ip
 			break
 		}
