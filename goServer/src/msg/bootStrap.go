@@ -310,7 +310,7 @@ func RcvOnJoin(msg *Message) (interface{}, error) {
 	m.NewMsgwithData(msg.Origin, SN_ON_JOIN_ACK, snIP)
 	err := MsgPasser.Send(m)
 	SNHostlistMutex.Unlock()
-	return msg, err
+	return nil, err
 }
 
 func RcvOnJoinAck(msg *Message) (interface{}, error) {
@@ -376,7 +376,7 @@ func RcvSnOnRegister(msg *Message) (interface{}, error) {
 	}
 	MulticastMsgInGroup(newMsg, true)
 
-	return msg, nil
+	return ip, nil
 }
 
 // all ON get this msg should change their point to new ONlist directly
@@ -399,7 +399,7 @@ func RcvSNChangeONList(msg *Message) (interface{}, error) {
 
 		return newONList, nil
 	} else {
-		return "Haha! I am SN!", nil
+		return "Haha! I am sender!", nil
 	}
 }
 
@@ -428,7 +428,7 @@ func RcvSnLoadUpdate(msg *Message) (interface{}, error) {
 	}
 	MulticastMsgInGroup(newMsg, true)
 
-	return msg, nil
+	return load, nil
 }
 
 func RcvSnLoadMerge(msg *Message) (interface{}, error) {
@@ -452,7 +452,7 @@ func RcvSnLoadMerge(msg *Message) (interface{}, error) {
 	}
 	fmt.Println("")
 
-	return msg, nil
+	return load, nil
 }
 
 // one bootstraping SN get this message and send out update_list msgs
@@ -592,7 +592,7 @@ func RcvSnJoinAck(msg *Message) (interface{}, error) {
 
 	SNbootstrap <- errors.New("")
 
-	return nil, nil
+	return ipWithStartTime, nil
 }
 
 // every SN get this meesage, update their SNlist and send out list merge

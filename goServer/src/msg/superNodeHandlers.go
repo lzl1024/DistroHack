@@ -551,13 +551,13 @@ func MulticastMsgInGroup(m *Message, isSuper bool) {
 	newMCastMsg.HostList = make(map[string]string)
 
 	if isSuper {
-		fmt.Printf("SuperNodeHandler: multicastMsgInGroup SNHostList %d\n", len(MsgPasser.SNHostlist))
+		//fmt.Printf("SuperNodeHandler: multicastMsgInGroup SNHostList %d\n", len(MsgPasser.SNHostlist))
 		SNHostlistMutex.Lock()
 		newMCastMsg.HostList = MsgPasser.SNHostlist
 		MsgPasser.SendMCast(newMCastMsg)
 		SNHostlistMutex.Unlock()
 	} else {
-		fmt.Printf("SuperNodeHandler: multicastMsgInGroup ONHostList %d\n", len(MsgPasser.ONHostlist))
+		//fmt.Printf("SuperNodeHandler: multicastMsgInGroup ONHostList %d\n", len(MsgPasser.ONHostlist))
 		ONHostlistMutex.Lock()
 		newMCastMsg.HostList = MsgPasser.ONHostlist
 		MsgPasser.SendMCast(newMCastMsg)
