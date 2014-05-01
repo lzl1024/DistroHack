@@ -504,9 +504,6 @@ func RcvSnJoin(msg *Message) (interface{}, error) {
 	newMCastMsg.Origin = MsgPasser.ServerIP
 	newMCastMsg.Seqnum = atomic.AddInt32(&MsgPasser.SeqNum, 1)
 	MsgPasser.SendMCast(newMCastMsg)
-	
-	// send out ack msg tell the new sn data is ready on server
-	bootStrapMsg := new(Message)
 
 	StartEnd_Lock.Lock()
 	returnIP := MsgPasser.ServerIP
@@ -520,6 +517,22 @@ func RcvSnJoin(msg *Message) (interface{}, error) {
 	for key,  _ := range hostlist {
 		hostListString = hostListString + key + " "
 	}
+	
+	// send out global ranking message to update
+	Loval_Info_Mutex.Lock()
+	globalRankMsg := new(Message)
+	err = globalRankMsg.NewMsgwithData("", SN_SN_RANK, Global_ranking)
+	if err != nil {
+		fmt.Println("In RcvSnJoin:")
+		return nil, err
+	}
+	Local_Info_Mutex.Unlock()
+
+	err = MsgPasser.Send(globalRankMsg)
+	if err != nil {
+		fmt.Println("In RcvSnJoin: ")
+		return nil, err
+	}
 
 	
 	backData := map[string]string{
@@ -529,6 +542,8 @@ func RcvSnJoin(msg *Message) (interface{}, error) {
 	}
 	StartEnd_Lock.Unlock()
 
+	// send out ack msg tell the new sn data is ready on server
+	bootStrapMsg := new(Message)
 	err = bootStrapMsg.NewMsgwithData(ip, SN_SN_JOIN_ACK, backData)
 	err = MsgPasser.Send(bootStrapMsg)
 	if err != nil {
@@ -557,7 +572,6 @@ func RcvSnJoinAck(msg *Message) (interface{}, error) {
 	}
 	
 	hostlistAr := strings.Split(ipWithStartTime["snlist"], " ")
-	fmt.Println(ipWithStartTime["snlist"])
 	SNHostlistMutex.Lock()
 	for index := range hostlistAr {
 		if (len(hostlistAr[index]) > 5) {
@@ -565,7 +579,6 @@ func RcvSnJoinAck(msg *Message) (interface{}, error) {
 		}
 	}
 	SNHostlistMutex.Unlock()
-	
 	
 	fmt.Println("Join ACK HostList: ", MsgPasser.SNHostlist)
 	
