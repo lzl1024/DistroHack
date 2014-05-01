@@ -557,9 +557,10 @@ func RcvSnJoinAck(msg *Message) (interface{}, error) {
 	}
 	
 	hostlistAr := strings.Split(ipWithStartTime["snlist"], " ")
+	fmt.Println(ipWithStartTime["snlist"])
 	SNHostlistMutex.Lock()
 	for index := range hostlistAr {
-		if (len(hostlistAr[index]) < 5) {
+		if (len(hostlistAr[index]) > 5) {
 			MsgPasser.SNHostlist[hostlistAr[index]] = hostlistAr[index]
 		}
 	}
