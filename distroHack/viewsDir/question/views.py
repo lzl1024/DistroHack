@@ -35,7 +35,7 @@ descript_file_name = "description.txt"
 answer_file_name = "answer.txt"
 start_file_name = "startCode.java"
 test_file_name = "testCode.java"
-question_set_size = 2
+question_set_size = 4
 
 # read question s3
 url_prefix = ""
