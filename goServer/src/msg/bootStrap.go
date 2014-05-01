@@ -204,7 +204,7 @@ func BootStrapSN() {
 			} else {
 				waitForJoinAck()
 				if JoinAck == true {
-					fmt.Println("bootstrap send bootstrapMsg to ", configSNList[chose].String())
+					fmt.Println("\nNew SN send bootstrapMsg to ", configSNList[chose].String(), "\n\n")
 					break
 				} else {
 					// delete the fail one from configSNList
@@ -266,6 +266,7 @@ func BootStrapON() error {
 		} else {
 			waitForJoinAck()
 			if JoinAck == true {
+				fmt.Println("\n New ON first Contact with SN: ", configSNList[chose].String(), "\n")
 				break
 			} else {
 				// delete the fail one from configSNList
@@ -329,6 +330,8 @@ func RcvOnJoinAck(msg *Message) (interface{}, error) {
 		JoinAck = false
 		return ip, err
 	}
+	fmt.Println("\n\n I connect to SN: ", ip, "\n\n")
+
 
 	JoinAck = true
 	SuperNodeIP = ip
@@ -484,29 +487,6 @@ func RcvSnJoin(msg *Message) (interface{}, error) {
 		return nil, err
 	}
 
-	// send out ack msg tell the new sn data is ready on server
-	bootStrapMsg := new(Message)
-
-	StartEnd_Lock.Lock()
-	returnIP := MsgPasser.ServerIP
-
-	// if I am not SN set error mark
-	if IsSN == false {
-		returnIP = "0"
-	}
-
-	backData := map[string]string{
-		"serverIP":  returnIP,
-		"startTime": StartTime,
-	}
-	StartEnd_Lock.Unlock()
-
-	err = bootStrapMsg.NewMsgwithData(ip, SN_SN_JOIN_ACK, backData)
-	err = MsgPasser.Send(bootStrapMsg)
-	if err != nil {
-		fmt.Println("In RcvSnJoin: ")
-		return nil, err
-	}
 
 	/* a new super node has tried to join , add him to our list and multicast that
 	 * a new node has joined, and everyone should update their lists
@@ -524,6 +504,37 @@ func RcvSnJoin(msg *Message) (interface{}, error) {
 	newMCastMsg.Origin = MsgPasser.ServerIP
 	newMCastMsg.Seqnum = atomic.AddInt32(&MsgPasser.SeqNum, 1)
 	MsgPasser.SendMCast(newMCastMsg)
+	
+	// send out ack msg tell the new sn data is ready on server
+	bootStrapMsg := new(Message)
+
+	StartEnd_Lock.Lock()
+	returnIP := MsgPasser.ServerIP
+
+	// if I am not SN set error mark
+	if IsSN == false {
+		returnIP = "0"
+	}
+	
+	hostListString := ""
+	for key,  _ := range hostlist {
+		hostListString = hostListString + key + " "
+	}
+
+	
+	backData := map[string]string{
+		"serverIP":  returnIP,
+		"startTime": StartTime,
+		"snlist": hostListString,
+	}
+	StartEnd_Lock.Unlock()
+
+	err = bootStrapMsg.NewMsgwithData(ip, SN_SN_JOIN_ACK, backData)
+	err = MsgPasser.Send(bootStrapMsg)
+	if err != nil {
+		fmt.Println("In RcvSnJoin: ")
+		return nil, err
+	}
 
 	return ip, nil
 }
@@ -544,6 +555,17 @@ func RcvSnJoinAck(msg *Message) (interface{}, error) {
 		SNbootstrap <- err
 		return nil, err
 	}
+	
+	hostlistAr := strings.Split(ipWithStartTime["snlist"], " ")
+	SNHostlistMutex.Lock()
+	for index := range hostlistAr {
+		MsgPasser.SNHostlist[hostlistAr[index]] = hostlistAr[index]
+	}
+	SNHostlistMutex.Unlock()
+	
+	
+	fmt.Println("Join ACK HostList: ", MsgPasser.SNHostlist)
+	
 
 	ip := ipWithStartTime["serverIP"]
 
