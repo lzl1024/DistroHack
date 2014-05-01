@@ -1,4 +1,4 @@
-		int[][] p = new int[m][n];
+	int[][] p = new int[m][n];
         
         for(int i = 0; i < m; i++)
             p[i][0] = 1;
