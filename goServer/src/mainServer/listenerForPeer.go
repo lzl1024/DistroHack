@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"msg"
 	"net"
+	"time"
 )
 
 func InitListenerForPeers() {
@@ -60,6 +61,7 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 	}
 
 	decoder := gob.NewDecoder(conn)
+	go startHbeat(conn)
 	for {
 		err := decoder.Decode(&data)
 		if err != nil {
@@ -157,4 +159,14 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 	if msg.SuperNodeIP == dest {
 		msg.SNFailure()
 	}
+}
+
+func startHbeat(conn net.Conn) {
+	b := []byte{0}
+	_,err := conn.Write(b)
+	if err != nil {
+		fmt.Println("Detected connection from startHbeat!!!!!")
+		conn.Close()
+	}
+	time.Sleep(time.Second * time.Duration(5))
 }

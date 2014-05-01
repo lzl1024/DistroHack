@@ -15,7 +15,7 @@ SN discovery:
 	Minglei starts local SN
 ON discovery - Load balance:
 	Minglei starts aws ON
-	lzl starts aws ON
+	lzl starts local ON
 	akaila starts local ON - mine
 2-phase commit:
 	lzl signup local ON || Minglei signs up on local SN -> same user
