@@ -349,8 +349,13 @@ func RcvSnRankfromOrigin(msg *Message) (interface{}, error) {
 
 	// multicast the global rank in group
 	newMessage := new(Message)
-	newMessage.CopyMsg(msg)
-	newMessage.Kind = SN_ON_RANK
+	err := newMessage.NewMsgwithData(msg.Src, SN_ON_RANK, Global_ranking)
+	if err != nil {
+		fmt.Println("In RcvSnPblSuccess:")
+		return nil, err
+	}
+
+
 	MulticastMsgInGroup(newMessage, false)
 
 	return newRankList, nil
