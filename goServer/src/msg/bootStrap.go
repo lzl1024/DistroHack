@@ -519,7 +519,7 @@ func RcvSnJoin(msg *Message) (interface{}, error) {
 	}
 	
 	// send out global ranking message to update
-	Loval_Info_Mutex.Lock()
+	Local_Info_Mutex.Lock()
 	globalRankMsg := new(Message)
 	err = globalRankMsg.NewMsgwithData("", SN_SN_RANK, Global_ranking)
 	if err != nil {
