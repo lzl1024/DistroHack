@@ -1,0 +1,45 @@
+1. Peer Discovery: noip.com, dynamic DNS
+	- SN discovery
+	- ON discovery
+	- Load Balancing: Round Robin
+2. Sign-up/Register: Show 2-phase commit working
+3. Start Hackathon
+	- ON joins before start hackathon
+	- ON joins after start hackathon
+	- SN joins after start hackathon
+
+RUBRIC:
+SN discovery:
+	lzl starts aws SN
+	Kaiyue starts aws SN
+	Minglei starts local SN
+ON discovery - Load balance:
+	Minglei starts aws ON
+	lzl starts aws ON
+	akaila starts local ON - mine
+2-phase commit:
+	lzl signup local ON || Minglei signs up on local SN -> same user
+	one of above fails -> signs up as admin
+start hackathon:
+	Kaiyue joins as ON
+	akaila joins as ON
+Incorrect Submission of solution:
+	Kaiyue submits an incorrect solution
+	explain everyting is local -> compilation, validation etc
+Problem success:
+	Kaiyue submits a correct solution
+	Everyone shows ranking -> explain reliable multicast/message passer
+
+------------------------------------------
+Failure Cases:
+------------------------------------------
+ON failure:
+	Kaiyue fails, and comes back up -> state is from local DB
+SN failure:-> Bully
+	Fail SN which has 3 ONs -> Demonstrate Bully algorithm
+	ON should solve problem in new group
+	Show global ranking
+	Fail an ON in this new SN group
+End Hackathon
+
+Start Hackathon again -> Everyone sees the same stuff, If start a new one , run./clear.sh
