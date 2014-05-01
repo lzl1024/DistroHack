@@ -487,6 +487,11 @@ func mergeGlobalRankingWithList(newRankList [GlobalRankSize]UserRecord) {
 	endGlobalR := getEmptyPos(Global_ranking)
 	endNewR := getEmptyPos(newRankList)
 
+	fmt.Println("newRankList : ", newRankList)
+	fmt.Println("Global_ranking : ", Global_ranking)
+	fmt.Println("endGlobalR : ", endGlobalR,  " endNewR", endNewR)
+	fmt.Println("GlobalRankSize: ", GlobalRankSize )
+	
 	// main merge
 	for index < GlobalRankSize && indexGlobalR < endGlobalR && indexNewR < endNewR {
 		if Global_ranking[indexGlobalR].CompareTo(newRankList[indexNewR]) {
@@ -507,6 +512,9 @@ func mergeGlobalRankingWithList(newRankList [GlobalRankSize]UserRecord) {
 			}
 			indexNewR++
 		}
+		fmt.Println("index : ", index)
+		fmt.Println("newList :" ,newList)
+		fmt.Println("indexGlobalR: ", indexGlobalR, " indexNewR: ", indexNewR)
 	}
 
 	for index < GlobalRankSize && indexGlobalR < endGlobalR {
@@ -516,6 +524,10 @@ func mergeGlobalRankingWithList(newRankList [GlobalRankSize]UserRecord) {
 			index++
 		}
 		indexGlobalR++
+		
+		fmt.Println("index : ", index)
+		fmt.Println("newList :" ,newList)
+		fmt.Println("indexGlobalR: ", indexGlobalR, " indexNewR: ", indexNewR)
 	}
 
 	for index < GlobalRankSize && indexNewR < endNewR {
@@ -525,6 +537,10 @@ func mergeGlobalRankingWithList(newRankList [GlobalRankSize]UserRecord) {
 			index++
 		}
 		indexNewR++
+		
+		fmt.Println("index : ", index)
+		fmt.Println("newList :" ,newList)
+		fmt.Println("indexGlobalR: ", indexGlobalR, " indexNewR: ", indexNewR)
 	}
 
 	Global_ranking = newList
