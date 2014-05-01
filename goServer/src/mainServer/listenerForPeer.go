@@ -163,10 +163,13 @@ func rcvthread(mp *msg.Messagepasser, conn net.Conn) {
 
 func startHbeat(conn net.Conn) {
 	b := []byte{0}
-	_,err := conn.Write(b)
-	if err != nil {
-		fmt.Println("Detected connection from startHbeat!!!!!")
-		conn.Close()
+	for {
+		_,err := conn.Write(b)
+		if err != nil {
+			fmt.Println("Detected connection from startHbeat!!!!!")
+			conn.Close()
+			break
+		}
+		time.Sleep(time.Second * time.Duration(5))
 	}
-	time.Sleep(time.Second * time.Duration(5))
 }
